@@ -2,7 +2,7 @@
 name = "k12-pipeline"
 version = "0.1.0"
 description = "Imports STAAR released tests, generates variants, and runs the AI reviewer."
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 # Only what the importer needs. Keep ranges bounded so pip never backtracks through old releases.
 dependencies = [
   "pymupdf>=1.26,<2",
@@ -26,3 +26,4 @@ packages = ["src/k12_pipeline"]
 
 [tool.ruff]
 line-length = 110
+target-version = "py311"
