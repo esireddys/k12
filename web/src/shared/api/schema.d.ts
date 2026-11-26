@@ -37,6 +37,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/practice/questions/{questionId}/check": {
         parameters: {
             query?: never;
@@ -47,6 +63,118 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["CheckAnswer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/ai-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListAiReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/ai-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RecordAiReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetOwnerQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetQuestionForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApproveQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RejectQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/images/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetItemImage"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -89,6 +217,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AiFinding: {
+            severity: components["schemas"]["FindingSeverity"];
+            area: string;
+            message: string;
+        };
+        AiReviewQueueResponse: {
+            items: components["schemas"]["QuestionForReview"][];
+        };
+        AiReviewView: {
+            reviewer: string;
+            /** Format: date-time */
+            reviewedAt: string;
+            verdict: components["schemas"]["AiVerdict"];
+            answerKeyAgrees: boolean;
+            solvedAnswer: string;
+            suggestedDifficulty: components["schemas"]["Difficulty"];
+            proposedContent: components["schemas"]["JsonElement"];
+            summary: string;
+            findings: components["schemas"]["AiFinding"][];
+        };
+        /** @enum {unknown} */
+        AiVerdict: "LooksGood" | "NeedsAttention";
         /** @enum {unknown} */
         AnswerKind: "Choice" | "Integer" | "Decimal" | "Fraction" | "Money" | "Time";
         AnswerSpec: {
@@ -98,6 +248,14 @@ export interface components {
             requireSimplest?: boolean;
             accept?: string[];
         };
+        ApproveBody: {
+            /** Format: int32 */
+            version: number | string;
+            content: null | components["schemas"]["JsonElement"];
+            answer: null | components["schemas"]["AnswerSpec"];
+            difficulty: null | components["schemas"]["Difficulty"];
+            note: null | string;
+        };
         CheckAnswerBody: {
             response: null | string;
         };
@@ -105,6 +263,10 @@ export interface components {
             isCorrect: boolean;
             understood: boolean;
         };
+        /** @enum {unknown} */
+        Difficulty: "Easier" | "OnLevel" | "Harder";
+        /** @enum {unknown} */
+        FindingSeverity: "Info" | "Warning" | "Problem";
         ImportCategory: {
             /** Format: int32 */
             number: number | string;
@@ -163,6 +325,43 @@ export interface components {
             limits: null | components["schemas"]["JsonElement"];
         };
         JsonElement: unknown;
+        MeResponse: {
+            name: string;
+            isOwner: boolean;
+        };
+        OwnerDecisionView: {
+            outcome: components["schemas"]["OwnerOutcome"];
+            decidedBy: string;
+            /** Format: date-time */
+            decidedAt: string;
+            note: null | string;
+        };
+        /** @enum {unknown} */
+        OwnerOutcome: "Approved" | "ApprovedWithEdits" | "Rejected";
+        OwnerQueueItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number | string;
+            itemType: string;
+            skillCodes: string[];
+            source: null | components["schemas"]["ReviewSource"];
+            verdict: null | components["schemas"]["AiVerdict"];
+            answerKeyAgrees: null | boolean;
+            /** Format: int32 */
+            problemCount: number | string;
+            /** Format: int32 */
+            warningCount: number | string;
+            summary: null | string;
+            difficulty: components["schemas"]["Difficulty"];
+            suggestedDifficulty: null | components["schemas"]["Difficulty"];
+        };
+        OwnerQueueResponse: {
+            counts: {
+                [key: string]: number | string;
+            };
+            items: components["schemas"]["OwnerQueueItem"][];
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -170,6 +369,69 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        QuestionForReview: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number | string;
+            status: components["schemas"]["QuestionStatus"];
+            origin: components["schemas"]["QuestionOrigin"];
+            itemType: string;
+            content: components["schemas"]["JsonElement"];
+            answer: components["schemas"]["AnswerSpec"];
+            difficulty: components["schemas"]["Difficulty"];
+            skills: components["schemas"]["ReviewSkill"][];
+            source: null | components["schemas"]["ReviewSource"];
+            aiReview: null | components["schemas"]["AiReviewView"];
+            ownerDecision: null | components["schemas"]["OwnerDecisionView"];
+        };
+        /** @enum {unknown} */
+        QuestionOrigin: "Official" | "Generated";
+        /** @enum {unknown} */
+        QuestionStatus: "Draft" | "InAiReview" | "AwaitingOwner" | "Live" | "Rejected" | "Retired";
+        RecordAiReviewBody: {
+            /** Format: int32 */
+            version: number | string;
+            reviewer: string;
+            verdict: components["schemas"]["AiVerdict"];
+            answerKeyAgrees: boolean;
+            solvedAnswer: string;
+            suggestedDifficulty: components["schemas"]["Difficulty"];
+            proposedContent: components["schemas"]["JsonElement"];
+            summary: string;
+            findings: components["schemas"]["AiFinding"][];
+        };
+        RejectBody: {
+            /** Format: int32 */
+            version: number | string;
+            reason: string;
+        };
+        ReviewSkill: {
+            code: string;
+            description: string;
+            limits: components["schemas"]["JsonElement"];
+        };
+        ReviewSource: {
+            jurisdiction: string;
+            subject: string;
+            courseCode: string;
+            courseName: string;
+            frameworkName: string;
+            exam: string;
+            /** Format: int32 */
+            year: number | string;
+            season: string;
+            /** Format: int32 */
+            itemNumber: number | string;
+            sourceUrl: string;
+        };
+        ReviewStepResponse: {
+            /** Format: uuid */
+            questionId: string;
+            /** Format: int32 */
+            version: number | string;
+            status: components["schemas"]["QuestionStatus"];
         };
     };
     responses: never;
@@ -180,6 +442,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    GetMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
     CheckAnswer: {
         parameters: {
             query?: never;
@@ -203,6 +485,276 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CheckAnswerResponse"];
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListAiReviewQueue: {
+        parameters: {
+            query?: {
+                take?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiReviewQueueResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RecordAiReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordAiReviewBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetOwnerQueue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerQueueResponse"];
+                };
+            };
+        };
+    };
+    GetQuestionForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionForReview"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ApproveQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RejectQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetItemImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {

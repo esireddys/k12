@@ -61,6 +61,10 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AiReview")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("AiReviewJson");
+
                     b.Property<string>("Answer")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -93,6 +97,7 @@ namespace K12.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
+                        .IsConcurrencyToken()
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -224,6 +229,45 @@ namespace K12.Infrastructure.Persistence.Migrations
                         });
 
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("K12.Domain.Content.Question", b =>
+                {
+                    b.OwnsOne("K12.Domain.Content.Review.OwnerDecision", "OwnerDecision", b1 =>
+                        {
+                            b1.Property<Guid>("QuestionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateTimeOffset>("DecidedAt")
+                                .HasColumnType("datetimeoffset")
+                                .HasColumnName("OwnerDecidedAt");
+
+                            b1.Property<string>("DecidedBy")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("OwnerDecidedBy");
+
+                            b1.Property<string>("Note")
+                                .HasMaxLength(2000)
+                                .HasColumnType("nvarchar(2000)")
+                                .HasColumnName("OwnerNote");
+
+                            b1.Property<string>("Outcome")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)")
+                                .HasColumnName("OwnerOutcome");
+
+                            b1.HasKey("QuestionId");
+
+                            b1.ToTable("Questions", "content");
+
+                            b1.WithOwner()
+                                .HasForeignKey("QuestionId");
+                        });
+
+                    b.Navigation("OwnerDecision");
                 });
 
             modelBuilder.Entity("K12.Domain.Curriculum.Course", b =>

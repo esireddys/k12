@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using K12.Domain.Content;
 using K12.Domain.Content.Answers;
+using K12.Domain.Content.Review;
 using K12.Domain.Curriculum;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -28,8 +29,18 @@ internal static class Converters
         spec => JsonSerializer.Serialize(spec, Json),
         json => JsonSerializer.Deserialize<AnswerSpec>(json, Json)!);
 
-    public static readonly ValueComparer<AnswerSpec> AnswerSpecComparer = new(
+    public static readonly ValueComparer<AnswerSpec> AnswerSpecComparer = JsonComparer<AnswerSpec>();
+
+    /// <summary>Stores the AI reviewer's findings as JSON: they are read whole and never queried field by field.</summary>
+    public static readonly ValueConverter<AiReview, string> AiReview = new(
+        review => JsonSerializer.Serialize(review, Json),
+        json => JsonSerializer.Deserialize<AiReview>(json, Json)!);
+
+    public static readonly ValueComparer<AiReview?> AiReviewComparer = JsonComparer<AiReview?>();
+
+    /// <summary>Two values are the same when they serialize the same; snapshots are deep copies.</summary>
+    private static ValueComparer<T> JsonComparer<T>() => new(
         (a, b) => JsonSerializer.Serialize(a, Json) == JsonSerializer.Serialize(b, Json),
         a => JsonSerializer.Serialize(a, Json).GetHashCode(),
-        a => JsonSerializer.Deserialize<AnswerSpec>(JsonSerializer.Serialize(a, Json), Json)!);
+        a => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(a, Json), Json)!);
 }

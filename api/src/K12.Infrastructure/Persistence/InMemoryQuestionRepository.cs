@@ -19,4 +19,11 @@ public sealed class InMemoryQuestionRepository : IQuestionRepository
         _store[question.Id] = question;
         return Task.CompletedTask;
     }
+
+    public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Question>>(_store.Values.Where(q => q.Status == status).Take(take).ToList());
+
+    public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(
+            _store.Values.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));
 }

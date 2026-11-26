@@ -13,6 +13,10 @@ public class CheckAnswerHandlerTests
         private readonly Dictionary<QuestionId, Question> _items = [];
         public Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default) => Task.FromResult(_items.GetValueOrDefault(id));
         public Task AddAsync(Question question, CancellationToken ct = default) { _items[question.Id] = question; return Task.CompletedTask; }
+        public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(_items.Values.Where(q => q.Status == status).Take(take).ToList());
+        public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(_items.Values.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));
     }
 
     private static Question Live()
@@ -20,7 +24,7 @@ public class CheckAnswerHandlerTests
         var q = Question.Draft([SkillId.New()], "numeric", "{}",
             new AnswerSpec { Kind = AnswerKind.Fraction, Value = "3/4" }, Difficulty.OnLevel, QuestionOrigin.Official);
         q.SubmitForAiReview();
-        q.PassAiReview();
+        q.RecordAiReview(TestReviews.LooksGood());
         q.Approve("owner", DateTimeOffset.UnixEpoch);
         return q;
     }

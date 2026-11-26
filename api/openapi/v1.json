@@ -22,6 +22,26 @@
         }
       }
     },
+    "/api/me": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "GetMe",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/practice/questions/{questionId}/check": {
       "post": {
         "tags": [
@@ -59,6 +79,357 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/ai-queue": {
+      "get": {
+        "tags": [
+          "AI review"
+        ],
+        "operationId": "ListAiReviewQueue",
+        "parameters": [
+          {
+            "name": "take",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiReviewQueueResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions/{questionId}/ai-review": {
+      "post": {
+        "tags": [
+          "AI review"
+        ],
+        "operationId": "RecordAiReview",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordAiReviewBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewStepResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/queue": {
+      "get": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "GetOwnerQueue",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions/{questionId}": {
+      "get": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "GetQuestionForReview",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionForReview"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions/{questionId}/approve": {
+      "post": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "ApproveQuestion",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewStepResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions/{questionId}/reject": {
+      "post": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "RejectQuestion",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewStepResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/images/{path}": {
+      "get": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "GetItemImage",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "404": {
             "description": "Not Found",
@@ -176,6 +547,92 @@
   },
   "components": {
     "schemas": {
+      "AiFinding": {
+        "required": [
+          "severity",
+          "area",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "severity": {
+            "$ref": "#/components/schemas/FindingSeverity"
+          },
+          "area": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AiReviewQueueResponse": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionForReview"
+            }
+          }
+        }
+      },
+      "AiReviewView": {
+        "required": [
+          "reviewer",
+          "reviewedAt",
+          "verdict",
+          "answerKeyAgrees",
+          "solvedAnswer",
+          "suggestedDifficulty",
+          "proposedContent",
+          "summary",
+          "findings"
+        ],
+        "type": "object",
+        "properties": {
+          "reviewer": {
+            "type": "string"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/AiVerdict"
+          },
+          "answerKeyAgrees": {
+            "type": "boolean"
+          },
+          "solvedAnswer": {
+            "type": "string"
+          },
+          "suggestedDifficulty": {
+            "$ref": "#/components/schemas/Difficulty"
+          },
+          "proposedContent": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiFinding"
+            }
+          }
+        }
+      },
+      "AiVerdict": {
+        "enum": [
+          "LooksGood",
+          "NeedsAttention"
+        ]
+      },
       "AnswerKind": {
         "enum": [
           "Choice",
@@ -213,6 +670,62 @@
           }
         }
       },
+      "ApproveBody": {
+        "required": [
+          "version",
+          "content",
+          "answer",
+          "difficulty",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            ]
+          },
+          "answer": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AnswerSpec"
+              }
+            ]
+          },
+          "difficulty": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Difficulty"
+              }
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "CheckAnswerBody": {
         "required": [
           "response"
@@ -241,6 +754,20 @@
             "type": "boolean"
           }
         }
+      },
+      "Difficulty": {
+        "enum": [
+          "Easier",
+          "OnLevel",
+          "Harder"
+        ]
+      },
+      "FindingSeverity": {
+        "enum": [
+          "Info",
+          "Warning",
+          "Problem"
+        ]
       },
       "ImportCategory": {
         "required": [
@@ -487,7 +1014,183 @@
           }
         }
       },
-      "JsonElement": {},
+      "JsonElement": { },
+      "MeResponse": {
+        "required": [
+          "name",
+          "isOwner"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isOwner": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OwnerDecisionView": {
+        "required": [
+          "outcome",
+          "decidedBy",
+          "decidedAt",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/OwnerOutcome"
+          },
+          "decidedBy": {
+            "type": "string"
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "OwnerOutcome": {
+        "enum": [
+          "Approved",
+          "ApprovedWithEdits",
+          "Rejected"
+        ]
+      },
+      "OwnerQueueItem": {
+        "required": [
+          "id",
+          "version",
+          "itemType",
+          "skillCodes",
+          "source",
+          "verdict",
+          "answerKeyAgrees",
+          "problemCount",
+          "warningCount",
+          "summary",
+          "difficulty",
+          "suggestedDifficulty"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "skillCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewSource"
+              }
+            ]
+          },
+          "verdict": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AiVerdict"
+              }
+            ]
+          },
+          "answerKeyAgrees": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "problemCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "warningCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/Difficulty"
+          },
+          "suggestedDifficulty": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Difficulty"
+              }
+            ]
+          }
+        }
+      },
+      "OwnerQueueResponse": {
+        "required": [
+          "counts",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "additionalProperties": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OwnerQueueItem"
+            }
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -525,6 +1228,279 @@
             ]
           }
         }
+      },
+      "QuestionForReview": {
+        "required": [
+          "id",
+          "version",
+          "status",
+          "origin",
+          "itemType",
+          "content",
+          "answer",
+          "difficulty",
+          "skills",
+          "source",
+          "aiReview",
+          "ownerDecision"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuestionStatus"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/QuestionOrigin"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "answer": {
+            "$ref": "#/components/schemas/AnswerSpec"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/Difficulty"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewSkill"
+            }
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewSource"
+              }
+            ]
+          },
+          "aiReview": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AiReviewView"
+              }
+            ]
+          },
+          "ownerDecision": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/OwnerDecisionView"
+              }
+            ]
+          }
+        }
+      },
+      "QuestionOrigin": {
+        "enum": [
+          "Official",
+          "Generated"
+        ]
+      },
+      "QuestionStatus": {
+        "enum": [
+          "Draft",
+          "InAiReview",
+          "AwaitingOwner",
+          "Live",
+          "Rejected",
+          "Retired"
+        ]
+      },
+      "RecordAiReviewBody": {
+        "required": [
+          "version",
+          "reviewer",
+          "verdict",
+          "answerKeyAgrees",
+          "solvedAnswer",
+          "suggestedDifficulty",
+          "proposedContent",
+          "summary",
+          "findings"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reviewer": {
+            "type": "string"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/AiVerdict"
+          },
+          "answerKeyAgrees": {
+            "type": "boolean"
+          },
+          "solvedAnswer": {
+            "type": "string"
+          },
+          "suggestedDifficulty": {
+            "$ref": "#/components/schemas/Difficulty"
+          },
+          "proposedContent": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiFinding"
+            }
+          }
+        }
+      },
+      "RejectBody": {
+        "required": [
+          "version",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ReviewSkill": {
+        "required": [
+          "code",
+          "description",
+          "limits"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        }
+      },
+      "ReviewSource": {
+        "required": [
+          "jurisdiction",
+          "subject",
+          "courseCode",
+          "courseName",
+          "frameworkName",
+          "exam",
+          "year",
+          "season",
+          "itemNumber",
+          "sourceUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdiction": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "frameworkName": {
+            "type": "string"
+          },
+          "exam": {
+            "type": "string"
+          },
+          "year": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "season": {
+            "type": "string"
+          },
+          "itemNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sourceUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "ReviewStepResponse": {
+        "required": [
+          "questionId",
+          "version",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuestionStatus"
+          }
+        }
       }
     }
   },
@@ -533,7 +1509,16 @@
       "name": "K12.Api"
     },
     {
+      "name": "Account"
+    },
+    {
       "name": "Practice"
+    },
+    {
+      "name": "AI review"
+    },
+    {
+      "name": "Owner review"
     },
     {
       "name": "Content import"

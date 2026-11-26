@@ -1,6 +1,7 @@
 using K12.Application.Abstractions;
 using K12.Domain.Content;
 using K12.Domain.Content.Answers;
+using K12.Domain.Content.Review;
 using K12.Domain.Curriculum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,9 +31,15 @@ public static class DevelopmentSeed
             answer: new AnswerSpec { Kind = AnswerKind.Integer, Value = "144" },
             difficulty: Difficulty.OnLevel,
             origin: QuestionOrigin.Generated);
+        var now = sp.GetRequiredService<IClock>().UtcNow;
         question.SubmitForAiReview();
-        question.PassAiReview();
-        question.Approve("development-seed", sp.GetRequiredService<IClock>().UtcNow);
+        question.RecordAiReview(new AiReview
+        {
+            Reviewer = "development-seed", ReviewedAt = now, Verdict = AiVerdict.LooksGood, AnswerKeyAgrees = true,
+            SolvedAnswer = "144", SuggestedDifficulty = Difficulty.OnLevel,
+            ProposedContentJson = question.ContentJson, Summary = "Made-up sample for local runs.",
+        });
+        question.Approve("development-seed", now);
         question.ClearDomainEvents();
 
         await sp.GetRequiredService<IQuestionRepository>().AddAsync(question, ct);

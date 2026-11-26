@@ -1,4 +1,6 @@
 using K12.Application.Abstractions;
+using K12.Application.ContentReview;
+using K12.Infrastructure.Content;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
 using K12.Infrastructure.Persistence;
@@ -18,6 +20,11 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IClock, SystemClock>();
+
+        // Item pictures: a local folder for now (the pipeline's data/out); Blob Storage when the cloud store is added.
+        var imageRoot = configuration["Content:ImageRoot"];
+        if (string.IsNullOrWhiteSpace(imageRoot)) services.AddSingleton<IItemImageStore, NoItemImageStore>();
+        else services.AddSingleton<IItemImageStore>(new FileSystemItemImageStore(imageRoot));
 
         var connectionString = configuration.GetConnectionString("K12");
         if (string.IsNullOrWhiteSpace(connectionString))

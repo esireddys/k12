@@ -33,6 +33,19 @@ dotnet ef database update --project src/K12.Infrastructure --startup-project src
 
 Then open SSMS, connect to `localhost\SQLEXPRESS` with Windows Authentication (tick "Trust server certificate"), and look at `K12` > Tables: `content.Questions` and `curriculum.Skills`.
 
+`content.Questions` also holds the review trail: `AiReviewJson` (the AI reviewer's findings and proposed text)
+and `OwnerOutcome`, `OwnerDecidedBy`, `OwnerDecidedAt`, `OwnerNote` (the owner's decision).
+
+## Owners and item pictures (Development)
+
+`appsettings.Development.json` signs every local request in as `owner@localhost`, who is listed in
+`Access:Owners`, so the review screens at http://localhost:5173/owner/review work before real sign-in exists.
+Send the header `X-Dev-User: someone@example.org` to act as a non-owner. Outside Development nobody is signed
+in yet, so the review endpoints answer 401.
+
+Item pictures are served from `Content:ImageRoot`, which defaults to `../../../pipeline/data/out`
+(relative to `src/K12.Api`). Override it with user secrets if your pictures live elsewhere.
+
 ## Add a migration after changing a mapping
 
 ```powershell

@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { api } from '../../shared/api/client'
+import { useCurrentUser } from '../../shared/auth/useCurrentUser'
 
 export function HomePage() {
+  const me = useCurrentUser()
   const health = useQuery({
     queryKey: ['health'],
     queryFn: async () => (await api.GET('/health')).response.ok,
@@ -15,7 +17,10 @@ export function HomePage() {
       <p>
         API status: <strong>{health.isPending ? 'checking…' : health.data ? 'connected' : 'not reachable'}</strong>
       </p>
-      <Link to="/practice">Try a practice question</Link>
+      <p style={{ display: 'flex', gap: 24 }}>
+        <Link to="/practice">Try a practice question</Link>
+        {me.data?.isOwner && <Link to="/owner/review">Content review (owners)</Link>}
+      </p>
     </main>
   )
 }
