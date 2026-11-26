@@ -8,10 +8,10 @@ Keep it in user secrets, not in appsettings, so nothing machine-specific is comm
 
 ```powershell
 cd api
-# SQL Server Developer or Express on this machine, Windows sign-in:
-dotnet user-secrets set "ConnectionStrings:K12" "Server=localhost;Database=K12;Trusted_Connection=True;TrustServerCertificate=True" --project src/K12.Api
-# or a named instance such as SQLEXPRESS:
-#   "Server=localhost\SQLEXPRESS;Database=K12;Trusted_Connection=True;TrustServerCertificate=True"
+# SQL Server Express (named instance SQLEXPRESS), Windows sign-in:
+dotnet user-secrets set "ConnectionStrings:K12" "Server=localhost\SQLEXPRESS;Database=K12;Trusted_Connection=True;TrustServerCertificate=True" --project src/K12.Api
+# or a default instance (SQL Server Developer):
+#   "Server=localhost;Database=K12;Trusted_Connection=True;TrustServerCertificate=True"
 # or LocalDB:
 #   "Server=(localdb)\MSSQLLocalDB;Database=K12;Trusted_Connection=True"
 ```
@@ -31,7 +31,7 @@ dotnet tool restore
 dotnet ef database update --project src/K12.Infrastructure --startup-project src/K12.Api
 ```
 
-Then open SSMS, connect to the same server, and look at `K12` > Tables: `content.Questions` and `curriculum.Skills`.
+Then open SSMS, connect to `localhost\SQLEXPRESS` with Windows Authentication (tick "Trust server certificate"), and look at `K12` > Tables: `content.Questions` and `curriculum.Skills`.
 
 ## Add a migration after changing a mapping
 
