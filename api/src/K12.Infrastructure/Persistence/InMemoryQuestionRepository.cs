@@ -4,8 +4,8 @@ using K12.Domain.Content;
 namespace K12.Infrastructure.Persistence;
 
 /// <summary>
-/// Stand-in until the EF Core + PostgreSQL repository lands. Same interface, so nothing above
-/// Infrastructure changes when it is swapped.
+/// Used when no SQL Server connection string is configured. Same interface as
+/// <see cref="EfQuestionRepository"/>, so nothing above Infrastructure knows which one runs.
 /// </summary>
 public sealed class InMemoryQuestionRepository : IQuestionRepository
 {

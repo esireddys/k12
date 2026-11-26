@@ -8,6 +8,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/K12.Domain.Tests/K12.Domain.Tests.csproj" />
     <Project Path="tests/K12.Application.Tests/K12.Application.Tests.csproj" />
+    <Project Path="tests/K12.Infrastructure.Tests/K12.Infrastructure.Tests.csproj" />
     <Project Path="tests/K12.Architecture.Tests/K12.Architecture.Tests.csproj" />
   </Folder>
 </Solution>

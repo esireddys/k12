@@ -17,7 +17,15 @@ public sealed record QuestionApproved(QuestionId QuestionId, string ApprovedBy, 
 /// </summary>
 public sealed class Question : AggregateRoot<QuestionId>
 {
-    private readonly List<SkillId> _skillIds;
+    private readonly List<SkillId> _skillIds = [];
+
+    /// <summary>For the persistence layer only.</summary>
+    private Question() : base(default)
+    {
+        ItemType = string.Empty;
+        ContentJson = string.Empty;
+        Answer = null!;
+    }
 
     private Question(
         QuestionId id, IEnumerable<SkillId> skillIds, string itemType, string contentJson,

@@ -35,7 +35,7 @@ API (clean architecture, domain-driven design; dependencies point inward, enforc
 
 - `K12.Domain`: aggregates, value objects, domain services, repository interfaces. No framework code.
 - `K12.Application`: use cases as command and query handlers, ports (`IClock`, `IUnitOfWork`).
-- `K12.Infrastructure`: repository implementations, Azure, Claude. In-memory for now; EF Core + PostgreSQL next.
+- `K12.Infrastructure`: EF Core + SQL Server repositories (in-memory when no connection string is set), Azure, Claude. Local setup: [api/LOCAL_DATABASE.md](api/LOCAL_DATABASE.md).
 - `K12.Api`: thin HTTP endpoints grouped by bounded context.
 
 Web: `src/app` (routing, providers) → `src/features/<name>` → `src/shared` (UI kit, typed API client). A feature never imports another feature (ESLint `boundaries`). Regenerate the API client with `npm run gen:api` after an API change.

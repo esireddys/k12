@@ -13,6 +13,14 @@ public readonly record struct SkillId(Guid Value)
 /// </summary>
 public sealed class Skill : AggregateRoot<SkillId>
 {
+    /// <summary>For the persistence layer only.</summary>
+    private Skill() : base(default)
+    {
+        Code = string.Empty;
+        Description = string.Empty;
+        LimitsJson = string.Empty;
+    }
+
     public Skill(SkillId id, string code, string description, string limitsJson) : base(id)
     {
         if (string.IsNullOrWhiteSpace(code)) throw new DomainException("A skill needs a code.");
