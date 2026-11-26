@@ -53,10 +53,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/import/course": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ImportCourse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/import/exam-form": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ImportExamForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {unknown} */
+        AnswerKind: "Choice" | "Integer" | "Decimal" | "Fraction" | "Money" | "Time";
+        AnswerSpec: {
+            kind: components["schemas"]["AnswerKind"];
+            value: string;
+            acceptEquivalent?: boolean;
+            requireSimplest?: boolean;
+            accept?: string[];
+        };
         CheckAnswerBody: {
             response: null | string;
         };
@@ -64,6 +105,64 @@ export interface components {
             isCorrect: boolean;
             understood: boolean;
         };
+        ImportCategory: {
+            /** Format: int32 */
+            number: number | string;
+            name: string;
+        };
+        ImportCourseBody: {
+            jurisdiction: string;
+            subject: string;
+            code: string;
+            name: string;
+            frameworkCode: string;
+            frameworkName: string;
+            categories: components["schemas"]["ImportCategory"][];
+            skills: components["schemas"]["ImportSkillBody"][];
+        };
+        ImportCourseResponse: {
+            /** Format: uuid */
+            courseId: string;
+            courseCreated: boolean;
+            /** Format: int32 */
+            skillsCreated: number | string;
+            /** Format: int32 */
+            skillsUpdated: number | string;
+        };
+        ImportExamFormBody: {
+            jurisdiction: string;
+            subject: string;
+            courseCode: string;
+            exam: string;
+            /** Format: int32 */
+            year: number | string;
+            season: string;
+            sourceUrl: string;
+            items: components["schemas"]["ImportItemBody"][];
+        };
+        ImportExamFormResponse: {
+            /** Format: uuid */
+            examFormId: string;
+            /** Format: int32 */
+            questionsCreated: number | string;
+        };
+        ImportItemBody: {
+            /** Format: int32 */
+            number: number | string;
+            skillCodes: string[];
+            itemType: string;
+            content: components["schemas"]["JsonElement"];
+            answer: components["schemas"]["AnswerSpec"];
+        };
+        ImportSkillBody: {
+            code: string;
+            description: string;
+            /** Format: int32 */
+            category: null | number | string;
+            designation: null | string;
+            limits: null | components["schemas"]["JsonElement"];
+        };
+        JsonElement: unknown;
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -107,6 +206,90 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ImportCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportCourseBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCourseResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ImportExamForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportExamFormBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportExamFormResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

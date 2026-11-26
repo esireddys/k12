@@ -72,10 +72,147 @@
           }
         }
       }
+    },
+    "/api/admin/import/course": {
+      "post": {
+        "tags": [
+          "Content import"
+        ],
+        "operationId": "ImportCourse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCourseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCourseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/import/exam-form": {
+      "post": {
+        "tags": [
+          "Content import"
+        ],
+        "operationId": "ImportExamForm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportExamFormBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportExamFormResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AnswerKind": {
+        "enum": [
+          "Choice",
+          "Integer",
+          "Decimal",
+          "Fraction",
+          "Money",
+          "Time"
+        ]
+      },
+      "AnswerSpec": {
+        "required": [
+          "kind",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/AnswerKind"
+          },
+          "value": {
+            "type": "string"
+          },
+          "acceptEquivalent": {
+            "type": "boolean"
+          },
+          "requireSimplest": {
+            "type": "boolean"
+          },
+          "accept": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "CheckAnswerBody": {
         "required": [
           "response"
@@ -105,6 +242,252 @@
           }
         }
       },
+      "ImportCategory": {
+        "required": [
+          "number",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ImportCourseBody": {
+        "required": [
+          "jurisdiction",
+          "subject",
+          "code",
+          "name",
+          "frameworkCode",
+          "frameworkName",
+          "categories",
+          "skills"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdiction": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "frameworkCode": {
+            "type": "string"
+          },
+          "frameworkName": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportCategory"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportSkillBody"
+            }
+          }
+        }
+      },
+      "ImportCourseResponse": {
+        "required": [
+          "courseId",
+          "courseCreated",
+          "skillsCreated",
+          "skillsUpdated"
+        ],
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "courseCreated": {
+            "type": "boolean"
+          },
+          "skillsCreated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "skillsUpdated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ImportExamFormBody": {
+        "required": [
+          "jurisdiction",
+          "subject",
+          "courseCode",
+          "exam",
+          "year",
+          "season",
+          "sourceUrl",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdiction": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "courseCode": {
+            "type": "string"
+          },
+          "exam": {
+            "type": "string"
+          },
+          "year": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "season": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportItemBody"
+            }
+          }
+        }
+      },
+      "ImportExamFormResponse": {
+        "required": [
+          "examFormId",
+          "questionsCreated"
+        ],
+        "type": "object",
+        "properties": {
+          "examFormId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "questionsCreated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ImportItemBody": {
+        "required": [
+          "number",
+          "skillCodes",
+          "itemType",
+          "content",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "skillCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "answer": {
+            "$ref": "#/components/schemas/AnswerSpec"
+          }
+        }
+      },
+      "ImportSkillBody": {
+        "required": [
+          "code",
+          "description",
+          "category",
+          "designation",
+          "limits"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "designation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "limits": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            ]
+          }
+        }
+      },
+      "JsonElement": {},
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -151,6 +534,9 @@
     },
     {
       "name": "Practice"
+    },
+    {
+      "name": "Content import"
     }
   ]
 }

@@ -25,3 +25,7 @@ web/android/
 .vs/
 .vscode/
 .idea/
+
+# Released tests and what the pipeline makes from them stay local (publisher copyright)
+pipeline/data/raw/
+pipeline/data/out/

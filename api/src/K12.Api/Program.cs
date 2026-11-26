@@ -31,6 +31,7 @@ app.UseCors();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapPracticeEndpoints();
+if (app.Environment.IsDevelopment()) app.MapContentImportEndpoints(); // admin role once sign-in exists
 
 app.Run();
 
