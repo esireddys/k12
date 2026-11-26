@@ -1,0 +1,10 @@
+@host = http://localhost:5143
+
+GET {{host}}/health
+
+###
+
+POST {{host}}/api/check
+Content-Type: application/json
+
+{ "spec": { "kind": "Fraction", "value": "3/4" }, "response": "6/8" }
