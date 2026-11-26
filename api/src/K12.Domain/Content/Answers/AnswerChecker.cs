@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Text.RegularExpressions;
 
-namespace K12.Core.Answers;
+namespace K12.Domain.Content.Answers;
 
 /// <summary>
 /// Scores a student's response against a question's <see cref="AnswerSpec"/>.

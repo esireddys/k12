@@ -27,4 +27,15 @@ cd pipeline && pip install -e ".[dev]" && k12-pipeline sources
 
 - Content is data. States, standards, exams, skills and questions are rows, not code.
 - Nothing reaches kids unreviewed. Every question passes the AI reviewer, then owner approval.
-- Answer checking is exact and lives in the API (`api/src/K12.Core/Answers`). No AI runs while a kid answers.
+- Answer checking is exact and lives in the domain (`api/src/K12.Domain/Content/Answers`). No AI runs while a kid answers.
+
+## Code structure
+
+API (clean architecture, domain-driven design; dependencies point inward, enforced by `K12.Architecture.Tests`):
+
+- `K12.Domain`: aggregates, value objects, domain services, repository interfaces. No framework code.
+- `K12.Application`: use cases as command and query handlers, ports (`IClock`, `IUnitOfWork`).
+- `K12.Infrastructure`: repository implementations, Azure, Claude. In-memory for now; EF Core + PostgreSQL next.
+- `K12.Api`: thin HTTP endpoints grouped by bounded context.
+
+Web: `src/app` (routing, providers) → `src/features/<name>` → `src/shared` (UI kit, typed API client). A feature never imports another feature (ESLint `boundaries`). Regenerate the API client with `npm run gen:api` after an API change.

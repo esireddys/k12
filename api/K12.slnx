@@ -1,9 +1,13 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/K12.Domain/K12.Domain.csproj" />
+    <Project Path="src/K12.Application/K12.Application.csproj" />
+    <Project Path="src/K12.Infrastructure/K12.Infrastructure.csproj" />
     <Project Path="src/K12.Api/K12.Api.csproj" />
-    <Project Path="src/K12.Core/K12.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/K12.Core.Tests/K12.Core.Tests.csproj" />
+    <Project Path="tests/K12.Domain.Tests/K12.Domain.Tests.csproj" />
+    <Project Path="tests/K12.Application.Tests/K12.Application.Tests.csproj" />
+    <Project Path="tests/K12.Architecture.Tests/K12.Architecture.Tests.csproj" />
   </Folder>
 </Solution>

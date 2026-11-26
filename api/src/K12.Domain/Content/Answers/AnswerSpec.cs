@@ -1,4 +1,4 @@
-namespace K12.Core.Answers;
+namespace K12.Domain.Content.Answers;
 
 /// <summary>The kind of value a question expects as its answer.</summary>
 public enum AnswerKind
