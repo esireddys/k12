@@ -1,14 +1,28 @@
+using K12.Application.Abstractions;
 using K12.Domain.Content;
 using K12.Domain.Content.Answers;
 using K12.Domain.Curriculum;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace K12.Infrastructure.Persistence;
 
-/// <summary>One made-up Live question for local development. Not a real released test item.</summary>
+/// <summary>Development only: applies migrations and adds one made-up Live question (not a real released item).</summary>
 public static class DevelopmentSeed
 {
-    public static async Task<Question> AddSampleQuestionAsync(IQuestionRepository repository, DateTimeOffset now)
+    public static async Task<QuestionId?> RunAsync(IServiceProvider services, CancellationToken ct = default)
     {
+        using var scope = services.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        var db = sp.GetService<K12DbContext>();
+        if (db is not null)
+        {
+            await db.Database.MigrateAsync(ct);
+            var existing = await db.Questions.Select(q => (QuestionId?)q.Id).FirstOrDefaultAsync(ct);
+            if (existing is not null) return existing;
+        }
+
         var question = Question.Draft(
             [SkillId.New()],
             itemType: "numeric",
@@ -18,9 +32,11 @@ public static class DevelopmentSeed
             origin: QuestionOrigin.Generated);
         question.SubmitForAiReview();
         question.PassAiReview();
-        question.Approve("development-seed", now);
+        question.Approve("development-seed", sp.GetRequiredService<IClock>().UtcNow);
         question.ClearDomainEvents();
-        await repository.AddAsync(question);
-        return question;
+
+        await sp.GetRequiredService<IQuestionRepository>().AddAsync(question, ct);
+        await sp.GetRequiredService<IUnitOfWork>().SaveChangesAsync(ct);
+        return question.Id;
     }
 }

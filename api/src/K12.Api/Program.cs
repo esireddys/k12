@@ -1,8 +1,6 @@
 using System.Text.Json.Serialization;
 using K12.Api.Endpoints;
 using K12.Application;
-using K12.Application.Abstractions;
-using K12.Domain.Content;
 using K12.Infrastructure;
 using K12.Infrastructure.Persistence;
 
@@ -17,17 +15,15 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
 
 builder.Services
     .AddApplication()
-    .AddInfrastructure();
+    .AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    var seeded = await DevelopmentSeed.AddSampleQuestionAsync(
-        app.Services.GetRequiredService<IQuestionRepository>(),
-        app.Services.GetRequiredService<IClock>().UtcNow);
-    app.Logger.LogInformation("Seeded sample question {QuestionId}", seeded.Id.Value);
+    var sampleId = await DevelopmentSeed.RunAsync(app.Services);
+    app.Logger.LogInformation("Seeded sample question {QuestionId}", sampleId?.Value);
 }
 
 app.UseHttpsRedirection();

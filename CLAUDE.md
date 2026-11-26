@@ -5,6 +5,7 @@
 - Answer checking lives only in `api/src/K12.Domain/Content/Answers`. Every new answer kind or item type gets table-driven xUnit tests.
 - API layers: Domain (no framework refs) <- Application (handlers, ports) <- Infrastructure (repos, Azure) <- Api (thin endpoints). `K12.Architecture.Tests` enforces this; never weaken it.
 - Change aggregates only through their methods; one repository per aggregate root, interface in Domain.
+- Database: SQL Server (Azure SQL in the cloud) via EF Core; mappings in `K12.Infrastructure/Persistence/Configurations`. Add a migration for every mapping change (see `api/LOCAL_DATABASE.md`).
 - Web: app -> features -> shared; no cross-feature imports. Server data via TanStack Query hooks in the feature. After API changes, refresh `api/openapi/v1.json` and run `npm run gen:api`.
 - Never hard-code a state, exam or standards name ("STAAR", "TEKS") in UI or API logic. Read it from curriculum data.
 - Questions shown to kids must have status Live (AI reviewed and owner approved).
