@@ -17,6 +17,10 @@ internal static class Converters
 
     public static readonly ValueConverter<QuestionId, Guid> QuestionId = new(id => id.Value, v => new QuestionId(v));
 
+    public static readonly ValueConverter<CourseId, Guid> CourseId = new(id => id.Value, v => new CourseId(v));
+
+    public static readonly ValueConverter<ExamFormId, Guid> ExamFormId = new(id => id.Value, v => new ExamFormId(v));
+
     public static readonly ValueConverter<SkillId, Guid> SkillId = new(id => id.Value, v => new SkillId(v));
 
     /// <summary>Stores the answer spec as JSON in an nvarchar(max) column.</summary>

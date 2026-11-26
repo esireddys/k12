@@ -10,6 +10,8 @@ public sealed class K12DbContext(DbContextOptions<K12DbContext> options) : DbCon
 {
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<Course> Courses => Set<Course>();
+    public DbSet<ExamForm> ExamForms => Set<ExamForm>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(K12DbContext).Assembly);

@@ -12,6 +12,12 @@ class ReleasedTest:
     season: str
     url: str
     tagged: bool
+    subject: str = "math"
+    items: int = 32
+
+    @property
+    def pdf_name(self) -> str:
+        return self.url.rsplit("/", 1)[-1]
 
 
 # Seed list from the project brief. More years are added as they are found on tea.texas.gov.

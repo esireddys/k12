@@ -22,6 +22,40 @@ namespace K12.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("K12.Domain.Content.ExamForm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Exam")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Season")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SourceUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId", "Exam", "Year", "Season")
+                        .IsUnique();
+
+                    b.ToTable("ExamForms", "content");
+                });
+
             modelBuilder.Entity("K12.Domain.Content.Question", b =>
                 {
                     b.Property<Guid>("Id")
@@ -74,20 +108,73 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.ToTable("Questions", "content");
                 });
 
-            modelBuilder.Entity("K12.Domain.Curriculum.Skill", b =>
+            modelBuilder.Entity("K12.Domain.Curriculum.Course", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
                         .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FrameworkCode")
+                        .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("FrameworkName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Jurisdiction")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Jurisdiction", "Subject", "Code")
+                        .IsUnique();
+
+                    b.ToTable("Courses", "curriculum");
+                });
+
+            modelBuilder.Entity("K12.Domain.Curriculum.Skill", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CategoryNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Designation")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<string>("LimitsJson")
                         .IsRequired()
@@ -95,7 +182,83 @@ namespace K12.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CourseId", "Code")
+                        .IsUnique();
+
                     b.ToTable("Skills", "curriculum");
+                });
+
+            modelBuilder.Entity("K12.Domain.Content.ExamForm", b =>
+                {
+                    b.HasOne("K12.Domain.Curriculum.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsMany("K12.Domain.Content.ExamFormItem", "Items", b1 =>
+                        {
+                            b1.Property<Guid>("ExamFormId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Number")
+                                .HasColumnType("int");
+
+                            b1.Property<Guid>("QuestionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("ExamFormId", "Number");
+
+                            b1.HasIndex("QuestionId");
+
+                            b1.ToTable("ExamFormItems", "content");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ExamFormId");
+
+                            b1.HasOne("K12.Domain.Content.Question", null)
+                                .WithMany()
+                                .HasForeignKey("QuestionId")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("K12.Domain.Curriculum.Course", b =>
+                {
+                    b.OwnsMany("K12.Domain.Curriculum.ReportingCategory", "Categories", b1 =>
+                        {
+                            b1.Property<Guid>("CourseId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Number")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)");
+
+                            b1.HasKey("CourseId", "Number");
+
+                            b1.ToTable("ReportingCategories", "curriculum");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CourseId");
+                        });
+
+                    b.Navigation("Categories");
+                });
+
+            modelBuilder.Entity("K12.Domain.Curriculum.Skill", b =>
+                {
+                    b.HasOne("K12.Domain.Curriculum.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

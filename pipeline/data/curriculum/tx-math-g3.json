@@ -1,0 +1,349 @@
+{
+  "jurisdiction": "TX",
+  "subject": "math",
+  "level": "G3",
+  "levelName": "Grade 3",
+  "framework": {
+    "code": "TEKS",
+    "name": "Texas Essential Knowledge and Skills"
+  },
+  "note": "Descriptions are short paraphrases for students and parents, not the official text.",
+  "categories": [
+    {
+      "number": 1,
+      "name": "Numerical Representations and Relationships"
+    },
+    {
+      "number": 2,
+      "name": "Computations and Algebraic Relationships"
+    },
+    {
+      "number": 3,
+      "name": "Geometry and Measurement"
+    },
+    {
+      "number": 4,
+      "name": "Data Analysis and Personal Financial Literacy"
+    }
+  ],
+  "skills": [
+    {
+      "code": "3.2(A)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Build and break apart whole numbers up to 100,000 by place value"
+    },
+    {
+      "code": "3.2(D)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Compare and order whole numbers up to 100,000 using >, < and ="
+    },
+    {
+      "code": "3.3(C)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Explain that a unit fraction 1/b is one of b equal parts of a whole",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.3(D)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Build a fraction a/b as a sum of unit fractions 1/b",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.3(E)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Share an object or set equally using fraction pictures",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.3(F)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Show equivalent fractions with models and number lines",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.3(G)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Explain why two fractions are equivalent",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.3(H)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Compare two fractions with the same numerator or the same denominator",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.4(A)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Add and subtract within 1,000"
+    },
+    {
+      "code": "3.4(B)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Round to the nearest 10 or 100, or use compatible numbers to estimate"
+    },
+    {
+      "code": "3.4(C)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Find the value of a collection of coins and bills"
+    },
+    {
+      "code": "3.4(D)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Find the total in equal groups and arrays up to 10 by 10"
+    },
+    {
+      "code": "3.4(E)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Show multiplication facts with groups, arrays, number lines and skip counting"
+    },
+    {
+      "code": "3.4(F)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Recall multiplication facts up to 10 by 10 and the matching division facts"
+    },
+    {
+      "code": "3.4(G)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Multiply a two-digit number by a one-digit number"
+    },
+    {
+      "code": "3.4(H)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Find how many are in each group when a set is shared equally"
+    },
+    {
+      "code": "3.4(I)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Tell whether a number is even or odd"
+    },
+    {
+      "code": "3.4(J)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Divide using the link between multiplication and division"
+    },
+    {
+      "code": "3.4(K)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Solve one- and two-step multiplication and division problems within 100"
+    },
+    {
+      "code": "3.5(A)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Model one- and two-step addition and subtraction problems within 1,000"
+    },
+    {
+      "code": "3.5(B)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Model and solve one- and two-step multiplication and division problems within 100"
+    },
+    {
+      "code": "3.5(C)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Describe a multiplication expression as a comparison, like 3 times as much"
+    },
+    {
+      "code": "3.5(D)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Find the unknown number in a multiplication or division equation"
+    },
+    {
+      "code": "3.5(E)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Describe a real-world pattern with number pairs in a table"
+    },
+    {
+      "code": "3.6(A)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Sort two- and three-dimensional figures by their attributes"
+    },
+    {
+      "code": "3.6(B)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Recognize rhombuses, parallelograms, trapezoids, rectangles and squares as quadrilaterals"
+    },
+    {
+      "code": "3.6(C)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Find the area of a rectangle with whole-number sides"
+    },
+    {
+      "code": "3.6(E)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Split equal shapes into equal-area parts named by unit fractions",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.7(A)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Place halves, fourths and eighths on a number line",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            4,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
+    },
+    {
+      "code": "3.7(B)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Find the perimeter of a polygon or a missing side length"
+    },
+    {
+      "code": "3.7(C)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Add and subtract time intervals in minutes"
+    },
+    {
+      "code": "3.7(D)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Choose between measuring liquid volume or weight"
+    },
+    {
+      "code": "3.8(A)",
+      "category": 4,
+      "designation": "readiness",
+      "description": "Show data in frequency tables, dot plots, pictographs and scaled bar graphs"
+    },
+    {
+      "code": "3.8(B)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Solve one- and two-step problems using categorical data"
+    },
+    {
+      "code": "3.9(A)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Connect work and skills to earning income"
+    },
+    {
+      "code": "3.9(B)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Explain how scarce resources affect cost"
+    }
+  ]
+}
