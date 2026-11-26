@@ -1,5 +1,7 @@
 using K12.Domain.Common;
+using System.Text.Json;
 using K12.Domain.Content.Answers;
+using K12.Domain.Content.Review;
 using K12.Domain.Curriculum;
 
 namespace K12.Domain.Content;
@@ -10,6 +12,8 @@ public readonly record struct QuestionId(Guid Value)
 }
 
 public sealed record QuestionApproved(QuestionId QuestionId, string ApprovedBy, DateTimeOffset OccurredAt) : IDomainEvent;
+
+public sealed record QuestionRejected(QuestionId QuestionId, string RejectedBy, DateTimeOffset OccurredAt) : IDomainEvent;
 
 /// <summary>
 /// One question in the bank. Its lifecycle is Draft, AI review, owner approval, then Live.
@@ -53,6 +57,12 @@ public sealed class Question : AggregateRoot<QuestionId>
     public QuestionStatus Status { get; private set; }
     public int Version { get; private set; }
 
+    /// <summary>The AI reviewer's findings on the current version, once it has run.</summary>
+    public AiReview? AiReview { get; private set; }
+
+    /// <summary>The owner's decision on the current version, once one is made.</summary>
+    public OwnerDecision? OwnerDecision { get; private set; }
+
     public static Question Draft(
         IEnumerable<SkillId> skillIds, string itemType, string contentJson, AnswerSpec answer,
         Difficulty difficulty, QuestionOrigin origin, QuestionId? parentId = null) =>
@@ -60,24 +70,50 @@ public sealed class Question : AggregateRoot<QuestionId>
 
     public void SubmitForAiReview() => Move(QuestionStatus.Draft, QuestionStatus.InAiReview);
 
-    public void PassAiReview() => Move(QuestionStatus.InAiReview, QuestionStatus.AwaitingOwner);
-
-    public void Approve(string approvedBy, DateTimeOffset at)
+    /// <summary>
+    /// Records the AI reviewer's findings and hands the question to the owners. The reviewer cannot reject:
+    /// a question it is unsure about still goes to an owner, marked as needing attention.
+    /// </summary>
+    public void RecordAiReview(AiReview review)
     {
-        Move(QuestionStatus.AwaitingOwner, QuestionStatus.Live);
-        Raise(new QuestionApproved(Id, approvedBy, at));
+        review.EnsureComplete();
+        EnsureJsonObject(review.ProposedContentJson, "The proposed content");
+        Move(QuestionStatus.InAiReview, QuestionStatus.AwaitingOwner);
+        AiReview = review;
     }
 
-    public void Reject() => Move(QuestionStatus.AwaitingOwner, QuestionStatus.Rejected);
+    /// <summary>An owner approves the question as it stands. It goes Live.</summary>
+    public void Approve(string approvedBy, DateTimeOffset at, string? note = null) =>
+        Decide(approvedBy, at, note, edits: null);
+
+    /// <summary>
+    /// An owner approves with their own edits (usually the AI reviewer's cleaned-up text, adjusted).
+    /// The owner is the final reviewer, so the edited question goes Live as a new version.
+    /// </summary>
+    public void Approve(OwnerEdits edits, string approvedBy, DateTimeOffset at, string? note = null) =>
+        Decide(approvedBy, at, note, edits);
+
+    /// <summary>An owner keeps the question away from students. A reason is required so the next reader knows why.</summary>
+    public void Reject(string rejectedBy, DateTimeOffset at, string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason)) throw new DomainException("Say why the question is rejected.");
+        RequireOwner(rejectedBy);
+        Move(QuestionStatus.AwaitingOwner, QuestionStatus.Rejected);
+        OwnerDecision = new OwnerDecision(OwnerOutcome.Rejected, rejectedBy.Trim(), at, reason.Trim());
+        Raise(new QuestionRejected(Id, rejectedBy.Trim(), at));
+    }
 
     /// <summary>Editing a reviewed question makes a new version that goes back through review.</summary>
     public void Revise(string contentJson, AnswerSpec answer)
     {
         if (Status is QuestionStatus.Retired) throw new DomainException("A retired question cannot be revised.");
+        EnsureJsonObject(contentJson, "The content");
         ContentJson = contentJson;
         Answer = answer;
         Version++;
         Status = QuestionStatus.Draft;
+        AiReview = null;
+        OwnerDecision = null;
     }
 
     public void Retire() => Status = QuestionStatus.Retired;
@@ -85,6 +121,49 @@ public sealed class Question : AggregateRoot<QuestionId>
     public bool IsVisibleToStudents => Status == QuestionStatus.Live;
 
     public CheckResult Check(string? response) => AnswerChecker.Check(Answer, response);
+
+    private void Decide(string approvedBy, DateTimeOffset at, string? note, OwnerEdits? edits)
+    {
+        RequireOwner(approvedBy);
+        if (edits is not null) EnsureJsonObject(edits.ContentJson, "The content");
+        Move(QuestionStatus.AwaitingOwner, QuestionStatus.Live);
+
+        var changed = false;
+        if (edits is not null)
+        {
+            changed = edits.ContentJson != ContentJson || !SameAnswer(edits.Answer, Answer) || edits.Difficulty != Difficulty;
+            ContentJson = edits.ContentJson;
+            Answer = edits.Answer;
+            Difficulty = edits.Difficulty;
+            if (changed) Version++;
+        }
+
+        var outcome = changed ? OwnerOutcome.ApprovedWithEdits : OwnerOutcome.Approved;
+        OwnerDecision = new OwnerDecision(outcome, approvedBy.Trim(), at, string.IsNullOrWhiteSpace(note) ? null : note.Trim());
+        Raise(new QuestionApproved(Id, approvedBy.Trim(), at));
+    }
+
+    private static bool SameAnswer(AnswerSpec a, AnswerSpec b) =>
+        a.Kind == b.Kind && a.Value == b.Value && a.AcceptEquivalent == b.AcceptEquivalent
+        && a.RequireSimplest == b.RequireSimplest && a.Accept.SequenceEqual(b.Accept);
+
+    private static void RequireOwner(string who)
+    {
+        if (string.IsNullOrWhiteSpace(who)) throw new DomainException("A decision must name the owner who made it.");
+    }
+
+    private static void EnsureJsonObject(string json, string what)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) throw new DomainException($"{what} must be a JSON object.");
+        }
+        catch (JsonException)
+        {
+            throw new DomainException($"{what} is not valid JSON.");
+        }
+    }
 
     private void Move(QuestionStatus from, QuestionStatus to)
     {

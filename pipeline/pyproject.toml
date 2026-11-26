@@ -11,8 +11,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
-# For the AI reviewer, once it is built: pip install -e ".[ai]"
-ai = ["anthropic>=0.40", "pydantic>=2.7,<3"]
+# For the AI reviewer: pip install -e ".[ai]"
+ai = ["anthropic>=2.14,<3", "pydantic>=2.7,<3"]
 
 [project.scripts]
 k12-pipeline = "k12_pipeline.cli:main"

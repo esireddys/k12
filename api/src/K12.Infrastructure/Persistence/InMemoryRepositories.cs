@@ -15,6 +15,9 @@ public sealed class InMemoryCourseRepository : ICourseRepository
         return Task.FromResult(_store.Values.FirstOrDefault(x => x.Jurisdiction == j && x.Subject == s && x.Code == c));
     }
 
+    public Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Course>>(_store.Values.Where(c => ids.Contains(c.Id)).ToList());
+
     public Task AddAsync(Course course, CancellationToken ct = default)
     {
         _store[course.Id] = course;
@@ -28,6 +31,9 @@ public sealed class InMemorySkillRepository : ISkillRepository
 
     public Task<IReadOnlyList<Skill>> ListByCourseAsync(CourseId courseId, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<Skill>>(_store.Values.Where(s => s.CourseId == courseId).ToList());
+
+    public Task<IReadOnlyList<Skill>> ListByIdsAsync(IReadOnlyCollection<SkillId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Skill>>(_store.Values.Where(s => ids.Contains(s.Id)).ToList());
 
     public Task AddAsync(Skill skill, CancellationToken ct = default)
     {
@@ -43,6 +49,11 @@ public sealed class InMemoryExamFormRepository : IExamFormRepository
     public Task<ExamForm?> FindAsync(CourseId courseId, string exam, int year, string season, CancellationToken ct = default) =>
         Task.FromResult(_store.Values.FirstOrDefault(f =>
             f.CourseId == courseId && f.Exam == exam.Trim() && f.Year == year && f.Season == season.Trim().ToLowerInvariant()));
+
+    public Task<IReadOnlyList<ExamForm>> ListContainingAsync(
+        IReadOnlyCollection<QuestionId> questionIds, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ExamForm>>(
+            _store.Values.Where(f => f.Items.Any(i => questionIds.Contains(i.QuestionId))).ToList());
 
     public Task AddAsync(ExamForm form, CancellationToken ct = default)
     {

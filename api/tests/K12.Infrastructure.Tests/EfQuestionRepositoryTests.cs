@@ -34,7 +34,7 @@ public sealed class EfQuestionRepositoryTests : IDisposable
             new AnswerSpec { Kind = AnswerKind.Fraction, Value = "3/4", RequireSimplest = true, Accept = ["0.75"] },
             Difficulty.Harder, QuestionOrigin.Generated);
         question.SubmitForAiReview();
-        question.PassAiReview();
+        question.RecordAiReview(TestReviews.LooksGood());
         question.Approve("owner", DateTimeOffset.UnixEpoch);
 
         await using (var db = NewContext())

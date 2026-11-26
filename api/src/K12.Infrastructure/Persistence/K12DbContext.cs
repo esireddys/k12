@@ -16,5 +16,15 @@ public sealed class K12DbContext(DbContextOptions<K12DbContext> options) : DbCon
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(K12DbContext).Assembly);
 
-    Task IUnitOfWork.SaveChangesAsync(CancellationToken ct) => SaveChangesAsync(ct);
+    async Task IUnitOfWork.SaveChangesAsync(CancellationToken ct)
+    {
+        try
+        {
+            await SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            throw new ConcurrencyConflictException(e);
+        }
+    }
 }

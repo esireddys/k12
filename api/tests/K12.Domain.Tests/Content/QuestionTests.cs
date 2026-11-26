@@ -26,7 +26,7 @@ public class QuestionTests
     {
         var q = NewDraft();
         q.SubmitForAiReview();
-        q.PassAiReview();
+        q.RecordAiReview(TestReviews.LooksGood());
         q.Approve("owner", Now);
 
         Assert.True(q.IsVisibleToStudents);
@@ -47,7 +47,7 @@ public class QuestionTests
     {
         var q = NewDraft();
         q.SubmitForAiReview();
-        q.PassAiReview();
+        q.RecordAiReview(TestReviews.LooksGood());
         q.Approve("owner", Now);
 
         q.Revise("{\"stem\":\"new\"}", new AnswerSpec { Kind = AnswerKind.Integer, Value = "145" });
