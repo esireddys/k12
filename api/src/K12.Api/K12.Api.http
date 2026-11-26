@@ -4,7 +4,10 @@ GET {{host}}/health
 
 ###
 
-POST {{host}}/api/check
+# Use the question id printed in the API log at startup ("Seeded sample question ...").
+@questionId = 00000000-0000-0000-0000-000000000000
+
+POST {{host}}/api/practice/questions/{{questionId}}/check
 Content-Type: application/json
 
-{ "spec": { "kind": "Fraction", "value": "3/4" }, "response": "6/8" }
+{ "response": "144 students" }

@@ -1,5 +1,10 @@
 using System.Text.Json.Serialization;
-using K12.Core.Answers;
+using K12.Api.Endpoints;
+using K12.Application;
+using K12.Application.Abstractions;
+using K12.Domain.Content;
+using K12.Infrastructure;
+using K12.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,26 +15,27 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
      .AllowAnyHeader()
      .AllowAnyMethod()));
 
+builder.Services
+    .AddApplication()
+    .AddInfrastructure();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    var seeded = await DevelopmentSeed.AddSampleQuestionAsync(
+        app.Services.GetRequiredService<IQuestionRepository>(),
+        app.Services.GetRequiredService<IClock>().UtcNow);
+    app.Logger.LogInformation("Seeded sample question {QuestionId}", seeded.Id.Value);
 }
 
 app.UseHttpsRedirection();
 app.UseCors();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
-
-// Temporary: checks a response against a spec sent by the caller.
-// Once the question bank exists, this takes a question id and loads the spec server-side,
-// so answers are never sent to the device.
-app.MapPost("/api/check", (CheckRequest request) => AnswerChecker.Check(request.Spec, request.Response))
-   .WithName("CheckAnswer");
+app.MapPracticeEndpoints();
 
 app.Run();
-
-public sealed record CheckRequest(AnswerSpec Spec, string? Response);
 
 public partial class Program;

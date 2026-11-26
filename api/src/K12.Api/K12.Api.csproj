@@ -11,7 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\K12.Core\K12.Core.csproj" />
+    <ProjectReference Include="..\K12.Domain\K12.Domain.csproj" />
+    <ProjectReference Include="..\K12.Application\K12.Application.csproj" />
+    <ProjectReference Include="..\K12.Infrastructure\K12.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

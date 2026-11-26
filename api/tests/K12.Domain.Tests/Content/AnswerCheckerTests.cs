@@ -1,6 +1,6 @@
-using K12.Core.Answers;
+using K12.Domain.Content.Answers;
 
-namespace K12.Core.Tests;
+namespace K12.Domain.Tests.Content;
 
 public class AnswerCheckerTests
 {

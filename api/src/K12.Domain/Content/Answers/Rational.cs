@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
-namespace K12.Core.Answers;
+namespace K12.Domain.Content.Answers;
 
 /// <summary>An exact fraction, so 0.1 + 0.2 style rounding never decides a kid's score.</summary>
 public readonly partial record struct Rational
