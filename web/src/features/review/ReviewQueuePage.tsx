@@ -18,14 +18,14 @@ function QueueRow({ item }: { item: OwnerQueueItem }) {
           gap: 4,
           padding: 14,
           borderRadius: 14,
-          border: `2px solid ${flagged ? '#e5a3a3' : 'var(--border)'}`,
+          border: `2px solid ${flagged ? 'var(--danger-line)' : 'var(--border)'}`,
           background: 'var(--surface)',
           color: 'var(--ink)',
           textDecoration: 'none',
         }}
       >
         <strong>{sourceLine(item.source, item.skillCodes)}</strong>
-        <span style={{ color: flagged ? '#8a1c1c' : '#1b5e33' }}>
+        <span style={{ color: flagged ? 'var(--danger-ink)' : 'var(--good-ink)' }}>
           {flagged ? `Needs attention · ${item.problemCount} problem(s), ${item.warningCount} check(s)` : 'Looks good'}
           {item.answerKeyAgrees === false && ' · key disagrees'}
           {item.suggestedDifficulty && item.suggestedDifficulty !== item.difficulty &&
@@ -63,7 +63,7 @@ function Queue() {
               padding: '6px 16px',
               border: '2px solid var(--border)',
               background: filter === f ? 'var(--accent)' : 'var(--surface)',
-              color: filter === f ? '#fff' : 'var(--ink)',
+              color: filter === f ? 'var(--on-accent)' : 'var(--ink)',
               fontWeight: 700,
             }}
           >

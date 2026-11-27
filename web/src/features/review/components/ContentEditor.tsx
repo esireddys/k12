@@ -17,7 +17,7 @@ type Props = {
 }
 
 function Changed({ when }: { when: boolean }) {
-  return when ? <span style={{ color: '#7a5200', fontWeight: 700 }}> · changed from the extracted text</span> : null
+  return when ? <span style={{ color: 'var(--warn-ink)', fontWeight: 700 }}> · changed from the extracted text</span> : null
 }
 
 /** The text students will see. Prefilled with the AI reviewer's cleanup; check each field against the picture. */

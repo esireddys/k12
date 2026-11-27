@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router'
 import { useCurrentUser } from '../../shared/auth/useCurrentUser'
+import { brand } from '../../shared/config/brand'
 import { courseLabel, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
 import { learnerStore } from '../../shared/learner/learner'
 import { Avatar } from '../../shared/ui/Avatar'
@@ -40,7 +41,7 @@ function Picker() {
   return (
     <main className="page" style={{ minHeight: '100vh', gap: 40 }}>
       <div className="topbar">
-        <span className="brand">K12 Practice</span>
+        <span className="brand">{brand.appName}</span>
         <div className="spacer row">
           {me.data?.isOwner && <Link to="/owner/review">Content review</Link>}
           <Link to="/parent" className="row" style={{ gap: 8, padding: '10px 16px', borderRadius: 12, border: '2px solid var(--border)', background: 'var(--surface)', textDecoration: 'none', color: 'var(--ink)', fontWeight: 700 }}>

@@ -83,10 +83,12 @@ function Badges({ kidId }: { kidId: string }) {
   if (!summary) return null
   return (
     <div className="row" style={{ gap: 10 }}>
-      <span className="chip" style={{ background: '#FFF1DE', color: '#8A4500', fontSize: 17, padding: '10px 16px' }}>
+      <span className="chip badge-streak">
+        <Icon name="sun" size={20} />
         {summary.streak === 1 ? '1-day streak' : `${summary.streak}-day streak`}
       </span>
-      <span className="chip" style={{ background: 'var(--accent-soft)', color: 'var(--accent-dark)', fontSize: 17, padding: '10px 16px' }}>
+      <span className="chip badge-reward">
+        <Icon name="star-filled" size={20} />
         {summary.stars} {Number(summary.stars) === 1 ? 'star' : 'stars'}
       </span>
     </div>

@@ -1,0 +1,108 @@
+/*
+ * Design tokens. The only place the app's colours, fonts, radii and type sizes are defined.
+ * See web/BRANDING.md for how to use them and the voice rules that go with them.
+ *
+ * Two layers:
+ *  - Brand primitives (--brand-*) are the raw palette. Rebrand by changing these.
+ *  - Semantic tokens (--accent, --good, --miss, --reward ...) are what components use.
+ *    Components never use a primitive or a hex value directly.
+ */
+:root {
+  /* Brand primitives */
+  --brand-blue: #1f5bd6; /* primary actions, links. White text on it is 6.0:1 */
+  --brand-blue-dark: #16449f;
+  --brand-blue-soft: #e6eeff;
+  --brand-blue-line: #b9cdf5;
+  --brand-blue-ink: #16346f;
+  --brand-sun: #ffb020; /* stars, streaks, celebrations. Never for text on white */
+  --brand-sun-soft: #fff4dc;
+  --brand-sun-ink: #5c3a00; /* text on sun or sun-soft, 8:1 or better */
+  --brand-ink: #1b2333;
+  --brand-ink-quiet: #4a5468;
+  --brand-paper: #f5f7fb;
+  --brand-white: #ffffff;
+  --brand-line: #d5dcea;
+  --brand-line-strong: #b7c1d6;
+  --brand-mist: #eef0f4;
+  --brand-track: #dde3ee;
+  --brand-mint: #15803d;
+  --brand-mint-ink: #14532d;
+  --brand-mint-soft: #ecfdf3;
+  --brand-coral: #c2410c; /* "not yet": misses are coral, never red, never an X */
+  --brand-coral-ink: #9a3412;
+  --brand-coral-soft: #fff1ea;
+  --brand-amber-line: #e8b44a;
+
+  /* Surfaces and text */
+  --bg: var(--brand-paper);
+  --surface: var(--brand-white);
+  --surface-muted: var(--brand-mist);
+  --ink: var(--brand-ink);
+  --ink-quiet: var(--brand-ink-quiet);
+  --border: var(--brand-line);
+  --border-strong: var(--brand-line-strong);
+  --track: var(--brand-track);
+  --picture-bg: var(--brand-white); /* printed test pictures are always on white paper */
+  --scrim: rgba(27, 35, 51, 0.9);
+  --scrim-light: rgba(27, 35, 51, 0.7);
+
+  /* Actions */
+  --accent: var(--brand-blue);
+  --accent-dark: var(--brand-blue-dark);
+  --accent-soft: var(--brand-blue-soft);
+  --accent-line: var(--brand-blue-line);
+  --accent-ink: var(--brand-blue-ink);
+  --on-accent: var(--brand-white);
+
+  /* Answer states. Each one also carries an icon or a word, never colour alone. */
+  --good: var(--brand-mint);
+  --good-ink: var(--brand-mint-ink);
+  --good-soft: var(--brand-mint-soft);
+  --miss: var(--brand-coral);
+  --miss-ink: var(--brand-coral-ink);
+  --miss-soft: var(--brand-coral-soft);
+
+  /* Rewards: stars, streaks, celebrations. Kid screens only; the parent area stays calm. */
+  --reward: var(--brand-sun);
+  --reward-soft: var(--brand-sun-soft);
+  --reward-ink: var(--brand-sun-ink);
+
+  /* Owner tools only: a real problem with a question. Kids never see red. */
+  --danger: #b42318;
+  --danger-ink: #8a1c1c;
+  --danger-soft: #fde8e8;
+  --danger-line: #e5a3a3;
+
+  /* Avatar colours, one pair per AvatarColor */
+  --avatar-orange-bg: #ffe3c2;
+  --avatar-orange-ink: #8a4500;
+  --avatar-blue-bg: #d8e6ff;
+  --avatar-blue-ink: #16449f;
+  --avatar-green-bg: #d3f2de;
+  --avatar-green-ink: #14532d;
+  --avatar-purple-bg: #ede3ff;
+  --avatar-purple-ink: #5b21b6;
+  --avatar-pink-bg: #ffe0ee;
+  --avatar-pink-ink: #9d174d;
+  --avatar-teal-bg: #cdf3ef;
+  --avatar-teal-ink: #115e59;
+
+  /* Notices */
+  --warn-soft: var(--brand-sun-soft);
+  --warn-border: var(--brand-amber-line);
+  --warn-ink: var(--brand-sun-ink);
+
+  /* Type. Nunito for headings, buttons and numbers on badges; Atkinson Hyperlegible for
+     question text and body copy (1, l and I look different, which matters in math). */
+  --font-display: Nunito, ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-kid-body: 18px;
+  --text-kid-answer: 22px;
+  --text-parent-body: 16px;
+
+  /* Shape */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --focus-ring: 3px solid var(--accent);
+}

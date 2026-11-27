@@ -67,11 +67,26 @@ const paths = {
       <path d="M8 3h8l-2 6h-4zM12 12v3l2 1" />
     </>
   ),
+  check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  star: <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
+  // Filled versions mark an "on" state (picked, flagged, earned). Same shape, so the icon set stays one family.
+  'star-filled': <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor" />,
+  'flag-filled': <path d="M5 21V4h11l-2 4 2 4H5" fill="currentColor" />,
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>
+  ),
 } as const
 
 export type IconName = keyof typeof paths
 
-/** Stroke icons drawn inline. Decorative unless a label is given. */
+/**
+ * The app's one icon set: rounded line icons on a 24 px grid, 2.2 px stroke, round caps and joins.
+ * Use a `-filled` name for an "on" state. Decorative unless a label is given.
+ * Misses never get an X or a cross; use words ("Not yet") with the coral colour instead.
+ */
 export function Icon({ name, size = 22, color = 'currentColor', label }: { name: IconName; size?: number; color?: string; label?: string }) {
   return (
     <svg
