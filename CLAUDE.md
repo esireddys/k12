@@ -10,3 +10,4 @@
 - Never hard-code a state, exam or standards name ("STAAR", "TEKS") in UI or API logic. Read it from curriculum data.
 - Questions shown to kids must have status Live (AI reviewed and owner approved).
 - Kid profiles hold no email, photo or location (children's privacy).
+- Web look and voice: colours and fonts only through tokens in `web/src/shared/theme/tokens.css` (no new hex values in components); the app name only from `web/src/shared/config/brand.ts`; kid-facing wording follows `web/BRANDING.md` (gentle, never shaming).

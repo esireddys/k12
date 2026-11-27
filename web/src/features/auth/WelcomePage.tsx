@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useCurrentUser } from '../../shared/auth/useCurrentUser'
+import { brand } from '../../shared/config/brand'
 import { useProviderSignIn, useSignInOptions } from './api/useSignIn'
 import { DeveloperSignIn } from './components/DeveloperSignIn'
 import { GoogleButton } from './components/GoogleButton'
@@ -24,7 +25,7 @@ export function WelcomePage() {
     <main className="page" style={{ minHeight: '100vh', justifyContent: 'center' }}>
       <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="brand">K12 Practice</div>
+          <div className="brand">{brand.appName}</div>
           <h1 style={{ margin: 0, fontSize: 46, fontWeight: 800, lineHeight: 1.15 }}>
             Practice real released test questions, a little every day.
           </h1>

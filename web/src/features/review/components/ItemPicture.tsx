@@ -16,7 +16,7 @@ export function ItemPicture({ path }: { path?: string }) {
   const frame = {
     border: '2px solid var(--border)',
     borderRadius: 14,
-    background: '#fff',
+    background: 'var(--picture-bg)',
     padding: 8,
     minHeight: 160,
     display: 'grid',

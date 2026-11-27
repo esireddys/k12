@@ -1,9 +1,9 @@
 import type { QuestionForReview } from '../model/content'
 
 const tone = {
-  Problem: { bg: '#fde8e8', ink: '#8a1c1c', label: 'Problem' },
-  Warning: { bg: '#fff4d6', ink: '#7a5200', label: 'Check' },
-  Info: { bg: '#e8f0fe', ink: '#1f3f8a', label: 'Note' },
+  Problem: { bg: 'var(--danger-soft)', ink: 'var(--danger-ink)', label: 'Problem' },
+  Warning: { bg: 'var(--warn-soft)', ink: 'var(--warn-ink)', label: 'Check' },
+  Info: { bg: 'var(--accent-soft)', ink: 'var(--accent-ink)', label: 'Note' },
 } as const
 
 /** The AI reviewer's call and findings, problems first. */
@@ -19,8 +19,8 @@ export function Findings({ review, answer }: { review: QuestionForReview['aiRevi
         style={{
           padding: 12,
           borderRadius: 12,
-          background: flagged ? '#fde8e8' : '#e6f6ec',
-          color: flagged ? '#8a1c1c' : '#1b5e33',
+          background: flagged ? 'var(--danger-soft)' : 'var(--good-soft)',
+          color: flagged ? 'var(--danger-ink)' : 'var(--good-ink)',
           fontWeight: 700,
         }}
       >
