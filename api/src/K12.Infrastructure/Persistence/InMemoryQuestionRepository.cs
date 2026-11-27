@@ -14,6 +14,9 @@ public sealed class InMemoryQuestionRepository : IQuestionRepository
     public Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default) =>
         Task.FromResult(_store.GetValueOrDefault(id));
 
+    public Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Question>>(ids.Where(_store.ContainsKey).Select(id => _store[id]).ToList());
+
     public Task AddAsync(Question question, CancellationToken ct = default)
     {
         _store[question.Id] = question;

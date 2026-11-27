@@ -5,5 +5,6 @@ public interface ICourseRepository
 {
     Task<Course?> FindAsync(string jurisdiction, string subject, string code, CancellationToken ct = default);
     Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default);
+    Task<IReadOnlyList<Course>> ListAllAsync(CancellationToken ct = default);
     Task AddAsync(Course course, CancellationToken ct = default);
 }

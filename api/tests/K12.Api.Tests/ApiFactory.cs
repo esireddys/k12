@@ -13,6 +13,12 @@ namespace K12.Api.Tests;
 public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     public string Environment { get; init; } = "Development";
+
+    /// <summary>Who a request with no session cookie acts as in Development. Empty means nobody: a guest.</summary>
+    public string DevelopmentUser { get; init; } = "owner@localhost";
+    /// <summary>Set to offer Google sign-in. Tokens still need Google to verify them, so tests only check refusals.</summary>
+    public string GoogleClientId { get; init; } = "";
+
     public string ImageRoot { get; } = Directory.CreateTempSubdirectory("k12-api-images-").FullName;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -20,8 +26,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment(Environment);
         builder.UseSetting("ConnectionStrings:K12", "");
         builder.UseSetting("Content:ImageRoot", ImageRoot);
-        builder.UseSetting("Access:DevelopmentUser", "owner@localhost");
+        builder.UseSetting("Access:DevelopmentUser", DevelopmentUser);
         builder.UseSetting("Access:Owners:0", "owner@localhost");
+        builder.UseSetting("Auth:Google:ClientId", GoogleClientId);
     }
 
     public bool UsesInMemoryStore() =>

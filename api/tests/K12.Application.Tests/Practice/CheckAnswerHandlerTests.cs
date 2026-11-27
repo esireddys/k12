@@ -20,6 +20,8 @@ public class CheckAnswerHandlerTests
             Task.FromResult<IReadOnlyList<Question>>(_items.Values.Where(q => q.Status == status).Take(take).ToList());
         public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(_items.Values.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));
+        public Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(ids.Where(_items.ContainsKey).Select(id => _items[id]).ToList());
     }
 
     private static Question Live()

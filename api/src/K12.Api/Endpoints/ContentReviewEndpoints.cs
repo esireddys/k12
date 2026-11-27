@@ -24,17 +24,8 @@ public static class ContentReviewEndpoints
 
     public sealed record RejectBody(int Version, string Reason);
 
-    public sealed record MeResponse(string Name, bool IsOwner);
-
     public static IEndpointRouteBuilder MapContentReviewEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/me", (ClaimsPrincipal user) => Results.Ok(new MeResponse(
-                user.Identity?.IsAuthenticated == true ? user.ReviewerName() : "",
-                user.IsInRole(Access.OwnerRole))))
-            .WithTags("Account")
-            .WithName("GetMe")
-            .Produces<MeResponse>();
-
         var agent = app.MapGroup("/api/admin/review").WithTags("AI review").RequireAuthorization(Access.ReviewAgentPolicy);
 
         agent.MapGet("/ai-queue", async (

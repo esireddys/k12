@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Content.Answers;
 using K12.Domain.Content.Review;
@@ -21,6 +22,10 @@ internal static class Converters
     public static readonly ValueConverter<CourseId, Guid> CourseId = new(id => id.Value, v => new CourseId(v));
 
     public static readonly ValueConverter<ExamFormId, Guid> ExamFormId = new(id => id.Value, v => new ExamFormId(v));
+
+    public static readonly ValueConverter<ParentAccountId, Guid> ParentAccountId = new(id => id.Value, v => new ParentAccountId(v));
+
+    public static readonly ValueConverter<KidProfileId, Guid> KidProfileId = new(id => id.Value, v => new KidProfileId(v));
 
     public static readonly ValueConverter<SkillId, Guid> SkillId = new(id => id.Value, v => new SkillId(v));
 

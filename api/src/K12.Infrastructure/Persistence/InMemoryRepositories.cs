@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
 
@@ -17,6 +18,9 @@ public sealed class InMemoryCourseRepository : ICourseRepository
 
     public Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<Course>>(_store.Values.Where(c => ids.Contains(c.Id)).ToList());
+
+    public Task<IReadOnlyList<Course>> ListAllAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Course>>(_store.Values.OrderBy(c => c.Jurisdiction).ThenBy(c => c.Subject).ThenBy(c => c.Code).ToList());
 
     public Task AddAsync(Course course, CancellationToken ct = default)
     {
@@ -55,9 +59,32 @@ public sealed class InMemoryExamFormRepository : IExamFormRepository
         Task.FromResult<IReadOnlyList<ExamForm>>(
             _store.Values.Where(f => f.Items.Any(i => questionIds.Contains(i.QuestionId))).ToList());
 
+    public Task<ExamForm?> GetAsync(ExamFormId id, CancellationToken ct = default) => Task.FromResult(_store.GetValueOrDefault(id));
+
+    public Task<IReadOnlyList<ExamForm>> ListByCourseAsync(CourseId courseId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<ExamForm>>(
+            _store.Values.Where(f => f.CourseId == courseId).OrderByDescending(f => f.Year).ThenBy(f => f.Season).ToList());
+
     public Task AddAsync(ExamForm form, CancellationToken ct = default)
     {
         _store[form.Id] = form;
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class InMemoryParentAccountRepository : IParentAccountRepository
+{
+    private readonly ConcurrentDictionary<ParentAccountId, ParentAccount> _store = new();
+
+    public Task<ParentAccount?> GetAsync(ParentAccountId id, CancellationToken ct = default) =>
+        Task.FromResult(_store.GetValueOrDefault(id));
+
+    public Task<ParentAccount?> FindByLoginAsync(ExternalLogin login, CancellationToken ct = default) =>
+        Task.FromResult(_store.Values.FirstOrDefault(a => a.Login == login));
+
+    public Task AddAsync(ParentAccount account, CancellationToken ct = default)
+    {
+        _store[account.Id] = account;
         return Task.CompletedTask;
     }
 }

@@ -4,6 +4,7 @@ namespace K12.Domain.Content;
 public interface IQuestionRepository
 {
     Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default);
+    Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default);
     Task AddAsync(Question question, CancellationToken ct = default);
 
     /// <summary>Questions in one review state, at most <paramref name="take"/> of them.</summary>

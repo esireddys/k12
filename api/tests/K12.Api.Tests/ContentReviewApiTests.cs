@@ -51,7 +51,7 @@ public sealed class ContentReviewApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task Outside_development_nobody_is_signed_in_yet()
+    public async Task Outside_development_a_request_without_a_session_is_not_signed_in()
     {
         using var production = new ApiFactory { Environment = "Production" };
         var response = await production.CreateClient().GetAsync("/api/admin/review/queue");

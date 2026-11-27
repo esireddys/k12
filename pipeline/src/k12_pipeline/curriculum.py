@@ -23,6 +23,7 @@ def course_payload(doc: dict[str, Any]) -> dict[str, Any]:
     """The body for POST /api/admin/import/course."""
     return {
         "jurisdiction": doc["jurisdiction"],
+        "jurisdictionName": doc.get("jurisdictionName", ""),
         "subject": doc["subject"],
         "code": doc["level"],
         "name": doc["levelName"],

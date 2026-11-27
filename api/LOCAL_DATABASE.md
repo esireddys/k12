@@ -38,10 +38,12 @@ and `OwnerOutcome`, `OwnerDecidedBy`, `OwnerDecidedAt`, `OwnerNote` (the owner's
 
 ## Owners and item pictures (Development)
 
-`appsettings.Development.json` signs every local request in as `owner@localhost`, who is listed in
-`Access:Owners`, so the review screens at http://localhost:5173/owner/review work before real sign-in exists.
-Send the header `X-Dev-User: someone@example.org` to act as a non-owner. Outside Development nobody is signed
-in yet, so the review endpoints answer 401.
+Sign in on the welcome screen as an owner to use the review screens at http://localhost:5173/owner/review: either the
+**Developer sign-in** as `owner@localhost`, or Google with an email you added to `Access:Owners` (see
+[SIGN_IN.md](SIGN_IN.md)). Scripts can send the header `X-Dev-User: someone@example.org` to act as someone without a
+cookie; outside Development neither the developer sign-in nor the header exists.
+
+Parent accounts and kid profiles are in `accounts.ParentAccounts` and `accounts.KidProfiles`.
 
 Item pictures are served from `Content:ImageRoot`, which defaults to `../../../pipeline/data/out`
 (relative to `src/K12.Api`). Override it with user secrets if your pictures live elsewhere.

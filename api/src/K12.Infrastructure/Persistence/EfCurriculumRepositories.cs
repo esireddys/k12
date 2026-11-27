@@ -14,6 +14,9 @@ public sealed class EfCourseRepository(K12DbContext db) : ICourseRepository
     public async Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>
         await db.Courses.Where(c => ids.Contains(c.Id)).ToListAsync(ct);
 
+    public async Task<IReadOnlyList<Course>> ListAllAsync(CancellationToken ct = default) =>
+        await db.Courses.OrderBy(c => c.Jurisdiction).ThenBy(c => c.Subject).ThenBy(c => c.Code).ToListAsync(ct);
+
     public async Task AddAsync(Course course, CancellationToken ct = default) => await db.Courses.AddAsync(course, ct);
 }
 

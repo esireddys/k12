@@ -12,7 +12,7 @@ public sealed record ImportSkill(string Code, string Description, int? Category,
 public sealed record ImportCourseCommand(
     string Jurisdiction, string Subject, string Code, string Name,
     string FrameworkCode, string FrameworkName,
-    IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkill> Skills);
+    IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkill> Skills, string? JurisdictionName = null);
 
 public sealed record ImportCourseResponse(Guid CourseId, bool CourseCreated, int SkillsCreated, int SkillsUpdated);
 
@@ -44,6 +44,8 @@ public sealed class ImportCourseHandler(ICourseRepository courses, ISkillReposit
             {
                 course.Describe(command.Name, command.FrameworkCode, command.FrameworkName, categories);
             }
+
+            if (command.JurisdictionName is not null) course.NameJurisdiction(command.JurisdictionName);
 
             var existing = (await skills.ListByCourseAsync(course.Id, ct))
                 .ToDictionary(s => s.Code, StringComparer.OrdinalIgnoreCase);

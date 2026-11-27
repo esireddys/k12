@@ -1,13 +1,17 @@
 using K12.Application.Abstractions;
+using K12.Application.Accounts;
 using K12.Application.ContentReview;
 using K12.Infrastructure.Content;
+using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
+using K12.Infrastructure.Identity;
 using K12.Infrastructure.Persistence;
 using K12.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace K12.Infrastructure;
 
@@ -26,6 +30,10 @@ public static class DependencyInjection
         if (string.IsNullOrWhiteSpace(imageRoot)) services.AddSingleton<IItemImageStore, NoItemImageStore>();
         else services.AddSingleton<IItemImageStore>(new FileSystemItemImageStore(imageRoot));
 
+        // Sign-in providers. Google needs only its public client id (Auth:Google:ClientId, set with user-secrets locally).
+        services.AddSingleton<IExternalLoginVerifier>(sp => new GoogleLoginVerifier(
+            configuration["Auth:Google:ClientId"], sp.GetRequiredService<ILogger<GoogleLoginVerifier>>()));
+
         var connectionString = configuration.GetConnectionString("K12");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -33,6 +41,7 @@ public static class DependencyInjection
             services.AddSingleton<ICourseRepository, InMemoryCourseRepository>();
             services.AddSingleton<ISkillRepository, InMemorySkillRepository>();
             services.AddSingleton<IExamFormRepository, InMemoryExamFormRepository>();
+            services.AddSingleton<IParentAccountRepository, InMemoryParentAccountRepository>();
             services.AddSingleton<IUnitOfWork, InMemoryUnitOfWork>();
             return services;
         }
@@ -43,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<ICourseRepository, EfCourseRepository>();
         services.AddScoped<ISkillRepository, EfSkillRepository>();
         services.AddScoped<IExamFormRepository, EfExamFormRepository>();
+        services.AddScoped<IParentAccountRepository, EfParentAccountRepository>();
         return services;
     }
 }

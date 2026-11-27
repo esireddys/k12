@@ -23,6 +23,9 @@ cd web && npm install && cp .env.example .env.local && npm run dev
 cd pipeline && pip install -e ".[dev]" && k12-pipeline sources
 ```
 
+Parents sign in with Google once you set a Google client id (steps in [api/SIGN_IN.md](api/SIGN_IN.md)); until then,
+the welcome screen offers a developer sign-in locally. Guests can practice without signing in.
+
 ## Principles
 
 - Content is data. States, standards, exams, skills and questions are rows, not code.

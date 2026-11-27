@@ -12,6 +12,7 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         b.HasKey(c => c.Id);
         b.Property(c => c.Id).HasConversion(Converters.CourseId).ValueGeneratedNever();
         b.Property(c => c.Jurisdiction).HasMaxLength(10).IsRequired();
+        b.Property(c => c.JurisdictionName).HasMaxLength(100).IsRequired();
         b.Property(c => c.Subject).HasMaxLength(40).IsRequired();
         b.Property(c => c.Code).HasMaxLength(20).IsRequired();
         b.Property(c => c.Name).HasMaxLength(200).IsRequired();
