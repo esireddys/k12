@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pymupdf
@@ -31,13 +32,60 @@ def _pdf(tmp_path: Path) -> Path:
     return path
 
 
-def test_every_key_file_matches_the_curriculum():
-    skills = {s["code"]: s for s in load_curriculum(DATA / "curriculum" / "tx-math-g3.json")["skills"]}
+def _curricula() -> dict[tuple[str, str, str], dict]:
+    docs = [load_curriculum(p) for p in sorted((DATA / "curriculum").glob("*.json"))]
+    return {(d["jurisdiction"], d["subject"], d["level"]): d for d in docs}
+
+
+def test_every_released_test_has_a_course_and_a_key():
+    curricula = _curricula()
     for test in RELEASED_TESTS:
+        assert (test.jurisdiction, test.subject, test.level) in curricula, test
+        assert len(load_key(DATA / "keys" / f"{form_slug(test, test.subject)}.csv")) == test.items, test
+
+
+def test_every_key_file_matches_the_curriculum():
+    curricula = _curricula()
+    for test in RELEASED_TESTS:
+        skills = {s["code"]: s for s in curricula[(test.jurisdiction, test.subject, test.level)]["skills"]}
         for row in load_key(DATA / "keys" / f"{form_slug(test, test.subject)}.csv"):
             assert row.skill in skills, row
             assert skills[row.skill]["category"] == row.category, row
             assert skills[row.skill]["designation"] == row.designation, row
+
+
+def test_algebra_keys_have_five_gridded_items_each_that_can_be_negative_or_decimal():
+    algebra = [t for t in RELEASED_TESTS if t.level == "A1"]
+    assert sorted(t.year for t in algebra) == [2019, 2021, 2022]
+    for test in algebra:
+        gridded = [r for r in load_key(DATA / "keys" / f"{form_slug(test, test.subject)}.csv") if not r.is_choice]
+        assert [r.item for r in gridded] == [14, 20, 27, 34, 42], test
+        assert all(re.fullmatch(r"-?\d+(\.\d+)?", r.answer) for r in gridded), test
+    answers = {r.answer for t in algebra for r in load_key(DATA / "keys" / f"{form_slug(t, t.subject)}.csv")}
+    assert {"-254", "-0.2", "12.3"} <= answers
+
+
+def test_algebra_is_a_course_usually_taken_in_grade_9_and_grade_3_is_a_grade():
+    algebra = course_payload(load_curriculum(DATA / "curriculum" / "tx-math-a1.json"))
+    grade3 = course_payload(load_curriculum(DATA / "curriculum" / "tx-math-g3.json"))
+    assert (algebra["code"], algebra["name"], algebra["kind"], algebra["typicalGrade"]) == ("A1", "Algebra I", "course", 9)
+    assert (grade3["kind"], grade3["typicalGrade"]) == ("grade", 3)
+    assert len(algebra["categories"]) == 5
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [({"kind": "semester"}, "grade or course"), ({"typicalGrade": 13}, "0 \\(kindergarten\\) to 12"),
+     ({"kind": "grade", "typicalGrade": None}, "needs its typicalGrade")],
+)
+def test_a_curriculum_file_must_place_its_course_in_school(tmp_path, change, message):
+    import json
+
+    doc = json.loads((DATA / "curriculum" / "tx-math-a1.json").read_text(encoding="utf-8")) | change
+    path = tmp_path / "c.json"
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    with pytest.raises(ValueError, match=message):
+        load_curriculum(path)
 
 
 def test_keys_alternate_choice_letters_by_item():
@@ -64,6 +112,26 @@ def test_extracts_choices_and_griddable_items(tmp_path):
     assert items[1].griddable and items[1].stem == "What is 4 x 5?" and items[1].choices == []
     png = render_item(_pdf(tmp_path), items[0], tmp_path / "out" / "01.png")
     assert png.stat().st_size > 0
+
+
+def test_gridded_items_take_the_kind_the_test_grids(tmp_path):
+    items = extract_items(_pdf(tmp_path), 2)
+    key = [KeyRow(1, 1, "r", "s", "B"), KeyRow(2, 2, "r", "s", "-38")]
+    algebra = ReleasedTest("TX", "EXAM", "A1", 2021, "spring", "https://example.org/a.pdf", tagged=False,
+                           gridded_kind="Decimal")
+    body = form_payload(algebra, "math", key, items, {1: "a", 2: "b"})
+    assert body["items"][1]["answer"] == {"kind": "Decimal", "value": "-38"}
+    assert body["items"][0]["answer"] == {"kind": "Choice", "value": "B"}
+    # Without a gridded kind the key value decides, as for Grade 3.
+    assert form_payload(TEST, "math", key, items, {1: "a", 2: "b"})["items"][1]["answer"]["kind"] == "Integer"
+
+
+def test_a_whole_number_grid_refuses_a_decimal_key(tmp_path):
+    whole = ReleasedTest("TX", "EXAM", "G3", 2021, "spring", "https://example.org/t.pdf", tagged=False,
+                         gridded_kind="Integer")
+    key = [KeyRow(1, 1, "r", "s", "B"), KeyRow(2, 2, "r", "s", "4.5")]
+    with pytest.raises(ValueError, match="not a whole number"):
+        form_payload(whole, "math", key, extract_items(_pdf(tmp_path), 2), {1: "a", 2: "b"})
 
 
 def test_missing_items_are_an_error(tmp_path):

@@ -7,6 +7,12 @@ public readonly record struct CourseId(Guid Value)
     public static CourseId New() => new(Guid.NewGuid());
 }
 
+/// <summary>
+/// Whether a course covers a whole grade's subject (Grade 3 math) or is a course students take in some grade,
+/// such as Algebra I. It decides how the course is named and grouped for students.
+/// </summary>
+public enum CourseKind { Grade, Course }
+
 /// <summary>A group of skills that a test reports on, numbered within its course (for example 1 to 4).</summary>
 public sealed record ReportingCategory(int Number, string Name);
 
@@ -45,6 +51,17 @@ public sealed class Course : AggregateRoot<CourseId>
     public string FrameworkName { get; private set; }
     public IReadOnlyList<ReportingCategory> Categories => _categories;
 
+    /// <summary>A whole grade or a course such as Algebra I. Grade until an import says otherwise.</summary>
+    public CourseKind Kind { get; private set; }
+
+    /// <summary>
+    /// The grade students usually are in when they take this course, 0 for kindergarten to 12. Lets the app list
+    /// Grade 3 before Algebra I (usually grade 9). Empty until an import says.
+    /// </summary>
+    public int? TypicalGrade { get; private set; }
+
+    public const int Kindergarten = 0, LastGrade = 12;
+
     public static Course Create(
         string jurisdiction, string subject, string code, string name,
         string frameworkCode, string frameworkName, IEnumerable<ReportingCategory> categories)
@@ -72,6 +89,18 @@ public sealed class Course : AggregateRoot<CourseId>
 
     /// <summary>Sets the name students see for the jurisdiction. Comes from curriculum data, never from code.</summary>
     public void NameJurisdiction(string? name) => JurisdictionName = (name ?? string.Empty).Trim();
+
+    /// <summary>Says whether this is a whole grade or a course, and the grade students usually take it in.</summary>
+    public void Place(CourseKind kind, int? typicalGrade)
+    {
+        if (!Enum.IsDefined(kind)) throw new DomainException("A course is either a grade or a course.");
+        if (typicalGrade is < Kindergarten or > LastGrade)
+            throw new DomainException($"A typical grade runs from {Kindergarten} (kindergarten) to {LastGrade}.");
+        if (kind == CourseKind.Grade && typicalGrade is null)
+            throw new DomainException("A grade-level course needs its grade.");
+        Kind = kind;
+        TypicalGrade = typicalGrade;
+    }
 
     public bool HasCategory(int number) => _categories.Any(c => c.Number == number);
 

@@ -13,10 +13,19 @@ def form_slug(test: ReleasedTest, subject: str) -> str:
     return f"{test.jurisdiction}-{test.exam}-{test.level}-{subject}-{test.year}".lower()
 
 
-def _answer(row: KeyRow) -> dict[str, Any]:
+GRIDDED_KINDS = {"Integer", "Decimal"}
+
+
+def _answer(row: KeyRow, gridded_kind: str | None) -> dict[str, Any]:
     if row.is_choice:
         return {"kind": "Choice", "value": row.answer}
-    return {"kind": "Decimal" if "." in row.answer else "Integer", "value": row.answer}
+    if gridded_kind is None:
+        return {"kind": "Decimal" if "." in row.answer else "Integer", "value": row.answer}
+    if gridded_kind not in GRIDDED_KINDS:
+        raise ValueError(f"gridded answers are {' or '.join(sorted(GRIDDED_KINDS))}, not {gridded_kind}")
+    if gridded_kind == "Integer" and "." in row.answer:
+        raise ValueError(f"item {row.item}: key {row.answer} is not a whole number")
+    return {"kind": gridded_kind, "value": row.answer}
 
 
 def form_payload(
@@ -49,7 +58,7 @@ def form_payload(
             "skillCodes": [row.skill],
             "itemType": "choice" if row.is_choice else "numeric",
             "content": content,
-            "answer": _answer(row),
+            "answer": _answer(row, test.gridded_kind),
         })
 
     return {

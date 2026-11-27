@@ -6,9 +6,19 @@ import json
 from pathlib import Path
 from typing import Any
 
+COURSE_KINDS = {"grade", "course"}
+
 
 def load_curriculum(path: Path) -> dict[str, Any]:
     doc = json.loads(path.read_text(encoding="utf-8"))
+    kind = doc.get("kind", "grade")
+    if kind not in COURSE_KINDS:
+        raise ValueError(f"{path.name}: kind is grade or course, not {kind}")
+    grade = doc.get("typicalGrade")
+    if grade is not None and not (isinstance(grade, int) and 0 <= grade <= 12):
+        raise ValueError(f"{path.name}: typicalGrade runs from 0 (kindergarten) to 12")
+    if kind == "grade" and grade is None:
+        raise ValueError(f"{path.name}: a grade needs its typicalGrade")
     categories = {c["number"] for c in doc["categories"]}
     codes = [s["code"] for s in doc["skills"]]
     if len(codes) != len(set(codes)):
@@ -29,6 +39,9 @@ def course_payload(doc: dict[str, Any]) -> dict[str, Any]:
         "name": doc["levelName"],
         "frameworkCode": doc["framework"]["code"],
         "frameworkName": doc["framework"]["name"],
+        # A whole grade (Grade 3 math) or a course taken in some grade (Algebra I, usually grade 9).
+        "kind": doc.get("kind", "grade"),
+        "typicalGrade": doc.get("typicalGrade"),
         "categories": doc["categories"],
         "skills": [
             {

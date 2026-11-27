@@ -82,6 +82,40 @@ public class ImportHandlerTests
         Assert.Equal("Compare numbers", store.Skills.Single(s => s.Code == "3.2(D)").Description);
     }
 
+    [Theory]
+    [InlineData("course", 9, CourseKind.Course, 9)]
+    [InlineData("Grade", 3, CourseKind.Grade, 3)]
+    [InlineData(null, 3, CourseKind.Grade, 3)]
+    public async Task A_course_import_says_whether_it_is_a_grade_or_a_course(string? kind, int grade, CourseKind expected, int expectedGrade)
+    {
+        var store = new Store();
+        var result = await CourseHandler(store).HandleAsync(CourseCommand() with { Code = "A1", Name = "Algebra I", Kind = kind, TypicalGrade = grade });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal((expected, (int?)expectedGrade), (store.Courses.Single().Kind, store.Courses.Single().TypicalGrade));
+    }
+
+    [Fact]
+    public async Task Reimporting_a_course_without_a_kind_keeps_the_one_it_has()
+    {
+        var store = new Store();
+        await CourseHandler(store).HandleAsync(CourseCommand() with { Kind = "course", TypicalGrade = 9 });
+        await CourseHandler(store).HandleAsync(CourseCommand());
+        Assert.Equal((CourseKind.Course, (int?)9), (store.Courses.Single().Kind, store.Courses.Single().TypicalGrade));
+    }
+
+    [Theory]
+    [InlineData("semester", 9)]
+    [InlineData("5", 9)]
+    [InlineData("course", 14)]
+    [InlineData("grade", null)]
+    public async Task A_course_placed_outside_school_is_a_validation_error(string kind, int? grade)
+    {
+        var store = new Store();
+        var result = await CourseHandler(store).HandleAsync(CourseCommand() with { Kind = kind, TypicalGrade = grade });
+        Assert.Equal(("import.invalid_course", 0), (result.Error!.Code, store.Saves));
+    }
+
     [Fact]
     public async Task A_skill_in_an_unknown_category_is_a_validation_error()
     {

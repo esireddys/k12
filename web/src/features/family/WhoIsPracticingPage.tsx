@@ -15,7 +15,7 @@ function KidCard({ kid, onPick }: { kid: Kid; onPick: () => void }) {
       <Avatar name={kid.name} color={kid.avatar} size={110} />
       <span style={{ fontSize: 26, fontWeight: 800 }}>{kid.name}</span>
       <span className="quiet" style={{ fontSize: 16 }}>
-        {course ? `${courseLabel(course)} · ${jurisdictionLabel(course)}` : 'Pick a grade'}
+        {course ? `${courseLabel(course)} · ${jurisdictionLabel(course)}` : 'Pick a grade or course'}
       </span>
     </button>
   )

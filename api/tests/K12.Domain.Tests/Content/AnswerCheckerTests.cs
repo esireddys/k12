@@ -23,6 +23,34 @@ public class AnswerCheckerTests
     public void Thousands_separators_are_ignored(string response, bool expected) =>
         Assert.Equal(expected, AnswerChecker.Check(Spec(AnswerKind.Integer, "1000"), response).IsCorrect);
 
+    /// <summary>
+    /// Gridded answers on tests such as Algebra I are signed decimals: the key may be a negative number, a decimal,
+    /// or a whole number that a student can also write with a trailing ".0".
+    /// </summary>
+    [Theory]
+    [InlineData("-254", "-254", true)]
+    [InlineData("-254", "\u2212254", true)]
+    [InlineData("-254", "254", false)]
+    [InlineData("-0.2", "-0.2", true)]
+    [InlineData("-0.2", "-.2", true)]
+    [InlineData("-0.2", "-0.20", true)]
+    [InlineData("-0.2", "0.2", false)]
+    [InlineData("12.3", "12.30", true)]
+    [InlineData("12.3", "12.03", false)]
+    [InlineData("29", "29.0", true)]
+    [InlineData("29", "-29", false)]
+    [InlineData("-3", "- 3", false)]
+    [InlineData("-3", "--3", false)]
+    public void Gridded_answers_can_be_negative_or_decimal(string key, string response, bool expected) =>
+        Assert.Equal(expected, AnswerChecker.Check(Spec(AnswerKind.Decimal, key), response).IsCorrect);
+
+    [Theory]
+    [InlineData("-38", true)]
+    [InlineData("\u221238", true)]
+    [InlineData("38", false)]
+    public void Integer_answers_can_be_negative(string response, bool expected) =>
+        Assert.Equal(expected, AnswerChecker.Check(Spec(AnswerKind.Integer, "-38"), response).IsCorrect);
+
     [Theory]
     [InlineData("3/4", true)]
     [InlineData("6/8", true)]
