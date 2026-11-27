@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router'
-import { courseLabel, hasQuestions, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
+import { courseLabel, courseLevelHint, hasQuestions, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
 import { learnerStore, useLearner } from '../../shared/learner/learner'
 import { TopBar } from '../../shared/ui/TopBar'
 import { useSaveKidCourse } from './api/usePractice'
 
-/** Pick a state and grade. For a kid it is saved to their profile; for a guest it stays on this device. */
+/** Pick a state and a grade or course (such as Algebra I). For a kid it is saved to their profile; for a guest it stays on this device. */
 export function ChooseCoursePage() {
   const navigate = useNavigate()
   const learner = useLearner()
@@ -21,7 +21,7 @@ export function ChooseCoursePage() {
 
   return (
     <main className="page">
-      <TopBar back={learner?.kind === 'kid' ? '/kids' : '/'} title="Pick your grade" />
+      <TopBar back={learner?.kind === 'kid' ? '/kids' : '/'} title="Pick your grade or course" />
       {catalog.isError && <p role="alert">Could not load the courses. Is the API running?</p>}
       {byJurisdiction.map(([code, name]) => (
         <section key={code} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -32,6 +32,7 @@ export function ChooseCoursePage() {
               .map((c) => (
                 <button key={c.id} className="card" disabled={!hasQuestions(c)} onClick={() => choose(c.id)} style={{ opacity: hasQuestions(c) ? 1 : 0.6 }}>
                   <h3>{courseLabel(c)}</h3>
+                  {courseLevelHint(c) && <p className="quiet">{courseLevelHint(c)}</p>}
                   <p>{hasQuestions(c) ? `${c.questionCount} questions` : 'Coming soon'}</p>
                 </button>
               ))}

@@ -33,7 +33,7 @@ function KidRow({ kid }: { kid: Kid }) {
       <Avatar name={kid.name} color={kid.avatar} />
       <div style={{ flex: 1, minWidth: 160 }}>
         <div style={{ fontSize: 22, fontWeight: 800 }}>{kid.name}</div>
-        <div className="quiet">{course ? `${courseLabel(course)} · ${jurisdictionLabel(course)}` : 'No grade picked yet'}</div>
+        <div className="quiet">{course ? `${courseLabel(course)} · ${jurisdictionLabel(course)}` : 'No grade or course picked yet'}</div>
       </div>
       {confirming ? (
         <div className="row">

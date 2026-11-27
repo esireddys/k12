@@ -145,6 +145,26 @@ public class PracticeSetHandlerTests
         Assert.Equal(6, Assert.Single(course.Forms).QuestionCount);
     }
 
+    [Fact]
+    public async Task The_catalog_lists_grades_and_courses_in_school_order()
+    {
+        var bank = new Bank();
+        bank.Course.Place(CourseKind.Grade, 3);
+        var algebra = Course.Create("TX", "math", "A1", "Algebra I", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
+        algebra.Place(CourseKind.Course, 9);
+        var grade9 = Course.Create("TX", "math", "G9", "Grade 9", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
+        grade9.Place(CourseKind.Grade, 9);
+        var unplaced = Course.Create("TX", "math", "ZZ", "Another", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
+        bank.Store.Courses.InsertRange(0, [unplaced, algebra, grade9]);
+
+        var catalog = (await new GetPracticeCatalogHandler(bank.Store, bank.Store, bank.Store, bank.Store)
+            .HandleAsync(new GetPracticeCatalogQuery())).Value!;
+
+        Assert.Equal(["G3", "G9", "A1", "ZZ"], catalog.Courses.Select(c => c.Code));
+        var a1 = catalog.Courses.Single(c => c.Code == "A1");
+        Assert.Equal(("Course", (int?)9), (a1.Kind, a1.TypicalGrade));
+    }
+
     public static TheoryData<int, string?, bool, bool, string, string?> Responses => new()
     {
         // item, response, answered, correct, key, choice text

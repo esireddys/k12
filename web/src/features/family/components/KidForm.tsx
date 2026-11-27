@@ -41,7 +41,7 @@ export function KidForm({
           <input id="kid-name" value={name} maxLength={30} onChange={(e) => setName(e.target.value)} required autoComplete="off" />
         </div>
         <div className="field" style={{ minWidth: 220 }}>
-          <label htmlFor="kid-course">Grade</label>
+          <label htmlFor="kid-course">Grade or course</label>
           <select id="kid-course" value={courseId} onChange={(e) => setCourseId(e.target.value)}>
             <option value="">Choose later</option>
             {(catalog.data ?? []).map((c) => (

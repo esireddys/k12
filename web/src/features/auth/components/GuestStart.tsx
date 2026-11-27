@@ -4,7 +4,7 @@ import { courseLabel, hasQuestions, jurisdictionLabel, useCatalog } from '../../
 import { learnerStore } from '../../../shared/learner/learner'
 import { Button } from '../../../shared/ui/Button'
 
-/** Pick a state and grade, then practice with nothing saved. */
+/** Pick a state and a grade or course, then practice with nothing saved. */
 export function GuestStart() {
   const navigate = useNavigate()
   const catalog = useCatalog()
@@ -46,7 +46,7 @@ export function GuestStart() {
           </select>
         </div>
         <div className="field">
-          <label htmlFor="g-grade">Grade</label>
+          <label htmlFor="g-grade">Grade or course</label>
           <select id="g-grade" value={course?.id ?? ''} onChange={(e) => setCourseId(e.target.value)}>
             {inJurisdiction.map((c) => (
               <option key={c.id} value={c.id} disabled={!hasQuestions(c)}>

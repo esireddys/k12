@@ -4,6 +4,8 @@
   "subject": "math",
   "level": "G3",
   "levelName": "Grade 3",
+  "kind": "grade",
+  "typicalGrade": 3,
   "framework": {
     "code": "TEKS",
     "name": "Texas Essential Knowledge and Skills"

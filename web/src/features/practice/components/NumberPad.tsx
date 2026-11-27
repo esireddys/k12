@@ -72,8 +72,8 @@ export function NumberPad({
       {extras
         .filter((k) => k !== '.')
         .map((k) => (
-          <button key={k} type="button" style={{ ...key, background: 'var(--accent-soft)' }} onClick={() => tap(k)} disabled={disabled} aria-label={k === '/' ? 'Fraction bar' : k === ':' ? 'Colon' : 'Dollar sign'}>
-            {k}
+          <button key={k} type="button" style={{ ...key, background: 'var(--accent-soft)' }} onClick={() => tap(k)} disabled={disabled} aria-label={k === '/' ? 'Fraction bar' : k === ':' ? 'Colon' : k === '-' ? 'Negative sign' : 'Dollar sign'}>
+            {k === '-' ? '\u2212' : k}
           </button>
         ))}
     </div>

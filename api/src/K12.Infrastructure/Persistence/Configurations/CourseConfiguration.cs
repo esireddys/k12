@@ -18,6 +18,8 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         b.Property(c => c.Name).HasMaxLength(200).IsRequired();
         b.Property(c => c.FrameworkCode).HasMaxLength(40).IsRequired();
         b.Property(c => c.FrameworkName).HasMaxLength(200).IsRequired();
+        b.Property(c => c.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(c => c.TypicalGrade);
         b.HasIndex(c => new { c.Jurisdiction, c.Subject, c.Code }).IsUnique();
 
         b.OwnsMany(c => c.Categories, cat =>

@@ -495,6 +495,9 @@ export interface components {
             questionCount: number | string;
             categories: components["schemas"]["CatalogCategory"][];
             forms: components["schemas"]["CatalogForm"][];
+            kind: string;
+            /** Format: int32 */
+            typicalGrade: null | number | string;
         };
         CatalogForm: {
             /** Format: uuid */
@@ -550,6 +553,9 @@ export interface components {
             categories: components["schemas"]["ImportCategory"][];
             skills: components["schemas"]["ImportSkillBody"][];
             jurisdictionName?: null | string;
+            kind?: null | string;
+            /** Format: int32 */
+            typicalGrade?: null | number | string;
         };
         ImportCourseResponse: {
             /** Format: uuid */

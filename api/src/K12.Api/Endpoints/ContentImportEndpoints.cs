@@ -18,7 +18,8 @@ public static class ContentImportEndpoints
     public sealed record ImportCourseBody(
         string Jurisdiction, string Subject, string Code, string Name,
         string FrameworkCode, string FrameworkName,
-        IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkillBody> Skills, string? JurisdictionName = null);
+        IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkillBody> Skills, string? JurisdictionName = null,
+        string? Kind = null, int? TypicalGrade = null);
 
     public sealed record ImportItemBody(int Number, IReadOnlyList<string> SkillCodes, string ItemType, JsonElement Content, AnswerSpec Answer);
 
@@ -39,7 +40,7 @@ public static class ContentImportEndpoints
                 body.Jurisdiction, body.Subject, body.Code, body.Name, body.FrameworkCode, body.FrameworkName,
                 body.Categories,
                 body.Skills.Select(s => new ImportSkill(s.Code, s.Description, s.Category, s.Designation, s.Limits?.GetRawText())).ToList(),
-                body.JurisdictionName),
+                body.JurisdictionName, body.Kind, body.TypicalGrade),
                 ct)).ToHttp())
             .WithName("ImportCourse")
             .Produces<ImportCourseResponse>()

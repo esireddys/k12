@@ -25,8 +25,20 @@ export const jurisdictionLabel = (c: Pick<CatalogCourse, 'jurisdiction' | 'juris
 
 const subjectLabel = (subject: string) => subject.charAt(0).toUpperCase() + subject.slice(1)
 
-/** "Grade 3 Math" */
-export const courseLabel = (c: Pick<CatalogCourse, 'name' | 'subject'>) => `${c.name} ${subjectLabel(c.subject)}`
+/**
+ * "Grade 3 Math" for a whole grade; just "Algebra I" for a course, whose name already says the subject.
+ * Both names come from curriculum data.
+ */
+export const courseLabel = (c: Pick<CatalogCourse, 'name' | 'subject' | 'kind'>) =>
+  c.kind === 'Course' ? c.name : `${c.name} ${subjectLabel(c.subject)}`
+
+const gradeName = (grade: number) => (grade === 0 ? 'kindergarten' : `grade ${grade}`)
+
+/** "Usually grade 9" for a course such as Algebra I, so parents know who it is for. Empty for a whole grade. */
+export function courseLevelHint(c: Pick<CatalogCourse, 'kind' | 'typicalGrade'>): string {
+  if (c.kind !== 'Course' || c.typicalGrade === null || c.typicalGrade === undefined) return ''
+  return `Usually ${gradeName(Number(c.typicalGrade))}`
+}
 
 /** The exam names this course's released tests come from, for example one name, or two joined with "and". From data. */
 export function examNames(c: CatalogCourse): string {

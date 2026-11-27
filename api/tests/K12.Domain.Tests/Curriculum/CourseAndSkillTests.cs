@@ -23,6 +23,34 @@ public class CourseAndSkillTests
         Assert.Throws<DomainException>(() => Course.Create("TX", "math", code, name, "FW", "Framework", []));
 
     [Fact]
+    public void A_course_is_a_grade_until_told_otherwise()
+    {
+        var course = Grade3();
+        Assert.Equal((CourseKind.Grade, (int?)null), (course.Kind, course.TypicalGrade));
+    }
+
+    [Theory]
+    [InlineData(CourseKind.Grade, 3)]
+    [InlineData(CourseKind.Grade, 0)]
+    [InlineData(CourseKind.Course, 9)]
+    [InlineData(CourseKind.Course, null)]
+    [InlineData(CourseKind.Course, 12)]
+    public void A_course_can_be_placed_in_school(CourseKind kind, int? grade)
+    {
+        var course = Grade3();
+        course.Place(kind, grade);
+        Assert.Equal((kind, grade), (course.Kind, course.TypicalGrade));
+    }
+
+    [Theory]
+    [InlineData(CourseKind.Grade, null)]
+    [InlineData(CourseKind.Course, -1)]
+    [InlineData(CourseKind.Course, 13)]
+    [InlineData((CourseKind)7, 9)]
+    public void A_course_cannot_be_placed_outside_school(CourseKind kind, int? grade) =>
+        Assert.Throws<DomainException>(() => Grade3().Place(kind, grade));
+
+    [Fact]
     public void Category_numbers_must_be_unique() =>
         Assert.Throws<DomainException>(() => Grade3().Describe("Grade 3", "FW", "Framework",
             [new ReportingCategory(1, "A"), new ReportingCategory(1, "B")]));

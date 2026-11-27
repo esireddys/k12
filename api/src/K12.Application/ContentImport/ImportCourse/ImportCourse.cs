@@ -12,7 +12,8 @@ public sealed record ImportSkill(string Code, string Description, int? Category,
 public sealed record ImportCourseCommand(
     string Jurisdiction, string Subject, string Code, string Name,
     string FrameworkCode, string FrameworkName,
-    IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkill> Skills, string? JurisdictionName = null);
+    IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkill> Skills, string? JurisdictionName = null,
+    string? Kind = null, int? TypicalGrade = null);
 
 public sealed record ImportCourseResponse(Guid CourseId, bool CourseCreated, int SkillsCreated, int SkillsUpdated);
 
@@ -46,6 +47,13 @@ public sealed class ImportCourseHandler(ICourseRepository courses, ISkillReposit
             }
 
             if (command.JurisdictionName is not null) course.NameJurisdiction(command.JurisdictionName);
+            if (command.Kind is not null || command.TypicalGrade is not null)
+            {
+                if (!Enum.TryParse<CourseKind>(command.Kind ?? nameof(CourseKind.Grade), ignoreCase: true, out var kind)
+                    || !Enum.IsDefined(kind))
+                    return Error.Validation("import.invalid_course", $"Kind '{command.Kind}' is not one of: grade, course.");
+                course.Place(kind, command.TypicalGrade);
+            }
 
             var existing = (await skills.ListByCourseAsync(course.Id, ct))
                 .ToDictionary(s => s.Code, StringComparer.OrdinalIgnoreCase);

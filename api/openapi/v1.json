@@ -1409,7 +1409,9 @@
           "frameworkName",
           "questionCount",
           "categories",
-          "forms"
+          "forms",
+          "kind",
+          "typicalGrade"
         ],
         "type": "object",
         "properties": {
@@ -1457,6 +1459,18 @@
             "items": {
               "$ref": "#/components/schemas/CatalogForm"
             }
+          },
+          "kind": {
+            "type": "string"
+          },
+          "typicalGrade": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -1678,6 +1692,21 @@
               "null",
               "string"
             ]
+          },
+          "kind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "typicalGrade": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },

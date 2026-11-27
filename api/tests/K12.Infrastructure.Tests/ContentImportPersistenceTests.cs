@@ -57,5 +57,24 @@ public sealed class ContentImportPersistenceTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task A_course_keeps_its_kind_and_typical_grade()
+    {
+        var algebra = Course.Create("TX", "math", "A1", "Algebra I", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
+        algebra.Place(CourseKind.Course, 9);
+
+        await using (var db = NewContext())
+        {
+            await new EfCourseRepository(db).AddAsync(algebra);
+            await db.SaveChangesAsync();
+        }
+
+        await using (var db = NewContext())
+        {
+            var loaded = await new EfCourseRepository(db).FindAsync("TX", "math", "A1");
+            Assert.Equal((CourseKind.Course, (int?)9), (loaded!.Kind, loaded.TypicalGrade));
+        }
+    }
+
     public void Dispose() => _connection.Dispose();
 }
