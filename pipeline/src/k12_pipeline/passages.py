@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pymupdf
 
-from .extract import FOOTER_TOP, ExtractedItem
+from .extract import FOOTER_TOP, PAD, ZOOM, ExtractedItem, _printed_area, _render
 
 # The instruction that opens every selection on the forms seen so far ("Read the selection and choose ...",
 # "Read the next two selections and choose ...").
@@ -109,19 +109,38 @@ def _clean_text(lines: list[tuple[str, bool]]) -> str:
     return "\n".join(out)
 
 
-def render_passage_pages(pdf: Path, passage: ExtractedPassage, out_dir: Path, zoom: float = 2.0) -> list[Path]:
-    """Writes each page of the selection as a PNG (trimmed to its printed area) and returns the paths in order."""
+def _instruction_bottom(page: pymupdf.Page) -> float | None:
+    """The bottom of the paper-test instruction at the top of a selection's first page ("Read the selection and
+    choose the best answer to each question. Then fill in the answer on your answer document."), if it is there."""
+    lines = _lines(page)
+    start = next((i for i, (_, t, bold, _) in enumerate(lines) if bold and PASSAGE_START.match(t)), None)
+    if start is None:
+        return None
+    bottom = None
+    for top, text, bold, _ in lines[start:start + 4]:
+        if not bold:
+            break
+        bottom = top
+        if "answer document" in text.lower():
+            break
+    # _lines gives tops; the instruction lines are 12-point, so the line ends about 15 points lower.
+    return None if bottom is None else bottom + 15
+
+
+def render_passage_pages(pdf: Path, passage: ExtractedPassage, out_dir: Path, zoom: float = ZOOM) -> list[Path]:
+    """Writes each page of the selection as a PNG and returns the paths in order. Each picture is trimmed to the
+    printed area, and the first leaves out the paper-test instruction above the title."""
     doc = pymupdf.open(pdf)
     paths = []
     for index, number in enumerate(passage.pages, start=1):
         page = doc[number - 1]
         clip = pymupdf.Rect(30, PAGE_TOP, 582, FOOTER_TOP) & page.rect
-        marks = [pymupdf.Rect(r) for _, r in page.get_bboxlog()]
-        inside = [r for r in marks if clip.y0 <= r.y0 < clip.y1 and r.height < 700 and r.width < 560]
-        if inside:
-            clip.y1 = min(clip.y1, max(r.y1 for r in inside) + 10)
+        if index == 1 and (cut := _instruction_bottom(page)) is not None:
+            clip.y0 = cut
+        skip = [pymupdf.Rect(0, PAGE_TOP, page.rect.width, PAGE_TOP + 14)]  # form-building ids at the very top
+        area = _printed_area(page, clip, skip)
+        if area is not None:
+            clip = (area + (-PAD, -PAD, PAD, PAD)) & clip
         path = out_dir / f"{passage.key}-{index}.png"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip).save(path)
-        paths.append(path)
+        paths.append(_render(page, clip, [], path, zoom))
     return paths

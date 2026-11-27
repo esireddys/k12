@@ -182,3 +182,113 @@ def test_publish_released_moves_leftovers_live_and_says_how_many():
     assert publish_released(client) == "64 published"
     assert calls == [("POST", "/api/admin/import/publish-released")]
     assert publish_released(None) == "not sent (--dry-run)"
+
+
+def _item_pdf(tmp_path: Path, draw) -> Path:
+    doc = pymupdf.open()
+    page = doc.new_page(width=612, height=792)
+    draw(page)
+    page.insert_text((36, 760), "Page 1", fontname="helv", fontsize=10)
+    path = tmp_path / "one.pdf"
+    doc.save(path)
+    return path
+
+
+def _number_and_stem(page, stem="How many apples are there?", y=100):
+    page.insert_text((60, y), "1", fontname="hebo", fontsize=11)
+    page.insert_text((80, y), stem, fontname="helv", fontsize=11)
+
+
+def _choices(page, texts, y=130, labels="ABCD"):
+    for k, (label, text) in enumerate(zip(labels, texts, strict=True)):
+        page.insert_text((80, y + 20 * k), label, fontname="hebo", fontsize=11)
+        page.insert_text((95, y + 20 * k), text, fontname="helv", fontsize=11)
+
+
+def test_plain_stem_and_choices_are_text_and_the_picture_leaves_out_number_and_choices(tmp_path):
+    pdf = _item_pdf(tmp_path, lambda p: (_number_and_stem(p), _choices(p, ["12", "21", "9", "20"])))
+    item = extract_items(pdf, 1)[0]
+    assert item.stem_is_text and item.choices_are_text
+    assert [c.text for c in item.choices] == ["12", "21", "9", "20"]
+    assert item.number_box is not None and item.picture_bottom < 130
+
+    png = render_item(pdf, item, tmp_path / "01.png")
+    width, height = pymupdf.Pixmap(str(png)).width, pymupdf.Pixmap(str(png)).height
+    # Trimmed to the stem: no gutter, no choices, no side margins.
+    assert height < 30 * 3 and width < 200 * 3
+
+
+@pytest.mark.parametrize(
+    ("draw", "stem_text", "choice_text"),
+    [
+        # A figure among the choices: the buttons cannot show them as text.
+        (lambda p: (_number_and_stem(p), _choices(p, ["12", "21", "9", "20"]), p.draw_rect((95, 125, 140, 135))),
+         False, False),
+        # A figure under the stem: choices can be text, the stem stays a picture.
+        (lambda p: (_number_and_stem(p), p.draw_rect((100, 104, 160, 120)), _choices(p, ["12", "21", "9", "20"])),
+         False, True),
+        # A bold word in the stem is emphasis that plain text would lose.
+        (lambda p: (_number_and_stem(p, "Which is"), p.insert_text((130, 100), "NOT", fontname="hebo", fontsize=11),
+                    _choices(p, ["12", "21", "9", "20"])), False, True),
+        # A missing choice letter: nothing is trusted as text.
+        (lambda p: (_number_and_stem(p), _choices(p, ["12", "21", "9"], labels="ABC")), False, False),
+        # An unreadable glyph in one choice.
+        (lambda p: (_number_and_stem(p), _choices(p, ["12", "21", "9", "2\x020"])), False, False),
+    ],
+)
+def test_text_is_used_only_when_it_is_the_whole_of_what_is_printed(tmp_path, draw, stem_text, choice_text):
+    item = extract_items(_item_pdf(tmp_path, draw), 1)[0]
+    assert (item.stem_is_text, item.choices_are_text) == (stem_text, choice_text)
+
+
+def test_stacked_fraction_choices_read_as_slashes(tmp_path):
+    def draw(p):
+        _number_and_stem(p, "Which fraction is shaded?")
+        for k, (label, top, bottom) in enumerate(zip("ABCD", "1213", "2434", strict=True)):
+            y = 140 + 40 * k
+            p.insert_text((80, y), label, fontname="hebo", fontsize=11)
+            p.insert_text((95, y - 3), top, fontname="helv", fontsize=11)
+            p.insert_text((94, y), "_", fontname="helv", fontsize=12)
+            p.insert_text((95, y + 10), bottom, fontname="helv", fontsize=11)
+
+    item = extract_items(_item_pdf(tmp_path, draw), 1)[0]
+    assert item.choices_are_text
+    assert [c.text for c in item.choices] == ["1/2", "2/4", "1/3", "3/4"]
+
+
+def test_gridded_item_picture_stops_above_the_answer_document_line(tmp_path):
+    def draw(p):
+        _number_and_stem(p, "What is 4 x 5?")
+        p.insert_text((80, 130), "Record your answer and fill in the bubbles on your answer", fontname="helv", fontsize=11)
+        p.insert_text((80, 144), "document.", fontname="helv", fontsize=11)
+
+    item = extract_items(_item_pdf(tmp_path, draw), 1)[0]
+    assert item.griddable and item.stem == "What is 4 x 5?" and item.stem_is_text
+    assert item.record_top is not None and item.picture_bottom < item.record_top
+
+
+def test_form_payload_says_which_text_to_show(tmp_path):
+    items = extract_items(_pdf(tmp_path), 2)
+    key = [KeyRow(1, 1, "readiness", "3.2(D)", "B"), KeyRow(2, 2, "supporting", "3.4(F)", "20")]
+    first, second = form_payload(TEST, "math", key, items, {1: "f/01.png", 2: "f/02.png"})["items"]
+    assert first["content"]["choicesAreText"] is True
+    assert (first["content"]["textNeedsReview"], first["content"]["showImage"]) == (False, False)
+    assert "choicesAreText" not in second["content"]
+
+
+def test_a_form_imported_before_is_refreshed():
+    import httpx
+
+    from k12_pipeline.cli import import_form
+
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        if request.url.path.endswith("/exam-form"):
+            return httpx.Response(409, json={"title": "already imported"})
+        return httpx.Response(200, json={"examFormId": "x", "questionsRefreshed": 30, "questionsKeptAsEdited": 2})
+
+    client = httpx.Client(base_url="http://api", transport=httpx.MockTransport(handler))
+    assert import_form(client, {"items": []}) == "already imported; 30 refreshed, 2 kept as edited"
+    assert calls == ["/api/admin/import/exam-form", "/api/admin/import/exam-form/refresh"]

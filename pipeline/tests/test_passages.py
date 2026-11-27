@@ -123,3 +123,13 @@ def test_a_skill_without_a_category_is_allowed_but_an_unknown_category_is_not(tm
     bad.write_text(doc.replace('"category": 2,\n      "designation"', '"category": 9,\n      "designation"', 1), encoding="utf-8")
     with pytest.raises(ValueError, match="unknown categories"):
         load_curriculum(bad)
+
+
+def test_the_answer_document_instruction_is_left_out_of_the_first_page(tmp_path):
+    from k12_pipeline.passages import _instruction_bottom
+
+    pdf = _reading_pdf(tmp_path)
+    doc = pymupdf.open(pdf)
+    cut = _instruction_bottom(doc[0])
+    assert cut is not None and 60 < cut < 100  # below the instruction, above the title
+    assert _instruction_bottom(doc[1]) is None

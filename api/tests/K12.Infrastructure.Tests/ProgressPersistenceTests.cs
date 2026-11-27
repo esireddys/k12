@@ -82,6 +82,10 @@ public sealed class ProgressPersistenceTests : IDisposable
             Assert.Equal((sessionId, PracticeMode.Exam, "EXAM 2022", 0, 1, 2), (session.Id, session.Mode, session.Title, session.Correct, session.Total, session.Minutes));
             Assert.Equal("7", session.Answers[0].Response);
             Assert.NotNull(session.FinishedAt);
+
+            var inCourse = Assert.Single(await new EfPracticeSessionRepository(db).ListByCourseAsync(kidId, course.Id));
+            Assert.Equal(question.Id, Assert.Single(inCourse.Answers).QuestionId);
+            Assert.Empty(await new EfPracticeSessionRepository(db).ListByCourseAsync(kidId, CourseId.New()));
         }
 
         await using (var db = NewContext())

@@ -1,3 +1,4 @@
+using K12.Domain.Curriculum;
 using K12.Domain.Accounts;
 
 namespace K12.Domain.Progress;
@@ -9,6 +10,9 @@ public interface IPracticeSessionRepository
 
     /// <summary>A kid's latest sessions with at least one answer, newest first.</summary>
     Task<IReadOnlyList<PracticeSession>> ListRecentAsync(KidProfileId kidId, int take, CancellationToken ct = default);
+
+    /// <summary>Every session a kid took in one course, with its answers, for progress by category.</summary>
+    Task<IReadOnlyList<PracticeSession>> ListByCourseAsync(KidProfileId kidId, CourseId courseId, CancellationToken ct = default);
 
     Task AddAsync(PracticeSession session, CancellationToken ct = default);
 

@@ -12,6 +12,7 @@ import { learnerStore, type Learner } from '../../shared/learner/learner'
 import { Avatar } from '../../shared/ui/Avatar'
 import type { AvatarColor } from '../../shared/ui/avatarColors'
 import { Button } from '../../shared/ui/Button'
+import { CategoryBars } from '../../shared/ui/CategoryBars'
 import { Icon } from '../../shared/ui/Icon'
 import { ParentLockedError, useSaveKidCourse } from './api/usePractice'
 import { useKidSummary } from './api/useProgress'
@@ -89,6 +90,20 @@ function Badges({ kidId }: { kidId: string }) {
         {summary.stars} {Number(summary.stars) === 1 ? 'star' : 'stars'}
       </span>
     </div>
+  )
+}
+
+/** How the kid is doing in each part of the test. It fills as they practice anything in the course. */
+function ProgressCard({ kidId }: { kidId: string }) {
+  const categories = useKidSummary(kidId).data?.categories ?? []
+  if (categories.length === 0) return null
+  return (
+    <section className="card" aria-labelledby="my-progress" style={{ gap: 14 }}>
+      <h2 id="my-progress" style={{ fontSize: 20 }}>
+        My progress
+      </h2>
+      <CategoryBars categories={categories} />
+    </section>
   )
 }
 
@@ -187,6 +202,8 @@ export function KidHomePage() {
               </Link>
               {learner.kind === 'kid' && <FixMistakesCard kidId={learner.kidId} />}
             </div>
+
+            {learner.kind === 'kid' && <ProgressCard kidId={learner.kidId} />}
           </main>
         )
       }}

@@ -65,7 +65,7 @@ internal static class Scoring
                 : null;
             return new ScoredResponse(
                 q.Id.Value, answered, check.IsCorrect, check.Understood, q.Answer.Value,
-                string.IsNullOrWhiteSpace(choiceText) || content.TextNeedsReview ? null : choiceText,
+                string.IsNullOrWhiteSpace(choiceText) || !content.ChoicesAreText ? null : choiceText,
                 content.Explanation);
         }).ToList();
 

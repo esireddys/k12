@@ -163,6 +163,25 @@ public sealed class Question : AggregateRoot<QuestionId>
         OwnerDecision = null;
     }
 
+    /// <summary>
+    /// Takes a newer import's reading of the same printed item: its pictures, the text read from the PDF and which
+    /// of that text students see. Only a released question nobody has edited is refreshed (version 1), so an owner's
+    /// correction is never overwritten. The key must be the same: a different key is a different question.
+    /// Status and version stay as they are, because the item itself has not changed.
+    /// </summary>
+    /// <returns>True when the content changed.</returns>
+    public bool RefreshReleasedContent(string contentJson, AnswerSpec answer)
+    {
+        if (Origin is not QuestionOrigin.Official)
+            throw new DomainException("Only questions from released tests are refreshed from an import.");
+        if (!SameAnswer(answer, Answer))
+            throw new DomainException($"The import gives the key {answer.Value}, but the question's key is {Answer.Value}.");
+        EnsureJsonObject(contentJson, "The content");
+        if (Version != 1 || contentJson == ContentJson) return false;
+        ContentJson = contentJson;
+        return true;
+    }
+
     public void Retire() => Status = QuestionStatus.Retired;
 
     public bool IsVisibleToStudents => Status == QuestionStatus.Live;

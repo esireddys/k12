@@ -286,14 +286,59 @@ button.card:hover:not(:disabled) {
 
 .question-card {
   gap: 16px;
-  padding: 20px 24px;
+  padding: 16px;
+}
+
+/* A stem the importer read as plain text: real text, at the size kids read best. */
+.question-stem {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .question-picture {
   border-radius: 16px;
   border: 2px solid var(--border);
   background: #fff;
-  padding: 12px;
+  padding: 6px;
+}
+
+/* Choice text on a button: the letter in a circle, then the value. */
+.choice-with-text {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.choice-letter {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-weight: 800;
+}
+
+/* A fraction drawn stacked, as the test prints it. */
+.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.05;
+  font-size: 0.85em;
+  margin: 0 2px;
+}
+
+.fraction-top {
+  border-bottom: 2px solid currentColor;
+  padding: 0 3px;
 }
 
 .choices {
@@ -311,7 +356,7 @@ button.card:hover:not(:disabled) {
 .zoomable {
   position: relative;
   display: grid;
-  place-items: center;
+  place-items: center start;
   width: 100%;
   padding: 0;
   border: 0;
@@ -319,11 +364,11 @@ button.card:hover:not(:disabled) {
   cursor: zoom-in;
 }
 
+/* Printed pictures are as wide as they can be up to their print size (set per picture), never squeezed by height:
+   squeezing is what made the print tiny. The page scrolls instead, and the answers stay in view beside them. */
 .zoomable img {
   width: 100%;
-  max-width: 900px;
   height: auto;
-  max-height: min(520px, 62vh);
   object-fit: contain;
 }
 
@@ -384,7 +429,7 @@ button.card:hover:not(:disabled) {
 
 .passage-pane {
   gap: 14px;
-  padding: 16px;
+  padding: 8px;
 }
 
 .passage-pane .zoomable img {
@@ -408,10 +453,23 @@ button.card:hover:not(:disabled) {
 
 /* Landscape tablet and wider: picture beside the answers, or the selection beside the question. */
 @media (min-width: 900px) and (orientation: landscape) {
+  .page:has(.question-body) {
+    max-width: 1240px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  /* The printed item gets two thirds of the width, so 12-point print shows at about 16 px or more. */
   .question-body {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
     align-items: start;
+  }
+
+  .question-body > .choices,
+  .question-body > .answer-area {
+    position: sticky;
+    top: 12px;
   }
 
   .question-body .choices {
@@ -422,13 +480,9 @@ button.card:hover:not(:disabled) {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .question-body .zoomable img {
-    max-height: calc(100vh - 300px);
-  }
-
   .reading-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
   }
 
@@ -464,10 +518,6 @@ button.card:hover:not(:disabled) {
   .question-picture {
     padding: 4px;
     border-width: 1px;
-  }
-
-  .zoomable img {
-    max-height: none;
   }
 
   .choices {

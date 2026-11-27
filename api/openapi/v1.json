@@ -1599,6 +1599,66 @@
         }
       }
     },
+    "/api/admin/import/exam-form/refresh": {
+      "post": {
+        "tags": [
+          "Content import"
+        ],
+        "operationId": "RefreshExamForm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportExamFormBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshExamFormResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/import/publish-released": {
       "post": {
         "tags": [
@@ -2065,6 +2125,67 @@
           },
           "description": {
             "type": "string"
+          },
+          "questionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CategoryView": {
+        "required": [
+          "number",
+          "name",
+          "level",
+          "answered",
+          "correct",
+          "accuracy",
+          "questionCount"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "$ref": "#/components/schemas/MasteryLevel"
+          },
+          "answered": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "correct": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "accuracy": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "questionCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -2591,7 +2712,7 @@
           }
         }
       },
-      "JsonElement": { },
+      "JsonElement": {},
       "KidBody": {
         "required": [
           "name",
@@ -2630,10 +2751,11 @@
           "correct",
           "mistakesToFix",
           "lastExam",
-          "skillsMastered",
-          "skillsTotal",
+          "categoriesMastered",
+          "categories",
           "needsAttention",
           "skills",
+          "skillsCountedInCategoriesOnly",
           "recentSessions"
         ],
         "type": "object",
@@ -2720,7 +2842,7 @@
               }
             ]
           },
-          "skillsMastered": {
+          "categoriesMastered": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -2728,13 +2850,11 @@
             ],
             "format": "int32"
           },
-          "skillsTotal": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryView"
+            }
           },
           "needsAttention": {
             "type": "array",
@@ -2747,6 +2867,14 @@
             "items": {
               "$ref": "#/components/schemas/SkillStanding"
             }
+          },
+          "skillsCountedInCategoriesOnly": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "recentSessions": {
             "type": "array",
@@ -2763,7 +2891,8 @@
           "bestStreak",
           "stars",
           "answered",
-          "mistakesToFix"
+          "mistakesToFix",
+          "categories"
         ],
         "type": "object",
         "properties": {
@@ -2810,6 +2939,12 @@
               "string"
             ],
             "format": "int32"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryView"
+            }
           }
         }
       },
@@ -3518,6 +3653,36 @@
           }
         }
       },
+      "RefreshExamFormResponse": {
+        "required": [
+          "examFormId",
+          "questionsRefreshed",
+          "questionsKeptAsEdited"
+        ],
+        "type": "object",
+        "properties": {
+          "examFormId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "questionsRefreshed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "questionsKeptAsEdited": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "RejectBody": {
         "required": [
           "version",
@@ -3895,6 +4060,24 @@
           },
           "hasQuestions": {
             "type": "boolean"
+          },
+          "questionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 0
+          },
+          "openMistakes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 0
           }
         }
       },
@@ -3991,6 +4174,10 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "choicesAreText": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

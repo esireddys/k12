@@ -131,6 +131,43 @@ public class PracticeSetHandlerTests
         Assert.DoesNotContain(typeof(StudentQuestion).GetProperties(), p => p.Name is "Answer" or "Explanation" or "CorrectAnswer");
     }
 
+    public static TheoryData<string, string, bool, string?> ChoiceTexts => new()
+    {
+        // The importer checked the choices are plain text: show them, and say the value with the key.
+        { "checked choices", """{"textNeedsReview":true,"choicesAreText":true,"choices":[{"label":"A","text":"28"},{"label":"B","text":"7"}]}""", true, "7" },
+        // Text read from a picture choice is never shown.
+        { "picture choices", """{"textNeedsReview":true,"choicesAreText":false,"choices":[{"label":"A","text":"x"},{"label":"B","text":"y"}]}""", false, null },
+        // Older imports carry no flag: their text was rough.
+        { "older import", """{"textNeedsReview":true,"choices":[{"label":"A","text":"28"},{"label":"B","text":"7"}]}""", false, null },
+        // Reviewed content (generated, owner approved) has no flag and clean text.
+        { "reviewed content", """{"choices":[{"label":"A","text":"28"},{"label":"B","text":"7"}]}""", true, "7" },
+        // A blank choice means the text is not the whole choice.
+        { "a blank choice", """{"choicesAreText":true,"choices":[{"label":"A","text":""},{"label":"B","text":"7"}]}""", false, null },
+    };
+
+    [Theory]
+    [MemberData(nameof(ChoiceTexts))]
+    public async Task Choice_text_shows_on_the_buttons_and_in_the_key_only_when_it_is_the_whole_choice(
+        string _, string content, bool shown, string? keyText)
+    {
+        var store = new TestStore();
+        var course = Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
+        var skill = Skill.Define(course, "3.2(A)", "Place value", 1, "readiness", "{}");
+        store.Courses.Add(course);
+        store.Skills.Add(skill);
+        var q = Question.Draft([skill.Id], "choice", content, new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" },
+            Difficulty.OnLevel, QuestionOrigin.Official);
+        q.PublishReleased(store.UtcNow);
+        store.Questions.Add(q);
+
+        var set = (await new GetPracticeSetHandler(store, store, store, store, store)
+            .HandleAsync(new GetPracticeSetQuery(course.Id.Value, SetSource.Shuffle))).Value!;
+        var scored = (await new ScoreResponsesHandler(store).HandleAsync(new ScoreResponsesCommand([new ResponseItem(q.Id.Value, "A")]))).Value!;
+
+        Assert.Equal(shown, set.Questions.Single().ChoicesAreText);
+        Assert.Equal(keyText, scored.Items.Single().CorrectChoiceText);
+    }
+
     [Fact]
     public async Task The_catalog_counts_live_questions_by_topic_and_by_test()
     {

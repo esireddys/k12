@@ -2,11 +2,19 @@ import { useEffect, useState } from 'react'
 import { Icon } from '../../../shared/ui/Icon'
 
 /**
+ * CSS pixels per picture pixel at print size. The pipeline draws printed tests at 3 pixels per point; 1.4 CSS
+ * pixels per point shows 12-point print at about 17 px, which young readers need. A picture never grows past that,
+ * so a short line of print is not blown up to fill the width.
+ */
+const PRINT_SIZE = 1.4 / 3
+
+/**
  * A printed picture (an item or a page) that fills the width it has and opens full screen when tapped, so small
  * print and figures stay readable on a phone. Full screen it shows at its own size and can be scrolled and pinched.
  */
 export function ZoomablePicture({ src, alt, maxHeight, onBroken }: { src: string; alt: string; maxHeight?: string; onBroken?: () => void }) {
   const [open, setOpen] = useState(false)
+  const [printWidth, setPrintWidth] = useState<number>()
 
   useEffect(() => {
     if (!open) return
@@ -18,7 +26,13 @@ export function ZoomablePicture({ src, alt, maxHeight, onBroken }: { src: string
   return (
     <>
       <button type="button" className="zoomable" onClick={() => setOpen(true)} aria-label={`${alt}. Tap to make it bigger.`}>
-        <img src={src} alt={alt} onError={onBroken} style={{ maxHeight }} />
+        <img
+          src={src}
+          alt={alt}
+          onError={onBroken}
+          onLoad={(e) => setPrintWidth(Math.round(e.currentTarget.naturalWidth * PRINT_SIZE))}
+          style={{ maxHeight, maxWidth: printWidth }}
+        />
         <span className="zoom-hint" aria-hidden="true">
           <Icon name="zoom" size={18} />
         </span>

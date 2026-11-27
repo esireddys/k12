@@ -108,7 +108,7 @@ public class ProgressHandlerTests
         Assert.Equal(SetSource.Mistakes, set.Value!.Source);
         Assert.Equal(new[] { f.Questions[0].Id.Value, f.Questions[1].Id.Value }.Order(), set.Value.Questions.Select(q => q.Id).Order());
 
-        var summary = new GetKidSummaryHandler(f.S, f.S, f.S, f.S, f.S);
+        var summary = new GetKidSummaryHandler(f.S, f.S, f.S, f.S, f.S, f.S, f.S);
         Assert.Equal(2, (await summary.HandleAsync(new GetKidSummaryQuery(f.Account.Id.Value, f.Kid.Id.Value, f.Today))).Value!.MistakesToFix);
 
         // Retrying: one right, one still wrong.
@@ -146,9 +146,57 @@ public class ProgressHandlerTests
         Assert.Equal((1, 2, 8, 4), (d.Streak, d.Week.Minutes, d.Answered, d.Correct));
         Assert.Equal((75, 25), (d.LastExam!.Percent, d.LastExam.PreviousPercent!.Value));
         Assert.Equal(2, d.RecentSessions.Count);
-        Assert.Equal((0, 2), (d.SkillsMastered, d.SkillsTotal));
+        Assert.Equal(0, d.CategoriesMastered);
+        Assert.Equal(
+            [(1, "Numbers", 6, 2, 3), (2, "Shapes", 2, 2, 1)],
+            d.Categories.Select(c => (c.Number, c.Name, c.Answered, c.Correct, c.QuestionCount)));
+        // Both skills have fewer than 5 questions: no rows of their own, but they count in their categories.
+        Assert.Empty(d.Skills);
+        Assert.Equal(2, d.SkillsCountedInCategoriesOnly);
         var attention = Assert.Single(d.NeedsAttention);
-        Assert.Equal(("3.2(A)", 33), (attention.Code, attention.Accuracy!.Value));
+        Assert.Equal(("3.2(A)", 33, 1), (attention.Code, attention.Accuracy!.Value, attention.OpenMistakes));
+    }
+
+    public static TheoryData<string, (int Item, string Response)[][], string[]> Attention => new()
+    {
+        { "nothing missed: no skill is listed just for not being started", [[(1, "1")]], [] },
+        { "the newest miss comes first", [[(1, "0")], [(4, "0")]], ["3.6(A)", "3.2(A)"] },
+        { "a fixed miss drops off", [[(1, "0")], [(1, "1")]], [] },
+    };
+
+    [Theory]
+    [MemberData(nameof(Attention))]
+    public async Task Needs_attention_lists_recent_misses_first_and_never_unstarted_skills(
+        string _, (int Item, string Response)[][] sets, string[] expected)
+    {
+        var f = new Family();
+        foreach (var set in sets)
+        {
+            await f.AnswerAsync(Guid.NewGuid(), PracticeMode.Practice, false, set);
+            f.S.UtcNow = f.S.UtcNow.AddMinutes(5);
+        }
+
+        var d = (await new GetKidDashboardHandler(f.S, f.S, f.S, f.S, f.S, f.S, f.S)
+            .HandleAsync(new GetKidDashboardQuery(f.Account.Id.Value, f.Kid.Id.Value, f.Today))).Value!;
+        Assert.Equal(expected, d.NeedsAttention.Select(s => s.Code));
+    }
+
+    [Fact]
+    public async Task Category_progress_can_fill_up_and_shows_on_the_kids_home()
+    {
+        var f = new Family();
+        // Eight right answers in category 1 over four sets (the bank has 3 questions: repeats across sets count).
+        for (var i = 0; i < 4; i++)
+        {
+            await f.AnswerAsync(Guid.NewGuid(), PracticeMode.Practice, false, (1, "1"), (2, "2"));
+            f.S.UtcNow = f.S.UtcNow.AddMinutes(5);
+        }
+
+        var summary = (await new GetKidSummaryHandler(f.S, f.S, f.S, f.S, f.S, f.S, f.S)
+            .HandleAsync(new GetKidSummaryQuery(f.Account.Id.Value, f.Kid.Id.Value, f.Today))).Value!;
+        Assert.Equal(
+            [(1, MasteryLevel.Mastered, 8), (2, MasteryLevel.NotStarted, 0)],
+            summary.Categories.Select(c => (c.Number, c.Level, c.Answered)));
     }
 
     [Fact]

@@ -92,6 +92,8 @@ public sealed class TestStore
     public Task<IReadOnlyList<PracticeSession>> ListRecentAsync(KidProfileId kidId, int take, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<PracticeSession>>(Sessions.Where(s => s.KidId == kidId && s.Answers.Count > 0)
             .OrderByDescending(s => s.StartedAt).Take(take).ToList());
+    public Task<IReadOnlyList<PracticeSession>> ListByCourseAsync(KidProfileId kidId, CourseId courseId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<PracticeSession>>(Sessions.Where(s => s.KidId == kidId && s.CourseId == courseId).ToList());
     public Task AddAsync(PracticeSession session, CancellationToken ct = default) { Sessions.Add(session); return Task.CompletedTask; }
     public Task RemoveAllForKidAsync(KidProfileId kidId, CancellationToken ct = default) { Sessions.RemoveAll(s => s.KidId == kidId); return Task.CompletedTask; }
 
