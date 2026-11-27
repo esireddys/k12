@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { courseLabel, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
+import { gradeLabel, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
 import { Avatar } from '../../shared/ui/Avatar'
 import { Button } from '../../shared/ui/Button'
 import { TopBar } from '../../shared/ui/TopBar'
 import { useAddKid, useFamily, useRemoveKid, useUpdateKid, type Kid } from './api/useFamily'
 import { KidForm } from './components/KidForm'
+import { useParentGate } from './api/useParentArea'
 import { ParentGate } from './components/ParentGate'
 import { PrivacyNote } from './components/PrivacyNote'
+import { SetPinCard } from './components/SetPinCard'
 import { SignedInOnly } from './components/SignedInOnly'
 
-function KidRow({ kid }: { kid: Kid }) {
+function KidRow({ kid, takenColors }: { kid: Kid; takenColors: Kid['avatar'][] }) {
   const course = useCatalog().data?.find((c) => c.id === kid.courseId)
   const update = useUpdateKid()
   const remove = useRemoveKid()
@@ -21,6 +23,7 @@ function KidRow({ kid }: { kid: Kid }) {
       <div className="card">
         <KidForm
           initial={{ name: kid.name, avatar: kid.avatar, courseId: kid.courseId }}
+          takenColors={takenColors}
           submitLabel="Save"
           busy={update.isPending}
           error={update.error?.message}
@@ -35,7 +38,7 @@ function KidRow({ kid }: { kid: Kid }) {
       <Avatar name={kid.name} color={kid.avatar} />
       <div style={{ flex: 1, minWidth: 160 }}>
         <div style={{ fontSize: 22, fontWeight: 800 }}>{kid.name}</div>
-        <div className="quiet">{course ? `${courseLabel(course)} · ${jurisdictionLabel(course)}` : 'No grade or course picked yet'}</div>
+        <div className="quiet">{course ? `${gradeLabel(course)} · ${jurisdictionLabel(course)}` : 'No grade or course picked yet'}</div>
       </div>
       {confirming ? (
         <div className="row">
@@ -62,10 +65,31 @@ function KidRow({ kid }: { kid: Kid }) {
   )
 }
 
+/**
+ * Right after the first kid is added, while there is no PIN: ask for one, so kids can't open the parent screens
+ * on a shared tablet. "Skip for now" leaves it to the dashboard's reminder.
+ */
+function PinPrompt({ onSkip }: { onSkip: () => void }) {
+  return (
+    <section className="card" aria-labelledby="pin-prompt" style={{ gap: 12, borderColor: 'var(--accent)', borderWidth: 3 }}>
+      <h2 id="pin-prompt" style={{ fontSize: 20 }}>
+        One more step: set a parent PIN
+      </h2>
+      <p style={{ margin: 0 }}>Without a PIN, anyone using this device can open your dashboard and change your kids' settings.</p>
+      <SetPinCard hasPin={false} onDone={onSkip} />
+      <Button variant="ghost" style={{ alignSelf: 'center' }} onClick={onSkip}>
+        Skip for now
+      </Button>
+    </section>
+  )
+}
+
 function Manage() {
   const family = useFamily()
+  const gate = useParentGate()
   const add = useAddKid()
   const [formKey, setFormKey] = useState(0)
+  const [askPin, setAskPin] = useState(false)
   const kids = family.data?.kids ?? []
 
   return (
@@ -76,8 +100,9 @@ function Manage() {
         no email, photo or location.
       </p>
       {kids.map((kid) => (
-        <KidRow key={kid.id} kid={kid} />
+        <KidRow key={kid.id} kid={kid} takenColors={kids.filter((k) => k.id !== kid.id).map((k) => k.avatar)} />
       ))}
+      {askPin && gate.data && !gate.data.hasPin && <PinPrompt onSkip={() => setAskPin(false)} />}
       {kids.length < 8 ? (
         <div className="card">
           <h2 style={{ fontSize: 20 }}>Add a kid</h2>
@@ -86,7 +111,15 @@ function Manage() {
             submitLabel="Add kid"
             busy={add.isPending}
             error={add.error?.message}
-            onSubmit={(body) => add.mutate(body, { onSuccess: () => setFormKey((k) => k + 1) })}
+            takenColors={kids.map((k) => k.avatar)}
+            onSubmit={(body) =>
+              add.mutate(body, {
+                onSuccess: () => {
+                  setFormKey((k) => k + 1)
+                  if (kids.length === 0) setAskPin(true)
+                },
+              })
+            }
           />
         </div>
       ) : (

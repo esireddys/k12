@@ -101,4 +101,25 @@ public sealed class PracticeApiTests : IDisposable
         var response = await _factory.CreateClient().GetAsync($"/api/practice/set?courseId={courseId}&source=Topic");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Anyone_can_report_a_problem_and_a_guest_report_is_marked_as_a_guests()
+    {
+        var courseId = await ImportAsync();
+        var client = _factory.CreateClient();
+        var set = await client.GetFromJsonAsync<JsonObject>($"/api/practice/set?courseId={courseId}&source=Today&count=5");
+        Assert.Equal("Today's practice", (string)set!["title"]!);
+        var questionId = (string)set["questions"]![0]!["id"]!;
+
+        // Not signed in as a family, the caller claims to be a parent: it is still recorded as a guest.
+        var sent = await client.PostAsJsonAsync($"/api/practice/questions/{questionId}/reports", new { reason = "HardToRead", reporter = "Parent" });
+        Assert.Equal(HttpStatusCode.OK, sent.StatusCode);
+
+        var reports = await client.GetFromJsonAsync<JsonObject>("/api/admin/review/reports");
+        var report = Assert.Single(reports!["reports"]!.AsArray())!;
+        Assert.Equal(("HardToRead", "Guest", questionId), ((string)report["reason"]!, (string)report["reporter"]!, (string)report["questionId"]!));
+
+        var bad = await client.PostAsJsonAsync($"/api/practice/questions/{Guid.NewGuid()}/reports", new { reason = "Typo" });
+        Assert.Equal(HttpStatusCode.NotFound, bad.StatusCode);
+    }
 }

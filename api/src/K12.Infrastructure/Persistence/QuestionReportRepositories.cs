@@ -10,8 +10,10 @@ public sealed class EfQuestionReportRepository(K12DbContext db) : IQuestionRepor
     public Task<QuestionReport?> GetAsync(QuestionReportId id, CancellationToken ct = default) =>
         db.QuestionReports.FirstOrDefaultAsync(r => r.Id == id, ct);
 
+    // Open reports are few (owners close them), so they are ordered here rather than in SQL: the same code then
+    // runs on SQLite in tests, which cannot ORDER BY a DateTimeOffset.
     public async Task<IReadOnlyList<QuestionReport>> ListOpenAsync(int take, CancellationToken ct = default) =>
-        await db.QuestionReports.Where(r => r.ClosedAt == null).OrderBy(r => r.ReportedAt).Take(take).ToListAsync(ct);
+        (await db.QuestionReports.Where(r => r.ClosedAt == null).ToListAsync(ct)).OrderBy(r => r.ReportedAt).Take(take).ToList();
 
     public async Task<IReadOnlyList<QuestionReport>> ListOpenForAsync(QuestionId questionId, CancellationToken ct = default) =>
         await db.QuestionReports.Where(r => r.QuestionId == questionId && r.ClosedAt == null).ToListAsync(ct);

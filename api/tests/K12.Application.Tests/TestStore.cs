@@ -2,6 +2,7 @@ using K12.Application.Abstractions;
 using K12.Application.ContentReview;
 using K12.Domain.Accounts;
 using K12.Domain.Content;
+using K12.Domain.Content.Reports;
 using K12.Domain.Curriculum;
 using K12.Domain.Progress;
 
@@ -10,7 +11,7 @@ namespace K12.Application.Tests;
 /// <summary>Every repository in memory, for handler tests that span aggregates.</summary>
 public sealed class TestStore
     : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IPassageRepository, IParentAccountRepository, IUnitOfWork, IClock, IItemImageStore,
-      IKidProgressRepository, IPracticeSessionRepository, IPinHasher
+      IKidProgressRepository, IPracticeSessionRepository, IPinHasher, IQuestionReportRepository
 {
     public List<Course> Courses { get; } = [];
     public List<Skill> Skills { get; } = [];
@@ -21,6 +22,7 @@ public sealed class TestStore
     public Dictionary<string, byte[]> Images { get; } = [];
     public List<KidProgress> Progress { get; } = [];
     public List<PracticeSession> Sessions { get; } = [];
+    public List<QuestionReport> Reports { get; } = [];
     public int Saves { get; private set; }
     public DateTimeOffset UtcNow { get; set; } = new(2026, 11, 27, 5, 0, 0, TimeSpan.Zero);
 
@@ -96,6 +98,16 @@ public sealed class TestStore
         Task.FromResult<IReadOnlyList<PracticeSession>>(Sessions.Where(s => s.KidId == kidId && s.CourseId == courseId).ToList());
     public Task AddAsync(PracticeSession session, CancellationToken ct = default) { Sessions.Add(session); return Task.CompletedTask; }
     public Task RemoveAllForKidAsync(KidProfileId kidId, CancellationToken ct = default) { Sessions.RemoveAll(s => s.KidId == kidId); return Task.CompletedTask; }
+
+    // Problem reports
+    public Task<QuestionReport?> GetAsync(QuestionReportId id, CancellationToken ct = default) => Task.FromResult(Reports.FirstOrDefault(r => r.Id == id));
+    public Task<IReadOnlyList<QuestionReport>> ListOpenAsync(int take, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<QuestionReport>>(Reports.Where(r => r.IsOpen).OrderBy(r => r.ReportedAt).Take(take).ToList());
+    public Task<IReadOnlyList<QuestionReport>> ListOpenForAsync(QuestionId questionId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<QuestionReport>>(Reports.Where(r => r.IsOpen && r.QuestionId == questionId).ToList());
+    public Task<IReadOnlyDictionary<QuestionId, int>> CountOpenByQuestionAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyDictionary<QuestionId, int>>(Reports.Where(r => r.IsOpen).GroupBy(r => r.QuestionId).ToDictionary(g => g.Key, g => g.Count()));
+    public Task AddAsync(QuestionReport report, CancellationToken ct = default) { Reports.Add(report); return Task.CompletedTask; }
 
     // PIN hashing: readable in tests, never in production.
     public string Hash(string pin) => "hash:" + pin;

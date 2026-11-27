@@ -9,6 +9,7 @@ import { KidHomePage } from '../features/practice/KidHomePage'
 import { SessionPage } from '../features/practice/SessionPage'
 import { TestsPage } from '../features/practice/TestsPage'
 import { TopicsPage } from '../features/practice/TopicsPage'
+import { QuestionBrowserPage } from '../features/review/QuestionBrowserPage'
 import { ReviewQueuePage } from '../features/review/ReviewQueuePage'
 import { ReviewQuestionPage } from '../features/review/ReviewQuestionPage'
 
@@ -25,4 +26,5 @@ export const router = createBrowserRouter([
   { path: '/practice/session', element: <SessionPage /> },
   { path: '/owner/review', element: <ReviewQueuePage /> },
   { path: '/owner/review/:questionId', element: <ReviewQuestionPage /> },
+  { path: '/owner/questions', element: <QuestionBrowserPage /> },
 ])

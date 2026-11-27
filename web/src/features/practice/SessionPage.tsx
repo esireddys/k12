@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import type { CatalogCourse } from '../../shared/catalog/useCatalog'
 import type { Learner } from '../../shared/learner/learner'
 import { usePracticeSet } from './api/usePractice'
-import { useMistakesSet } from './api/useProgress'
+import { useMistakesSet, useTodaySet } from './api/useProgress'
 import { ExamRun } from './components/ExamRun'
 import { LearnerGuard } from './components/LearnerGuard'
 import { PracticeRun } from './components/PracticeRun'
@@ -14,9 +14,12 @@ function Session({ learner, course }: { learner: Learner; course: CatalogCourse 
   const session = readSession(params, course.id)
   const mistakes = session?.request.source === 'Mistakes'
   const kidId = learner.kind === 'kid' ? learner.kidId : null
-  const fromBank = usePracticeSet(session && !mistakes ? session.request : null)
+  // A kid's Today set is built from their own mistakes and progress; a guest's is a mix from the whole course.
+  const today = session?.request.source === 'Today' && !!kidId
+  const fromBank = usePracticeSet(session && !mistakes && !today ? session.request : null)
   const fromMistakes = useMistakesSet(mistakes ? kidId : null, params.toString())
-  const set = mistakes ? fromMistakes : fromBank
+  const fromToday = useTodaySet(today ? kidId : null, today ? { count: session.request.count, seed: session.request.seed } : null)
+  const set = mistakes ? fromMistakes : today ? fromToday : fromBank
 
   if (!session) return <p>That practice link is incomplete. <Link to="/home">Back home</Link></p>
   if (mistakes && !kidId)
@@ -58,7 +61,7 @@ function Session({ learner, course }: { learner: Learner; course: CatalogCourse 
       timeLimitMinutes={set.data.timeLimitMinutes == null ? undefined : Number(set.data.timeLimitMinutes)}
       learner={learner}
       source={session.request.source}
-      storageKey={`k12.exam:${learner.kind === 'kid' ? learner.kidId : 'guest'}:${params.toString()}`}
+      storageKey={`k12.${Run === ExamRun ? 'exam' : 'practice'}:${learner.kind === 'kid' ? learner.kidId : 'guest'}:${params.toString()}`}
       onAgain={again}
     />
   )

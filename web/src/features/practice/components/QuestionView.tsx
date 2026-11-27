@@ -5,7 +5,11 @@ import { MathText } from './MathText'
 import { NumberPad } from './NumberPad'
 import { ZoomablePicture } from './ZoomablePicture'
 
-export type Marking = { correct?: string; picked?: string; wasRight?: boolean }
+/**
+ * How the answers are marked. After the answer is shown: the key, and the kid's pick if it was not the key.
+ * After a first miss in practice: only the choices already tried, struck out, so the kid picks again.
+ */
+export type Marking = { correct?: string; picked?: string; wasRight?: boolean; struck?: string[] }
 
 /** The printed item. When the text came from a PDF and may be rough, the picture is what the student reads. Tap to enlarge. */
 export function QuestionPicture({ question, compact }: { question: StudentQuestion; compact?: boolean }) {
@@ -65,7 +69,8 @@ export function QuestionView({
           {question.choices.map((c) => {
             const picked = response === c.label
             const isKey = marking?.correct === c.label
-            const missed = marking && picked && !isKey
+            const missed = marking?.correct != null && picked && !isKey
+            const struck = !marking?.correct && !!marking?.struck?.includes(c.label)
             const border = isKey ? 'var(--good)' : missed ? 'var(--miss)' : picked ? 'var(--accent)' : 'var(--border)'
             const background = isKey ? 'var(--good-soft)' : missed ? 'var(--miss-soft)' : picked ? 'var(--accent-soft)' : 'var(--surface)'
             return (
@@ -74,7 +79,9 @@ export function QuestionView({
                 type="button"
                 role="radio"
                 aria-checked={picked}
-                disabled={locked}
+                aria-label={struck ? `${c.label}${choiceText && c.text ? ` ${c.text}` : ''}, already tried` : undefined}
+                disabled={locked || struck}
+                className={struck ? 'choice-struck' : undefined}
                 onClick={() => onResponse(c.label)}
                 style={{
                   padding: '18px 16px',
@@ -113,7 +120,7 @@ export function QuestionView({
                 minHeight: 64,
                 padding: '12px 18px',
                 borderRadius: 16,
-                border: `3px solid ${marking ? (marking.wasRight ? 'var(--good)' : 'var(--miss)') : 'var(--accent)'}`,
+                border: `3px solid ${marking?.correct != null ? (marking.wasRight ? 'var(--good)' : 'var(--miss)') : 'var(--accent)'}`,
                 background: 'var(--surface)',
                 fontSize: 32,
                 fontWeight: 800,
@@ -123,6 +130,11 @@ export function QuestionView({
               }}
             >
               {response || <span className="quiet" style={{ fontSize: 20, fontWeight: 600 }}>Tap the numbers</span>}
+              {question.unit && (
+                <span className="answer-unit" aria-label={`in ${question.unit}`}>
+                  {question.unit}
+                </span>
+              )}
             </output>
             {kindHint[question.answerKind] && <span className="quiet">{kindHint[question.answerKind]}</span>}
           </div>

@@ -4,7 +4,8 @@ import { Avatar } from '../../shared/ui/Avatar'
 import { Button } from '../../shared/ui/Button'
 import { CategoryBars } from '../../shared/ui/CategoryBars'
 import { TopBar } from '../../shared/ui/TopBar'
-import { useFamily } from './api/useFamily'
+import { sameGradeSubjects, subjectLabel, useCatalog } from '../../shared/catalog/useCatalog'
+import { useFamily, useSignOut } from './api/useFamily'
 import { useKidDashboard, useLock, useParentGate, type KidDashboard, type SkillStanding } from './api/useParentArea'
 import { ParentGate } from './components/ParentGate'
 import { PrivacyNote } from './components/PrivacyNote'
@@ -13,6 +14,14 @@ import { SignedInOnly } from './components/SignedInOnly'
 
 const pct = (part: number | string, whole: number | string) => (Number(whole) ? Math.round((100 * Number(part)) / Number(whole)) : 0)
 const day = (iso: string) => new Date(iso).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+
+/** "12 min practiced", or "under 1 min" for a short set, which would otherwise round down to a confusing 0. */
+const practicedText = (week: KidDashboard['week']) => {
+  const minutes = Number(week.minutes)
+  const seconds = Number(week.seconds ?? 0)
+  if (minutes >= 1) return `${minutes} min practiced`
+  return seconds > 0 ? 'Under 1 min practiced' : 'No practice yet'
+}
 
 const levelText: Record<SkillStanding['level'], string> = {
   NotStarted: 'Not started',
@@ -75,7 +84,7 @@ function Dashboard({ d }: { d: KidDashboard }) {
   return (
     <>
       <div className="grid-4">
-        <Tile label="This week" value={`${d.week.daysPracticed} ${Number(d.week.daysPracticed) === 1 ? 'day' : 'days'}`} note={`${d.week.minutes} min practiced`} />
+        <Tile label="This week" value={`${d.week.daysPracticed} ${Number(d.week.daysPracticed) === 1 ? 'day' : 'days'}`} note={practicedText(d.week)} />
         <Tile label="Questions answered" value={String(d.answered)} note={Number(d.answered) ? `${pct(d.correct, d.answered)}% correct` : 'None yet'} />
         <Tile
           label="Last practice test"
@@ -151,15 +160,37 @@ function Dashboard({ d }: { d: KidDashboard }) {
   )
 }
 
+/** Math, Reading, ...: one tab per subject of the kid's grade, so a parent sees every subject, not only the open one. */
+function SubjectTabs({ courseId, value, onChange }: { courseId: string | null | undefined; value: string | null; onChange: (id: string) => void }) {
+  const catalog = useCatalog().data ?? []
+  const own = catalog.find((c) => c.id === courseId)
+  const subjects = own ? sameGradeSubjects(own, catalog) : []
+  if (subjects.length < 2) return null
+  const current = value ?? own?.id
+  return (
+    <div className="row" role="tablist" aria-label="Subject">
+      {subjects.map((s) => (
+        <Button key={s.id} role="tab" aria-selected={s.id === current} variant={s.id === current ? 'dark' : 'secondary'} onClick={() => onChange(s.id)}>
+          {subjectLabel(s.subject)}
+        </Button>
+      ))}
+    </div>
+  )
+}
+
 function Parent() {
   const navigate = useNavigate()
   const family = useFamily()
   const gate = useParentGate()
   const lock = useLock()
+  const signOut = useSignOut()
   const kids = family.data?.kids ?? []
   const [picked, setPicked] = useState<string | null>(null)
+  const [subject, setSubject] = useState<string | null>(null)
   const kidId = picked ?? kids[0]?.id ?? null
-  const dashboard = useKidDashboard(kidId)
+  const kid = kids.find((k) => k.id === kidId)
+  const dashboard = useKidDashboard(kidId, subject)
+  const [pinOpen, setPinOpen] = useState(false)
 
   const done = () => lock.mutate(undefined, { onSuccess: () => navigate('/kids') })
 
@@ -180,7 +211,16 @@ function Parent() {
       ) : (
         <div className="row" role="tablist" aria-label="Kids">
           {kids.map((k) => (
-            <Button key={k.id} role="tab" aria-selected={k.id === kidId} variant={k.id === kidId ? 'primary' : 'secondary'} onClick={() => setPicked(k.id)}>
+            <Button
+              key={k.id}
+              role="tab"
+              aria-selected={k.id === kidId}
+              variant={k.id === kidId ? 'primary' : 'secondary'}
+              onClick={() => {
+                setPicked(k.id)
+                setSubject(null)
+              }}
+            >
               <span className="row" style={{ gap: 8 }}>
                 <Avatar name={k.name} color={k.avatar} size={28} /> {k.name}
               </span>
@@ -188,6 +228,19 @@ function Parent() {
           ))}
         </div>
       )}
+
+      {gate.data && !gate.data.hasPin && (
+        <section className="banner pin-banner" aria-labelledby="pin-banner">
+          <div style={{ flex: '1 1 260px' }}>
+            <strong id="pin-banner">Set a parent PIN</strong>
+            <div>Until you do, anyone using this device can open this page and change your kids' settings.</div>
+          </div>
+          {!pinOpen && <Button onClick={() => setPinOpen(true)}>Set a PIN</Button>}
+          {pinOpen && <SetPinCard hasPin={false} />}
+        </section>
+      )}
+
+      <SubjectTabs courseId={kid?.courseId} value={subject} onChange={setSubject} />
 
       {dashboard.isError && <p role="alert">{dashboard.error.message}</p>}
       {dashboard.isPending && kidId && <p>Loading…</p>}
@@ -202,7 +255,13 @@ function Parent() {
               Manage family
             </Link>
           </div>
-          {gate.data && <SetPinCard hasPin={gate.data.hasPin} />}
+          {gate.data?.hasPin && <SetPinCard hasPin />}
+          <div className="row" style={{ justifyContent: 'space-between' }}>
+            <span>Done on this device?</span>
+            <Button variant="secondary" onClick={() => signOut.mutate(undefined, { onSuccess: () => navigate('/') })} disabled={signOut.isPending}>
+              Sign out
+            </Button>
+          </div>
         </div>
         <div style={{ flex: '1 1 320px' }}>
           <PrivacyNote />

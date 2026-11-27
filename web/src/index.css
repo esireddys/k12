@@ -462,21 +462,6 @@ button.card:hover:not(:disabled) {
   max-height: none;
 }
 
-.passage-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 2px solid var(--border);
-  background: var(--surface);
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--ink);
-  cursor: pointer;
-}
-
 /* Landscape tablet and wider: picture beside the answers, or the selection beside the question. */
 @media (min-width: 900px) and (orientation: landscape) {
   .page:has(.question-body) {
@@ -519,7 +504,8 @@ button.card:hover:not(:disabled) {
     overflow-y: auto;
   }
 
-  .passage-toggle {
+  .reading-tabs,
+  .reading-back {
     display: none;
   }
 
@@ -561,5 +547,333 @@ button.card:hover:not(:disabled) {
 
   .topbar h1 {
     font-size: 24px;
+  }
+}
+
+/* usability */
+
+/* Reading on a phone or portrait tablet: "Question" and the selection as two tabs, opening on the question. */
+.reading-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reading-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: var(--radius-md, 12px);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.reading-tab[aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.reading-passage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Only the picked tab shows, except side by side (landscape tablet and wider), where both always do. */
+@media not ((min-width: 900px) and (orientation: landscape)) {
+  .reading-layout[data-tab='question'] > .reading-passage,
+  .reading-layout[data-tab='passage'] > .reading-question {
+    display: none;
+  }
+}
+
+.reading-back,
+.link-button {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 10px 0;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Test navigator: one line that opens the grid. */
+.navigator {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.navigator-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: var(--radius-md, 12px);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.navigator-counts {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.navigator-chevron {
+  transition: transform 0.15s;
+}
+
+.navigator-chevron.open {
+  transform: rotate(180deg);
+}
+
+.navigator-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.navigator-item {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.navigator-item.done {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+/* The question you are on: a thick underline and ring, whatever else it is. */
+.navigator-item.current {
+  border: 3px solid var(--ink);
+  box-shadow: inset 0 -5px 0 var(--ink);
+}
+
+.navigator-legend {
+  margin: 0;
+  font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.flag-chip {
+  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--miss-soft);
+  color: var(--miss-ink);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* Typed answers: the unit beside the number. */
+.answer-unit {
+  margin-left: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-quiet);
+}
+
+/* A choice already tried after a first miss. */
+.choice-struck {
+  opacity: 0.55;
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+}
+
+/* Practice feedback. */
+.feedback {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.feedback-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.feedback-good {
+  background: var(--good-soft);
+  border-color: var(--good);
+}
+
+.feedback-good .feedback-title {
+  color: var(--good-ink);
+}
+
+.feedback-miss,
+.feedback-retry {
+  background: var(--miss-soft);
+  border-color: var(--miss);
+}
+
+.feedback-miss .feedback-title,
+.feedback-retry .feedback-title {
+  color: var(--miss-ink);
+}
+
+.feedback-retry {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 17px;
+}
+
+.report-problem {
+  font-size: 15px;
+}
+
+.report-reason {
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  padding: 8px 14px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+/* A link that looks like a button. */
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md, 12px);
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.button-link.secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+/* Kid home: Today's practice is the big way in, Fix my mistakes right beside it. */
+.home-start {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.home-start > :only-child {
+  grid-column: 1 / -1;
+}
+
+.today-card {
+  border-color: var(--accent);
+  border-width: 3px;
+}
+
+.today-card h2 {
+  font-size: 28px;
+}
+
+.resume-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  border-color: var(--accent-line);
+}
+
+.pin-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Welcome: a shorter headline and two jump buttons on phones. */
+.welcome-title {
+  margin: 0;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.welcome-short,
+.welcome-jump {
+  display: none;
+}
+
+.welcome-lede {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .home-start {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .welcome-title {
+    font-size: 32px;
+  }
+
+  .welcome-long,
+  .welcome-lede {
+    display: none;
+  }
+
+  .welcome-short {
+    display: inline;
+  }
+
+  .welcome-jump {
+    display: flex;
+  }
+
+  .navigator-item {
+    width: 44px;
+    height: 44px;
   }
 }

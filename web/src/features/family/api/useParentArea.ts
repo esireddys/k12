@@ -80,13 +80,13 @@ export function useLock() {
 }
 
 /** One kid's dashboard. Parents only: the API refuses it while the parent areas are closed. */
-export function useKidDashboard(kidId: string | null) {
+export function useKidDashboard(kidId: string | null, courseId?: string | null) {
   return useQuery({
-    queryKey: ['parent', 'dashboard', kidId],
+    queryKey: ['parent', 'dashboard', kidId, courseId ?? null],
     enabled: !!kidId,
     queryFn: async () => {
       const { data, error } = await api.GET('/api/family/kids/{kidId}/dashboard', {
-        params: { path: { kidId: kidId! }, query: { localDate: localDate() } },
+        params: { path: { kidId: kidId! }, query: { localDate: localDate(), courseId: courseId ?? undefined } },
       })
       if (error || !data) throw new Error(error?.detail ?? 'Could not load the dashboard')
       return data

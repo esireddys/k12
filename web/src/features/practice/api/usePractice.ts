@@ -49,6 +49,21 @@ export function useScore() {
   })
 }
 
+export type ReportReason = components['schemas']['ReportReason']
+
+/** Tells the owners something is wrong with a question. Only a reason from a fixed list: no free text from kids. */
+export function useReportQuestion() {
+  return useMutation({
+    mutationFn: async ({ questionId, reason, reporter }: { questionId: string; reason: ReportReason; reporter: 'Kid' | 'Parent' | 'Guest' }) => {
+      const { error } = await api.POST('/api/practice/questions/{questionId}/reports', {
+        params: { path: { questionId } },
+        body: { reason, reporter },
+      })
+      if (error) throw new Error(error.detail ?? 'Could not send the report')
+    },
+  })
+}
+
 /** Changing a kid's grade needs a parent: the parent PIN is set and the parent areas are closed. */
 export class ParentLockedError extends Error {}
 

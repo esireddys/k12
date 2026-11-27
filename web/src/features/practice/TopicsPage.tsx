@@ -1,9 +1,13 @@
 import { Link } from 'react-router'
+import { categoryKidName } from '../../shared/catalog/useCatalog'
 import { TopBar } from '../../shared/ui/TopBar'
 import { LearnerGuard } from './components/LearnerGuard'
 import { sessionUrl } from './model/session'
 
-/** Topics come from the course's reporting categories and skills in curriculum data. */
+/**
+ * Topics come from the course's reporting categories and skills in curriculum data. Kids see the short category
+ * names and the skill descriptions; the standards codes stay in the parent and owner areas.
+ */
 export function TopicsPage() {
   return (
     <LearnerGuard>
@@ -15,11 +19,10 @@ export function TopicsPage() {
               const count = Number(cat.questionCount)
               return (
                 <section key={cat.number} className="card" style={{ gap: 12 }}>
-                  <div className="eyebrow">Category {cat.number}</div>
-                  <h2 style={{ fontSize: 22 }}>{cat.name}</h2>
+                  <h2 style={{ fontSize: 22 }}>{categoryKidName(cat)}</h2>
                   {count > 0 ? (
                     <Link to={sessionUrl('practice', { source: 'Topic', category: Number(cat.number), count: 10 })} className="list-row" style={{ background: 'var(--accent-soft)', color: 'var(--accent-dark)' }}>
-                      <span>Mix of this category</span>
+                      <span>A mix of all of these</span>
                       <span>{count} questions</span>
                     </Link>
                   ) : (
@@ -30,8 +33,8 @@ export function TopicsPage() {
                     .map((s) => (
                       <Link key={s.code} to={sessionUrl('practice', { source: 'Topic', skill: s.code, count: 10 })} className="list-row">
                         <span>{s.description || s.code}</span>
-                        <span className="quiet" style={{ whiteSpace: 'nowrap' }}>
-                          {s.code} · {s.questionCount}
+                        <span className="quiet" style={{ whiteSpace: 'nowrap' }} aria-label={`${s.questionCount} questions`}>
+                          {s.questionCount}
                         </span>
                       </Link>
                     ))}

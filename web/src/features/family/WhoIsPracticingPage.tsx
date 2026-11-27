@@ -1,12 +1,11 @@
 import { Link, useNavigate } from 'react-router'
 import { useCurrentUser } from '../../shared/auth/useCurrentUser'
 import { brand } from '../../shared/config/brand'
-import { courseLabel, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
+import { gradeLabel, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
 import { learnerStore } from '../../shared/learner/learner'
 import { Avatar } from '../../shared/ui/Avatar'
-import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
-import { useFamily, useSignOut, type Kid } from './api/useFamily'
+import { useFamily, type Kid } from './api/useFamily'
 import { useLock } from './api/useParentArea'
 import { SignedInOnly } from './components/SignedInOnly'
 
@@ -17,7 +16,7 @@ function KidCard({ kid, onPick }: { kid: Kid; onPick: () => void }) {
       <Avatar name={kid.name} color={kid.avatar} size={110} />
       <span style={{ fontSize: 26, fontWeight: 800 }}>{kid.name}</span>
       <span className="quiet" style={{ fontSize: 16 }}>
-        {course ? `${courseLabel(course)} · ${jurisdictionLabel(course)}` : 'Pick a grade or course'}
+        {course ? `${gradeLabel(course)} · ${jurisdictionLabel(course)}` : 'Pick a grade or course'}
       </span>
     </button>
   )
@@ -27,7 +26,6 @@ function Picker() {
   const navigate = useNavigate()
   const me = useCurrentUser()
   const family = useFamily()
-  const signOut = useSignOut()
   const lock = useLock()
   const kids = family.data?.kids ?? []
 
@@ -47,9 +45,6 @@ function Picker() {
           <Link to="/parent" className="row" style={{ gap: 8, padding: '10px 16px', borderRadius: 12, border: '2px solid var(--border)', background: 'var(--surface)', textDecoration: 'none', color: 'var(--ink)', fontWeight: 700 }}>
             <Icon name="lock" size={18} /> Parent
           </Link>
-          <Button variant="ghost" onClick={() => signOut.mutate(undefined, { onSuccess: () => navigate('/') })}>
-            Sign out
-          </Button>
         </div>
       </div>
       <div style={{ textAlign: 'center' }}>

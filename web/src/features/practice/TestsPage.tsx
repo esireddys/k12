@@ -28,8 +28,8 @@ export function TestsPage() {
                 <Icon name="medal" size={34} color="var(--accent)" />
                 <h2>Full practice test</h2>
                 <p>
-                  The same length, topic mix and time limit as the real {exams || 'test'}: {Number(course.practiceTest.itemCount)} questions
-                  {course.practiceTest.minutes ? ` in ${timeLimitText(Number(course.practiceTest.minutes))}` : ''}. A new mix of real questions every time.
+                  {Number(course.practiceTest.itemCount)} real released questions in the same mix as the {exams || 'state'} test
+                  {course.practiceTest.minutes ? `, with up to ${timeLimitText(Number(course.practiceTest.minutes))}` : ''}. A new mix every time.
                 </p>
               </Link>
             )}

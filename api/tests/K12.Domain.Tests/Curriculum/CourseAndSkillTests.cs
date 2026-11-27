@@ -81,4 +81,22 @@ public class CourseAndSkillTests
         var skill = Skill.Define(Grade3(), "3.4(K)", "Solve", 2, null, "{}");
         Assert.Throws<DomainException>(() => skill.Redefine(Grade3(), "Solve", 2, null, "{}"));
     }
+
+    [Theory]
+    [InlineData(null, "Numerical Representations")]
+    [InlineData("  ", "Numerical Representations")]
+    [InlineData(" Numbers and place value ", "Numbers and place value")]
+    public void A_category_has_a_short_name_for_kids_or_falls_back_to_its_own(string? kidName, string expected)
+    {
+        var course = Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework",
+            [new ReportingCategory(1, "Numerical Representations", kidName)]);
+        Assert.Equal(expected, course.Categories[0].NameForKids);
+    }
+
+    [Fact]
+    public void A_kid_name_must_fit_on_a_progress_bar()
+    {
+        Assert.Throws<DomainException>(() => Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework",
+            [new ReportingCategory(1, "Numbers", new string('x', Course.MaxKidNameLength + 1))]));
+    }
 }

@@ -27,7 +27,7 @@ export function sessionUrl(mode: Mode, set: Omit<SetRequest, 'courseId' | 'seed'
 
 export function readSession(params: URLSearchParams, courseId: string | undefined): { mode: Mode; request: SetRequest } | null {
   const source = params.get('source') as SetSource | null
-  if (!courseId || !source || !['Shuffle', 'Year', 'Topic', 'Mistakes', 'PracticeTest'].includes(source)) return null
+  if (!courseId || !source || !['Shuffle', 'Year', 'Topic', 'Mistakes', 'PracticeTest', 'Today'].includes(source)) return null
   const num = (name: string) => (params.get(name) != null && !Number.isNaN(Number(params.get(name))) ? Number(params.get(name)) : undefined)
   return {
     mode: params.get('mode') === 'exam' ? 'exam' : 'practice',

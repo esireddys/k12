@@ -59,7 +59,7 @@ public sealed class GetTodaySetHandler(
     /// The category to work on: the started one with the lowest accuracy that is not mastered, else the one with the
     /// fewest answers. Only categories with questions count. Empty when there is nothing to choose.
     /// </summary>
-    internal static int? Weakest(IReadOnlyList<CategoryView> categories)
+    public static int? Weakest(IReadOnlyList<CategoryView> categories)
     {
         var withQuestions = categories.Where(c => c.QuestionCount > 0).ToList();
         var weak = withQuestions
@@ -87,13 +87,21 @@ public sealed class GetTodaySetHandler(
 
         Add(mistakes.Take(Math.Min(MaxMistakes, count)));
 
-        var shuffled = GetPracticeSetHandler.Shuffle(live, random).Where(q => !taken.Contains(q.Id)).ToList();
+        // The other open mistakes wait for Fix my mistakes, so the set never turns into old misses only.
+        var missed = mistakes.Select(q => q.Id).ToHashSet();
+        var shuffled = GetPracticeSetHandler.Shuffle(live, random).Where(q => !missed.Contains(q.Id)).ToList();
         var focusTarget = Math.Max(0, count - FromAnywhere - picked.Count);
         if (weakest is { } category && focusTarget > 0)
             Add(PracticeTests.TakeGroups(shuffled.Where(q => categoryOf(q) == category).ToList(), focusTarget));
 
         var rest = count - picked.Count;
         if (rest > 0) Add(PracticeTests.TakeGroups(shuffled.Where(q => !taken.Contains(q.Id)).ToList(), rest));
+        // A small bank: fill up with the remaining mistakes rather than come up short.
+        foreach (var q in mistakes)
+        {
+            if (picked.Count >= count) break;
+            if (taken.Add(q.Id)) picked.Add(q);
+        }
         return SetPassages.GroupByPassage(picked);
     }
 }

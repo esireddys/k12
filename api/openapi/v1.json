@@ -745,6 +745,67 @@
         }
       }
     },
+    "/api/practice/questions/{questionId}/reports": {
+      "post": {
+        "tags": [
+          "Practice"
+        ],
+        "operationId": "ReportQuestion",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionReportFiled"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/family/kids/{kidId}/answers": {
       "post": {
         "tags": [
@@ -978,6 +1039,81 @@
         }
       }
     },
+    "/api/family/kids/{kidId}/today": {
+      "get": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "GetTodaySet",
+        "parameters": [
+          {
+            "name": "kidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "seed",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeSet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/family/kids/{kidId}/dashboard": {
       "get": {
         "tags": [
@@ -989,6 +1125,14 @@
             "name": "kidId",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "courseId",
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -1276,6 +1420,230 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OwnerQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions": {
+      "get": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "BrowseQuestions",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "skill",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasExplanation",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "reported",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/QuestionStatus"
+            }
+          },
+          {
+            "name": "take",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowseQuestionsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions/{questionId}/revise": {
+      "post": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "ReviseLiveQuestion",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviseBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewStepResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/reports": {
+      "get": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "ListQuestionReports",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionReportsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/review/questions/{questionId}/reports/close": {
+      "post": {
+        "tags": [
+          "Owner review"
+        ],
+        "operationId": "CloseQuestionReports",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportsClosed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -1908,6 +2276,89 @@
           "Teal"
         ]
       },
+      "BrowsedQuestion": {
+        "required": [
+          "id",
+          "version",
+          "status",
+          "itemType",
+          "skillCodes",
+          "source",
+          "hasExplanation",
+          "openReports"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/QuestionStatus"
+          },
+          "itemType": {
+            "type": "string"
+          },
+          "skillCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewSource"
+              }
+            ]
+          },
+          "hasExplanation": {
+            "type": "boolean"
+          },
+          "openReports": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "BrowseQuestionsResponse": {
+        "required": [
+          "total",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BrowsedQuestion"
+            }
+          }
+        }
+      },
       "CatalogCategory": {
         "required": [
           "number",
@@ -1941,6 +2392,10 @@
             "items": {
               "$ref": "#/components/schemas/CatalogSkill"
             }
+          },
+          "kidName": {
+            "type": "string",
+            "default": ""
           }
         }
       },
@@ -2194,6 +2649,10 @@
               "string"
             ],
             "format": "int32"
+          },
+          "kidName": {
+            "type": "string",
+            "default": ""
           }
         }
       },
@@ -2337,6 +2796,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "kidName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3486,6 +3951,84 @@
           "Generated"
         ]
       },
+      "QuestionReportFiled": {
+        "required": [
+          "reportId"
+        ],
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "QuestionReportsResponse": {
+        "required": [
+          "reports"
+        ],
+        "type": "object",
+        "properties": {
+          "reports": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionReportView"
+            }
+          }
+        }
+      },
+      "QuestionReportView": {
+        "required": [
+          "id",
+          "questionId",
+          "reason",
+          "reporter",
+          "reportedAt",
+          "source",
+          "skillCodes",
+          "fixed"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "questionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
+          "reporter": {
+            "$ref": "#/components/schemas/Reporter"
+          },
+          "reportedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewSource"
+              }
+            ]
+          },
+          "skillCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fixed": {
+            "type": "boolean"
+          }
+        }
+      },
       "QuestionSourceView": {
         "required": [
           "exam",
@@ -3703,6 +4246,61 @@
           }
         }
       },
+      "ReportBody": {
+        "required": [
+          "reason",
+          "reporter"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
+          "reporter": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Reporter"
+              }
+            ]
+          }
+        }
+      },
+      "Reporter": {
+        "enum": [
+          "Guest",
+          "Kid",
+          "Parent",
+          null
+        ]
+      },
+      "ReportReason": {
+        "enum": [
+          "WrongAnswer",
+          "HardToRead",
+          "Confusing",
+          "Typo",
+          "Other"
+        ]
+      },
+      "ReportsClosed": {
+        "required": [
+          "closed"
+        ],
+        "type": "object",
+        "properties": {
+          "closed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "ResponseItem": {
         "required": [
           "questionId",
@@ -3820,6 +4418,37 @@
           },
           "status": {
             "$ref": "#/components/schemas/QuestionStatus"
+          }
+        }
+      },
+      "ReviseBody": {
+        "required": [
+          "version",
+          "content",
+          "answer"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "content": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "answer": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AnswerSpec"
+              }
+            ]
           }
         }
       },
@@ -3981,7 +4610,8 @@
           "Year",
           "Topic",
           "Mistakes",
-          "PracticeTest"
+          "PracticeTest",
+          "Today"
         ]
       },
       "SignInOptions": {
@@ -4178,6 +4808,12 @@
           "choicesAreText": {
             "type": "boolean",
             "default": false
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4257,6 +4893,15 @@
               "string"
             ],
             "format": "int32"
+          },
+          "seconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 0
           }
         }
       }

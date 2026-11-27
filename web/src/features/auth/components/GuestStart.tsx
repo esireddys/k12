@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { courseLabel, hasQuestions, jurisdictionLabel, useCatalog } from '../../../shared/catalog/useCatalog'
+import { gradeChoices, gradeLabel, hasQuestions, jurisdictionLabel, useCatalog } from '../../../shared/catalog/useCatalog'
 import { learnerStore } from '../../../shared/learner/learner'
 import { Button } from '../../../shared/ui/Button'
 
@@ -13,7 +13,8 @@ export function GuestStart() {
 
   const [picked, setPicked] = useState<string>()
   const jurisdiction = picked ?? courses.find(hasQuestions)?.jurisdiction ?? jurisdictions[0]?.[0] ?? ''
-  const inJurisdiction = courses.filter((c) => c.jurisdiction === jurisdiction)
+  // One choice per grade; Math, Reading and the other subjects are tabs on the home screen.
+  const inJurisdiction = gradeChoices(courses.filter((c) => c.jurisdiction === jurisdiction))
   const [courseId, setCourseId] = useState<string>()
   const course = inJurisdiction.find((c) => c.id === courseId) ?? inJurisdiction.find(hasQuestions)
 
@@ -24,7 +25,7 @@ export function GuestStart() {
   }
 
   return (
-    <div className="card" style={{ borderStyle: 'dashed', borderColor: 'var(--border-strong)' }}>
+    <div className="card" id="guest" style={{ borderStyle: 'dashed', borderColor: 'var(--border-strong)' }}>
       <h2 style={{ fontSize: 20 }}>Try as guest</h2>
       {catalog.isError && <p role="alert">Could not load the courses. Is the API running?</p>}
       <div className="row">
@@ -50,7 +51,7 @@ export function GuestStart() {
           <select id="g-grade" value={course?.id ?? ''} onChange={(e) => setCourseId(e.target.value)}>
             {inJurisdiction.map((c) => (
               <option key={c.id} value={c.id} disabled={!hasQuestions(c)}>
-                {courseLabel(c)}
+                {gradeLabel(c)}
                 {hasQuestions(c) ? '' : ' (soon)'}
               </option>
             ))}
@@ -60,9 +61,9 @@ export function GuestStart() {
       <Button variant="dark" onClick={start} disabled={!course || !hasQuestions(course)}>
         Start practicing
       </Button>
-      <div className="banner" style={{ fontSize: 14, padding: '10px 12px', borderWidth: 0, background: '#FFF7ED', color: '#9A3412' }}>
-        Guest progress is not saved. It's gone when you leave.
-      </div>
+      <p className="quiet" style={{ margin: 0, fontSize: 15 }}>
+        Guest practice isn't saved.
+      </p>
     </div>
   )
 }
