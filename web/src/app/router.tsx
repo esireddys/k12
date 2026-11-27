@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router'
 import { WelcomePage } from '../features/auth/WelcomePage'
 import { ManageFamilyPage } from '../features/family/ManageFamilyPage'
+import { ParentDashboardPage } from '../features/family/ParentDashboardPage'
+import { ParentUnlockPage } from '../features/family/ParentUnlockPage'
 import { WhoIsPracticingPage } from '../features/family/WhoIsPracticingPage'
 import { ChooseCoursePage } from '../features/practice/ChooseCoursePage'
 import { KidHomePage } from '../features/practice/KidHomePage'
@@ -14,6 +16,8 @@ export const router = createBrowserRouter([
   { path: '/', element: <WelcomePage /> },
   { path: '/kids', element: <WhoIsPracticingPage /> },
   { path: '/family', element: <ManageFamilyPage /> },
+  { path: '/parent', element: <ParentDashboardPage /> },
+  { path: '/parent/unlock', element: <ParentUnlockPage /> },
   { path: '/course', element: <ChooseCoursePage /> },
   { path: '/home', element: <KidHomePage /> },
   { path: '/practice/topics', element: <TopicsPage /> },

@@ -48,11 +48,15 @@ export function useScore() {
   })
 }
 
+/** Changing a kid's grade needs a parent: the parent PIN is set and the parent areas are closed. */
+export class ParentLockedError extends Error {}
+
 /** Saves the course a kid picked to their profile, so it is remembered on every device. */
 export function useSaveKidCourse() {
   return useMutation({
     mutationFn: async ({ kidId, courseId }: { kidId: string; courseId: string }) => {
-      const { error } = await api.PUT('/api/family/kids/{kidId}/course', { params: { path: { kidId } }, body: { courseId } })
+      const { error, response } = await api.PUT('/api/family/kids/{kidId}/course', { params: { path: { kidId } }, body: { courseId } })
+      if (response.status === 403) throw new ParentLockedError(error?.detail ?? 'Ask a parent to change the grade.')
       if (error) throw new Error(error.detail ?? 'Could not save the grade')
     },
   })

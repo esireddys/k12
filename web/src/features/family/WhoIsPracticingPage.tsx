@@ -6,6 +6,7 @@ import { Avatar } from '../../shared/ui/Avatar'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
 import { useFamily, useSignOut, type Kid } from './api/useFamily'
+import { useLock } from './api/useParentArea'
 import { SignedInOnly } from './components/SignedInOnly'
 
 function KidCard({ kid, onPick }: { kid: Kid; onPick: () => void }) {
@@ -26,9 +27,12 @@ function Picker() {
   const me = useCurrentUser()
   const family = useFamily()
   const signOut = useSignOut()
+  const lock = useLock()
   const kids = family.data?.kids ?? []
 
   const pick = (kid: Kid) => {
+    // Handing the tablet to a kid closes the parent areas, so they need the PIN again.
+    lock.mutate()
     learnerStore.set({ kind: 'kid', kidId: kid.id, name: kid.name, avatar: kid.avatar, courseId: kid.courseId ?? undefined })
     navigate(kid.courseId ? '/home' : '/course')
   }
@@ -39,7 +43,7 @@ function Picker() {
         <span className="brand">K12 Practice</span>
         <div className="spacer row">
           {me.data?.isOwner && <Link to="/owner/review">Content review</Link>}
-          <Link to="/family" className="row" style={{ gap: 8, padding: '10px 16px', borderRadius: 12, border: '2px solid var(--border)', background: 'var(--surface)', textDecoration: 'none', color: 'var(--ink)', fontWeight: 700 }}>
+          <Link to="/parent" className="row" style={{ gap: 8, padding: '10px 16px', borderRadius: 12, border: '2px solid var(--border)', background: 'var(--surface)', textDecoration: 'none', color: 'var(--ink)', fontWeight: 700 }}>
             <Icon name="lock" size={18} /> Parent
           </Link>
           <Button variant="ghost" onClick={() => signOut.mutate(undefined, { onSuccess: () => navigate('/') })}>
