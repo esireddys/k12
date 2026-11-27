@@ -33,6 +33,9 @@ internal sealed class QuestionConfiguration : IEntityTypeConfiguration<Question>
             id => id.HasValue ? id.Value.Value : (Guid?)null,
             v => v.HasValue ? new QuestionId(v.Value) : null);
         b.Property(q => q.Version).IsConcurrencyToken();
+        b.Property(q => q.PassageId).HasConversion(Converters.OptionalPassageId);
+        b.HasOne<Passage>().WithMany().HasForeignKey(q => q.PassageId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(q => q.ReportingCategory);
 
         b.Property(q => q.AiReview)
             .HasConversion(Converters.AiReview!, Converters.AiReviewComparer)

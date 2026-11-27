@@ -82,6 +82,35 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.ToTable("ExamForms", "content");
                 });
 
+            modelBuilder.Entity("K12.Domain.Content.Passage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("Passages", "content");
+                });
+
             modelBuilder.Entity("K12.Domain.Content.Question", b =>
                 {
                     b.Property<Guid>("Id")
@@ -118,6 +147,12 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("PassageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("ReportingCategory")
+                        .HasColumnType("int");
+
                     b.PrimitiveCollection<string>("SkillIds")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -133,6 +168,8 @@ namespace K12.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PassageId");
 
                     b.HasIndex("Status");
 
@@ -174,10 +211,21 @@ namespace K12.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)")
+                        .HasDefaultValue("en");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PracticeTest")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("PracticeTestJson");
 
                     b.Property<string>("Subject")
                         .IsRequired()
@@ -189,7 +237,7 @@ namespace K12.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Jurisdiction", "Subject", "Code")
+                    b.HasIndex("Jurisdiction", "Subject", "Code", "Language")
                         .IsUnique();
 
                     b.ToTable("Courses", "curriculum");
@@ -435,8 +483,22 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.Navigation("Items");
                 });
 
+            modelBuilder.Entity("K12.Domain.Content.Passage", b =>
+                {
+                    b.HasOne("K12.Domain.Curriculum.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("K12.Domain.Content.Question", b =>
                 {
+                    b.HasOne("K12.Domain.Content.Passage", null)
+                        .WithMany()
+                        .HasForeignKey("PassageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.OwnsOne("K12.Domain.Content.Review.OwnerDecision", "OwnerDecision", b1 =>
                         {
                             b1.Property<Guid>("QuestionId")

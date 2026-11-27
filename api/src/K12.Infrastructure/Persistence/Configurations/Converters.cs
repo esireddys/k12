@@ -22,6 +22,18 @@ internal static class Converters
 
     public static readonly ValueConverter<CourseId, Guid> CourseId = new(id => id.Value, v => new CourseId(v));
 
+    public static readonly ValueConverter<PassageId, Guid> PassageId = new(id => id.Value, v => new PassageId(v));
+
+    public static readonly ValueConverter<PassageId?, Guid?> OptionalPassageId = new(
+        id => id.HasValue ? id.Value.Value : null, v => v.HasValue ? new PassageId(v.Value) : null);
+
+    /// <summary>Stores a course's practice test shape as JSON: it is read whole with the course.</summary>
+    public static readonly ValueConverter<PracticeTestBlueprint, string> PracticeTest = new(
+        test => JsonSerializer.Serialize(test, Json),
+        json => JsonSerializer.Deserialize<PracticeTestBlueprint>(json, Json)!);
+
+    public static readonly ValueComparer<PracticeTestBlueprint?> PracticeTestComparer = JsonComparer<PracticeTestBlueprint?>();
+
     public static readonly ValueConverter<ExamFormId, Guid> ExamFormId = new(id => id.Value, v => new ExamFormId(v));
 
     public static readonly ValueConverter<ParentAccountId, Guid> ParentAccountId = new(id => id.Value, v => new ParentAccountId(v));

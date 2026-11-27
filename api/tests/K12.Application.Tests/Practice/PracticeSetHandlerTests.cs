@@ -58,7 +58,7 @@ public class PracticeSetHandlerTests
             return q;
         }
 
-        public GetPracticeSetHandler Sets() => new(Store, Store, Store, Store);
+        public GetPracticeSetHandler Sets() => new(Store, Store, Store, Store, Store);
     }
 
     [Fact]

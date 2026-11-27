@@ -89,3 +89,28 @@ public class ParentPinHandlerTests
         Assert.Equal(error, result.Error?.Code);
     }
 }
+
+public class SubjectSwitchTests
+{
+    [Theory]
+    [InlineData("reading", "G3", null)]          // another subject in the same grade: the kid's own choice
+    [InlineData("math", "A1", "parent.locked")]  // a different grade or course: the parent's call
+    [InlineData("reading", "G4", "parent.locked")]
+    public async Task A_kid_can_switch_subject_in_their_grade_without_the_parent_pin(string subject, string code, string? error)
+    {
+        var s = new TestStore();
+        var account = ParentAccount.Register(new ExternalLogin("google", "1"), "pat@example.org", "Pat", s.UtcNow);
+        s.Accounts.Add(account);
+        var math = Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework", []);
+        var other = Course.Create("TX", subject, code, "Other", "FW", "Framework", []);
+        s.Courses.AddRange([math, other]);
+        var kid = account.AddKid("Maya", AvatarColor.Blue, math.Id);
+        account.SetPin("hash:1111", s.UtcNow);
+
+        var result = await new ChooseKidCourseHandler(s, s, s).HandleAsync(
+            new ChooseKidCourseCommand(account.Id.Value, kid.Id.Value, other.Id.Value, ParentAreaOpen: false));
+
+        Assert.Equal(error, result.Error?.Code);
+        Assert.Equal(error is null ? other.Id : math.Id, kid.CourseId);
+    }
+}

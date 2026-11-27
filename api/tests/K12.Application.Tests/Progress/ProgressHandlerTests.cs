@@ -103,7 +103,7 @@ public class ProgressHandlerTests
         var f = new Family();
         await f.AnswerAsync(Guid.NewGuid(), PracticeMode.Exam, true, (1, "0"), (2, "0"), (3, "3"));
 
-        var mistakes = new GetMistakesSetHandler(f.S, f.S, f.S, f.S, f.S);
+        var mistakes = new GetMistakesSetHandler(f.S, f.S, f.S, f.S, f.S, f.S);
         var set = await mistakes.HandleAsync(new GetMistakesSetQuery(f.Account.Id.Value, f.Kid.Id.Value, null));
         Assert.Equal(SetSource.Mistakes, set.Value!.Source);
         Assert.Equal(new[] { f.Questions[0].Id.Value, f.Questions[1].Id.Value }.Order(), set.Value.Questions.Select(q => q.Id).Order());
@@ -127,7 +127,7 @@ public class ProgressHandlerTests
         var f = new Family();
         await f.AnswerAsync(Guid.NewGuid(), PracticeMode.Practice, false, (1, "0"));
         f.Questions[0].Retire();
-        var set = await new GetMistakesSetHandler(f.S, f.S, f.S, f.S, f.S).HandleAsync(new GetMistakesSetQuery(f.Account.Id.Value, f.Kid.Id.Value, null));
+        var set = await new GetMistakesSetHandler(f.S, f.S, f.S, f.S, f.S, f.S).HandleAsync(new GetMistakesSetQuery(f.Account.Id.Value, f.Kid.Id.Value, null));
         Assert.Empty(set.Value!.Questions);
     }
 

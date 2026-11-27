@@ -19,7 +19,7 @@ public class ReviewHandlerTests
         public int Saves { get; private set; }
         public DateTimeOffset UtcNow => new(2026, 11, 26, 9, 0, 0, TimeSpan.Zero);
 
-        public Task<Course?> FindAsync(string j, string s, string c, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<Course?> FindAsync(string j, string s, string c, string language = Course.DefaultLanguage, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Course>>(Courses.Where(c => ids.Contains(c.Id)).ToList());
         public Task AddAsync(Course course, CancellationToken ct = default) { Courses.Add(course); return Task.CompletedTask; }

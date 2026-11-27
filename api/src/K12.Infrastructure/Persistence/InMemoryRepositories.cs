@@ -11,10 +11,12 @@ public sealed class InMemoryCourseRepository : ICourseRepository
 {
     private readonly ConcurrentDictionary<CourseId, Course> _store = new();
 
-    public Task<Course?> FindAsync(string jurisdiction, string subject, string code, CancellationToken ct = default)
+    public Task<Course?> FindAsync(
+        string jurisdiction, string subject, string code, string language = Course.DefaultLanguage, CancellationToken ct = default)
     {
         var (j, s, c) = CourseKey.Normalize(jurisdiction, subject, code);
-        return Task.FromResult(_store.Values.FirstOrDefault(x => x.Jurisdiction == j && x.Subject == s && x.Code == c));
+        var l = Course.NormalizeLanguage(language);
+        return Task.FromResult(_store.Values.FirstOrDefault(x => x.Jurisdiction == j && x.Subject == s && x.Code == c && x.Language == l));
     }
 
     public Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>
@@ -69,6 +71,22 @@ public sealed class InMemoryExamFormRepository : IExamFormRepository
     public Task AddAsync(ExamForm form, CancellationToken ct = default)
     {
         _store[form.Id] = form;
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class InMemoryPassageRepository : IPassageRepository
+{
+    private readonly ConcurrentDictionary<PassageId, Passage> _store = new();
+
+    public Task<Passage?> GetAsync(PassageId id, CancellationToken ct = default) => Task.FromResult(_store.GetValueOrDefault(id));
+
+    public Task<IReadOnlyList<Passage>> ListByIdsAsync(IReadOnlyCollection<PassageId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Passage>>(_store.Values.Where(p => ids.Contains(p.Id)).ToList());
+
+    public Task AddAsync(Passage passage, CancellationToken ct = default)
+    {
+        _store[passage.Id] = passage;
         return Task.CompletedTask;
     }
 }

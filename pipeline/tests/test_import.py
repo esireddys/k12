@@ -50,8 +50,13 @@ def test_every_key_file_matches_the_curriculum():
         skills = {s["code"]: s for s in curricula[(test.jurisdiction, test.subject, test.level)]["skills"]}
         for row in load_key(DATA / "keys" / f"{form_slug(test, test.subject)}.csv"):
             assert row.skill in skills, row
+            if skills[row.skill]["category"] is None:
+                # Reported under the selection's category (literary or informational), which the key gives per item.
+                continue
             assert skills[row.skill]["category"] == row.category, row
-            assert skills[row.skill]["designation"] == row.designation, row
+            if test.subject != "reading":
+                # TEA's reading keys label the same expectation readiness one year and supporting the next.
+                assert skills[row.skill]["designation"] == row.designation, row
 
 
 def test_algebra_keys_have_five_gridded_items_each_that_can_be_negative_or_decimal():

@@ -7,5 +7,5 @@ def test_sources_point_at_tea():
 
 
 def test_each_form_is_unique():
-    keys = [(t.jurisdiction, t.exam, t.level, t.year, t.season) for t in RELEASED_TESTS]
+    keys = [(t.jurisdiction, t.exam, t.level, t.subject, t.language, t.year, t.season) for t in RELEASED_TESTS]
     assert len(keys) == len(set(keys))

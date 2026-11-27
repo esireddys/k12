@@ -650,6 +650,50 @@
         }
       }
     },
+    "/api/practice/passages/{passageId}/pages/{page}": {
+      "get": {
+        "tags": [
+          "Practice"
+        ],
+        "operationId": "GetPassagePage",
+        "parameters": [
+          {
+            "name": "passageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/practice/questions/{questionId}/check": {
       "post": {
         "tags": [
@@ -1914,6 +1958,24 @@
               "string"
             ],
             "format": "int32"
+          },
+          "language": {
+            "type": "string",
+            "default": "en"
+          },
+          "practiceTest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CatalogPracticeTest"
+              }
+            ]
+          },
+          "hasPassages": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -1946,6 +2008,41 @@
             "type": "string"
           },
           "questionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CatalogPracticeTest": {
+        "required": [
+          "itemCount",
+          "minutes",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "minutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "available": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "integer",
@@ -2122,6 +2219,31 @@
           }
         }
       },
+      "ImportCategoryShare": {
+        "required": [
+          "category",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "items": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "ImportCourseBody": {
         "required": [
           "jurisdiction",
@@ -2185,6 +2307,22 @@
               "string"
             ],
             "format": "int32"
+          },
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "practiceTest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ImportPracticeTest"
+              }
+            ]
           }
         }
       },
@@ -2266,6 +2404,21 @@
             "items": {
               "$ref": "#/components/schemas/ImportItemBody"
             }
+          },
+          "passages": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ImportPassageBody"
+            }
+          },
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2322,6 +2475,76 @@
           },
           "answer": {
             "$ref": "#/components/schemas/AnswerSpec"
+          },
+          "passage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "category": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ImportPassageBody": {
+        "required": [
+          "key",
+          "title",
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        }
+      },
+      "ImportPracticeTest": {
+        "required": [
+          "items",
+          "minutes",
+          "mix"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "minutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "mix": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ImportCategoryShare"
+            }
           }
         }
       },
@@ -2841,6 +3064,38 @@
           }
         }
       },
+      "PassageView": {
+        "required": [
+          "id",
+          "title",
+          "pageCount",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "pageCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PinBody": {
         "required": [
           "pin"
@@ -2904,6 +3159,24 @@
             "items": {
               "$ref": "#/components/schemas/StudentQuestion"
             }
+          },
+          "passages": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PassageView"
+            }
+          },
+          "timeLimitMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -3542,7 +3815,8 @@
           "Shuffle",
           "Year",
           "Topic",
-          "Mistakes"
+          "Mistakes",
+          "PracticeTest"
         ]
       },
       "SignInOptions": {
@@ -3710,6 +3984,13 @@
                 "$ref": "#/components/schemas/QuestionSourceView"
               }
             ]
+          },
+          "passageId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },

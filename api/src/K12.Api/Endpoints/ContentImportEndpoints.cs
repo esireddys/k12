@@ -19,14 +19,18 @@ public static class ContentImportEndpoints
         string Jurisdiction, string Subject, string Code, string Name,
         string FrameworkCode, string FrameworkName,
         IReadOnlyList<ImportCategory> Categories, IReadOnlyList<ImportSkillBody> Skills, string? JurisdictionName = null,
-        string? Kind = null, int? TypicalGrade = null);
+        string? Kind = null, int? TypicalGrade = null, string? Language = null, ImportPracticeTest? PracticeTest = null);
 
-    public sealed record ImportItemBody(int Number, IReadOnlyList<string> SkillCodes, string ItemType, JsonElement Content, AnswerSpec Answer);
+    public sealed record ImportItemBody(
+        int Number, IReadOnlyList<string> SkillCodes, string ItemType, JsonElement Content, AnswerSpec Answer,
+        string? Passage = null, int? Category = null);
+
+    public sealed record ImportPassageBody(string Key, string Title, JsonElement Content);
 
     public sealed record ImportExamFormBody(
         string Jurisdiction, string Subject, string CourseCode,
         string Exam, int Year, string Season, string SourceUrl,
-        IReadOnlyList<ImportItemBody> Items);
+        IReadOnlyList<ImportItemBody> Items, IReadOnlyList<ImportPassageBody>? Passages = null, string? Language = null);
 
     public static IEndpointRouteBuilder MapContentImportEndpoints(this IEndpointRouteBuilder app)
     {
@@ -40,7 +44,7 @@ public static class ContentImportEndpoints
                 body.Jurisdiction, body.Subject, body.Code, body.Name, body.FrameworkCode, body.FrameworkName,
                 body.Categories,
                 body.Skills.Select(s => new ImportSkill(s.Code, s.Description, s.Category, s.Designation, s.Limits?.GetRawText())).ToList(),
-                body.JurisdictionName, body.Kind, body.TypicalGrade),
+                body.JurisdictionName, body.Kind, body.TypicalGrade, body.Language, body.PracticeTest),
                 ct)).ToHttp())
             .WithName("ImportCourse")
             .Produces<ImportCourseResponse>()
@@ -52,7 +56,10 @@ public static class ContentImportEndpoints
                 CancellationToken ct) =>
             (await handler.HandleAsync(new ImportExamFormCommand(
                 body.Jurisdiction, body.Subject, body.CourseCode, body.Exam, body.Year, body.Season, body.SourceUrl,
-                body.Items.Select(i => new ImportItem(i.Number, i.SkillCodes, i.ItemType, i.Content.GetRawText(), i.Answer)).ToList()),
+                body.Items.Select(i => new ImportItem(
+                    i.Number, i.SkillCodes, i.ItemType, i.Content.GetRawText(), i.Answer, i.Passage, i.Category)).ToList(),
+                (body.Passages ?? []).Select(p => new ImportPassage(p.Key, p.Title, p.Content.GetRawText())).ToList(),
+                body.Language),
                 ct)).ToHttp())
             .WithName("ImportExamForm")
             .Produces<ImportExamFormResponse>()

@@ -14,6 +14,7 @@ public sealed class K12DbContext(DbContextOptions<K12DbContext> options) : DbCon
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<ExamForm> ExamForms => Set<ExamForm>();
+    public DbSet<Passage> Passages => Set<Passage>();
     public DbSet<ParentAccount> ParentAccounts => Set<ParentAccount>();
     public DbSet<KidProgress> KidProgress => Set<KidProgress>();
     public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();

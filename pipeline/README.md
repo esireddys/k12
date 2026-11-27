@@ -23,7 +23,9 @@ What lives where:
 
 - `data/curriculum/*.json`: courses, reporting categories and skills (short paraphrased descriptions, fraction limits).
 - `data/keys/*.csv`: the published answer key for each test, one row per item.
-- `data/raw/`: the test PDFs. Download each URL that `k12-pipeline sources` lists. Not committed (publisher copyright).
+- `data/raw/<state>/<subject>/`: the test PDFs, for example `data\raw\tx\reading\`. Download each URL that
+  `k12-pipeline sources` lists into the folder it names. PDFs straight in `data/raw/` (the older layout) still work.
+  Not committed (publisher copyright).
 - `data/out/`: what the import makes: one picture per item and the JSON it sends. Not committed.
 
 With the API running locally in Development (`dotnet run --project src/K12.Api` from `api/`):
@@ -36,6 +38,16 @@ k12-pipeline import --dry-run  # builds data/out without sending anything
 Running it again is safe: the course and skills are updated in place, and a test that is already
 imported is skipped. The import checks that the key and the PDF agree (item count, multiple choice
 versus griddable, and that each answer letter is one of the choices) before it sends anything.
+
+Reading tests also get their selections: each "Read the selection ..." page starts a passage, every page of it is
+saved as a picture (`p1-1.png`, `p1-2.png`, ...) and the items after it are linked to it, so students read the
+selection beside its questions. Each item also keeps the reporting category from the answer key, because a reading
+skill counts as literary or informational depending on the selection.
+
+Each curriculum file can describe the real test's shape under `practiceTest` (items, minutes, items per reporting
+category). The app builds its full practice test from that: a fresh mix of released questions every time.
+
+Every course is English for now (`"language": "en"`); a Spanish test would be its own course and curriculum file.
 
 Imported questions are Official and go Live straight away: the publisher already reviewed them, so they
 skip the AI reviewer and the owner queue. The picture of each item is the source of truth; the text read

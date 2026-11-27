@@ -1,0 +1,152 @@
+{
+  "jurisdiction": "TX",
+  "jurisdictionName": "Texas",
+  "subject": "reading",
+  "level": "G3",
+  "levelName": "Grade 3",
+  "kind": "grade",
+  "typicalGrade": 3,
+  "language": "en",
+  "practiceTest": {
+    "note": "Shape of the real STAAR test, from the released forms: items, time limit in minutes, items per reporting category.",
+    "items": 34,
+    "minutes": 240,
+    "mix": [
+      {
+        "category": 1,
+        "items": 5
+      },
+      {
+        "category": 2,
+        "items": 15
+      },
+      {
+        "category": 3,
+        "items": 14
+      }
+    ]
+  },
+  "framework": {
+    "code": "TEKS",
+    "name": "Texas Essential Knowledge and Skills"
+  },
+  "note": "Descriptions are short paraphrases for students and parents, not the official text. Skills with no category are reported as literary or informational depending on the selection; each item carries its category from the answer key.",
+  "categories": [
+    {
+      "number": 1,
+      "name": "Understanding and Analysis Across Genres"
+    },
+    {
+      "number": 2,
+      "name": "Understanding and Analysis of Literary Texts"
+    },
+    {
+      "number": 3,
+      "name": "Understanding and Analysis of Informational Texts"
+    }
+  ],
+  "skills": [
+    {
+      "code": "3.3(B)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Use nearby words and sentences to work out what a word means"
+    },
+    {
+      "code": "3.3(C)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Use prefixes and suffixes (un-, re-, -less, -ful) to understand words"
+    },
+    {
+      "code": "3.3(D)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Know synonyms, antonyms, idioms and words that look alike but mean different things"
+    },
+    {
+      "code": "3.6(C)",
+      "category": null,
+      "designation": "supporting",
+      "description": "Make, check and correct predictions while reading"
+    },
+    {
+      "code": "3.6(F)",
+      "category": null,
+      "designation": "readiness",
+      "description": "Make inferences and back them up with details from the text"
+    },
+    {
+      "code": "3.6(G)",
+      "category": null,
+      "designation": "readiness",
+      "description": "Find the key ideas that a text's details support"
+    },
+    {
+      "code": "3.6(H)",
+      "category": null,
+      "designation": "readiness",
+      "description": "Put information together to understand something new"
+    },
+    {
+      "code": "3.7(C)",
+      "category": null,
+      "designation": "readiness",
+      "description": "Use evidence from the text to support an answer"
+    },
+    {
+      "code": "3.8(B)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Explain how characters' relationships and changes affect what happens"
+    },
+    {
+      "code": "3.8(C)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Follow the plot: the problem, the most exciting part, and how it ends"
+    },
+    {
+      "code": "3.8(D)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Explain how the setting matters to the plot"
+    },
+    {
+      "code": "3.9(B)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Explain rhyme, rhythm, lines and stanzas in poems"
+    },
+    {
+      "code": "3.9(D)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Use the central idea, text features and organization of informational texts"
+    },
+    {
+      "code": "3.9(E)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Recognize an author's opinion, audience and reasons in persuasive texts"
+    },
+    {
+      "code": "3.10(A)",
+      "category": null,
+      "designation": "readiness",
+      "description": "Explain why the author wrote the text and the message it gives"
+    },
+    {
+      "code": "3.10(C)",
+      "category": null,
+      "designation": "supporting",
+      "description": "Explain how pictures, captions and other text features help the author"
+    },
+    {
+      "code": "3.10(D)",
+      "category": null,
+      "designation": "supporting",
+      "description": "Explain how the author's word choice, imagery and figurative language work"
+    }
+  ]
+}

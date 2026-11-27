@@ -2,7 +2,8 @@ import { useState } from 'react'
 import type { CatalogCourse } from '../../../shared/catalog/useCatalog'
 import type { Learner } from '../../../shared/learner/learner'
 import { Button } from '../../../shared/ui/Button'
-import type { ScoredResponse, StudentQuestion } from '../api/usePractice'
+import type { PassageView, ScoredResponse, StudentQuestion } from '../api/usePractice'
+import { WithPassage } from './PassagePane'
 import { useSessionScoring } from '../api/useProgress'
 import { QuestionView } from './QuestionView'
 import { Results } from './Results'
@@ -14,6 +15,7 @@ export function PracticeRun({
   title,
   course,
   questions,
+  passages = [],
   learner,
   source,
   onAgain,
@@ -21,6 +23,10 @@ export function PracticeRun({
   title: string
   course: CatalogCourse
   questions: StudentQuestion[]
+  /** The reading selections the questions are about, if any. */
+  passages?: PassageView[]
+  /** Unused: practice is never timed. Accepted so both runs take the same props. */
+  timeLimitMinutes?: number
   learner: Learner
   source: string
   /** Unused: practice keeps nothing on the device. Accepted so both runs take the same props. */
@@ -59,6 +65,7 @@ export function PracticeRun({
         {sourceText(q.source) && <span className="chip">{sourceText(q.source)}</span>}
       </div>
 
+      <WithPassage passage={passages.find((p) => p.id === q.passageId)}>
       <QuestionView
         key={q.id}
         question={q}
@@ -107,6 +114,7 @@ export function PracticeRun({
           </Button>
         </div>
       )}
+      </WithPassage>
     </>
   )
 }

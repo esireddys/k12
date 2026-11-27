@@ -9,13 +9,14 @@ namespace K12.Application.Tests;
 
 /// <summary>Every repository in memory, for handler tests that span aggregates.</summary>
 public sealed class TestStore
-    : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IParentAccountRepository, IUnitOfWork, IClock, IItemImageStore,
+    : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IPassageRepository, IParentAccountRepository, IUnitOfWork, IClock, IItemImageStore,
       IKidProgressRepository, IPracticeSessionRepository, IPinHasher
 {
     public List<Course> Courses { get; } = [];
     public List<Skill> Skills { get; } = [];
     public List<Question> Questions { get; } = [];
     public List<ExamForm> Forms { get; } = [];
+    public List<Passage> Passages { get; } = [];
     public List<ParentAccount> Accounts { get; } = [];
     public Dictionary<string, byte[]> Images { get; } = [];
     public List<KidProgress> Progress { get; } = [];
@@ -26,8 +27,8 @@ public sealed class TestStore
     public Task SaveChangesAsync(CancellationToken ct = default) { Saves++; return Task.CompletedTask; }
 
     // Courses
-    public Task<Course?> FindAsync(string j, string s, string c, CancellationToken ct = default) =>
-        Task.FromResult(Courses.FirstOrDefault(x => x.Jurisdiction == j && x.Subject == s && x.Code == c));
+    public Task<Course?> FindAsync(string j, string s, string c, string language = Course.DefaultLanguage, CancellationToken ct = default) =>
+        Task.FromResult(Courses.FirstOrDefault(x => x.Jurisdiction == j && x.Subject == s && x.Code == c && x.Language == language));
     public Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<Course>>(Courses.Where(c => ids.Contains(c.Id)).ToList());
     public Task<IReadOnlyList<Course>> ListAllAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Course>>(Courses.ToList());
@@ -62,6 +63,12 @@ public sealed class TestStore
     public Task<IReadOnlyList<ExamForm>> ListContainingAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<ExamForm>>(Forms.Where(f => f.Items.Any(i => ids.Contains(i.QuestionId))).ToList());
     public Task AddAsync(ExamForm form, CancellationToken ct = default) { Forms.Add(form); return Task.CompletedTask; }
+
+    // Passages
+    public Task<Passage?> GetAsync(PassageId id, CancellationToken ct = default) => Task.FromResult(Passages.FirstOrDefault(p => p.Id == id));
+    public Task<IReadOnlyList<Passage>> ListByIdsAsync(IReadOnlyCollection<PassageId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Passage>>(Passages.Where(p => ids.Contains(p.Id)).ToList());
+    public Task AddAsync(Passage passage, CancellationToken ct = default) { Passages.Add(passage); return Task.CompletedTask; }
 
     // Parent accounts
     public Task<ParentAccount?> GetAsync(ParentAccountId id, CancellationToken ct = default) => Task.FromResult(Accounts.FirstOrDefault(a => a.Id == id));

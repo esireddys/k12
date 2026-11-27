@@ -23,7 +23,7 @@ export function useCatalog() {
 export const jurisdictionLabel = (c: Pick<CatalogCourse, 'jurisdiction' | 'jurisdictionName'>) =>
   c.jurisdictionName || c.jurisdiction
 
-const subjectLabel = (subject: string) => subject.charAt(0).toUpperCase() + subject.slice(1)
+export const subjectLabel = (subject: string) => subject.charAt(0).toUpperCase() + subject.slice(1)
 
 /**
  * "Grade 3 Math" for a whole grade; just "Algebra I" for a course, whose name already says the subject.
@@ -47,3 +47,15 @@ export function examNames(c: CatalogCourse): string {
 }
 
 export const hasQuestions = (c: CatalogCourse) => Number(c.questionCount) > 0
+
+/**
+ * The subjects of one grade: this course and the others with the same state, level and language, for example
+ * Grade 3 Math and Grade 3 Reading. Moving between them is not a change of grade. Subjects with no questions yet
+ * are left out.
+ */
+export function sameGradeSubjects(course: CatalogCourse, courses: CatalogCourse[]): CatalogCourse[] {
+  return courses
+    .filter((c) => c.jurisdiction === course.jurisdiction && c.code === course.code && (c.language ?? 'en') === (course.language ?? 'en'))
+    .filter((c) => c.id === course.id || hasQuestions(c))
+    .sort((a, b) => a.subject.localeCompare(b.subject))
+}

@@ -49,6 +49,24 @@ const paths = {
       <path d="M12 9l6 6M18 9l-6 6" />
     </>
   ),
+  book: (
+    <>
+      <path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z" />
+      <path d="M4 21V5M8 7h7" />
+    </>
+  ),
+  zoom: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-4-4M11 8v6M8 11h6" />
+    </>
+  ),
+  medal: (
+    <>
+      <circle cx="12" cy="15" r="6" />
+      <path d="M8 3h8l-2 6h-4zM12 12v3l2 1" />
+    </>
+  ),
 } as const
 
 export type IconName = keyof typeof paths

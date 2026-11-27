@@ -5,6 +5,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { TopBar } from '../../shared/ui/TopBar'
 import { LearnerGuard } from './components/LearnerGuard'
 import { sessionUrl } from './model/session'
+import { timeLimitText } from './model/timeLimit'
 
 /** Exam mode: Shuffle real questions from every year, or Pick a year's full test. No answers until Finish. */
 export function TestsPage() {
@@ -22,6 +23,17 @@ export function TestsPage() {
             <div className="banner">
               <Icon name="info" /> No hints or answers during the test. The answer key and explanations unlock after you finish.
             </div>
+            {course.practiceTest && (
+              <Link to={sessionUrl('exam', { source: 'PracticeTest' })} className="card" style={{ borderColor: 'var(--accent)', borderWidth: 3 }}>
+                <Icon name="medal" size={34} color="var(--accent)" />
+                <h2>Full practice test</h2>
+                <p>
+                  The same length, topic mix and time limit as the real {exams || 'test'}: {Number(course.practiceTest.itemCount)} questions
+                  {course.practiceTest.minutes ? ` in ${timeLimitText(Number(course.practiceTest.minutes))}` : ''}. A new mix of real questions every time.
+                </p>
+              </Link>
+            )}
+
             <div className="grid-2">
               {(['shuffle', 'year'] as const).map((t) => (
                 <button
