@@ -29,6 +29,9 @@ public class ReviewHandlerTests
         public Task AddAsync(Skill skill, CancellationToken ct = default) { Skills.Add(skill); return Task.CompletedTask; }
         public Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default) => Task.FromResult(Questions.FirstOrDefault(q => q.Id == id));
         public Task AddAsync(Question question, CancellationToken ct = default) { Questions.Add(question); return Task.CompletedTask; }
+        public Task<IReadOnlyList<Question>> ListByOriginAsync(
+            QuestionOrigin origin, IReadOnlyCollection<QuestionStatus> statuses, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(Questions.Where(q => q.Origin == origin && statuses.Contains(q.Status)).ToList());
         public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Question>>(Questions.Where(q => q.Status == status).Take(take).ToList());
         public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
@@ -52,7 +55,7 @@ public class ReviewHandlerTests
         for (var n = 1; n <= 3; n++)
         {
             var q = Question.Draft([skill.Id], "choice", $$"""{"stem":"item {{n}}","textNeedsReview":true}""",
-                new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" }, Difficulty.OnLevel, QuestionOrigin.Official);
+                new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" }, Difficulty.OnLevel, QuestionOrigin.Generated);
             q.SubmitForAiReview();
             form.AddItem(n, q.Id);
             s.Questions.Add(q);

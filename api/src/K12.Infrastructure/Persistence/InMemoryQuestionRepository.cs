@@ -23,6 +23,11 @@ public sealed class InMemoryQuestionRepository : IQuestionRepository
     public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<Question>>(_store.Values.Where(q => q.Status == status).Take(take).ToList());
 
+    public Task<IReadOnlyList<Question>> ListByOriginAsync(
+        QuestionOrigin origin, IReadOnlyCollection<QuestionStatus> statuses, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Question>>(
+            _store.Values.Where(q => q.Origin == origin && statuses.Contains(q.Status)).ToList());
+
     public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(
             _store.Values.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));

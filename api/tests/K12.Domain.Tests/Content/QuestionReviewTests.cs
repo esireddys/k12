@@ -14,7 +14,7 @@ public class QuestionReviewTests
     private static Question InAiReview()
     {
         var q = Question.Draft([SkillId.New()], "choice", """{"stem":"raw","textNeedsReview":true}""", Key,
-            Difficulty.OnLevel, QuestionOrigin.Official);
+            Difficulty.OnLevel, QuestionOrigin.Generated);
         q.SubmitForAiReview();
         return q;
     }
@@ -78,7 +78,7 @@ public class QuestionReviewTests
     [MemberData(nameof(NotInAiReview))]
     public void Only_a_question_in_ai_review_takes_a_review(QuestionStatus status)
     {
-        var q = Question.Draft([SkillId.New()], "choice", "{}", Key, Difficulty.OnLevel, QuestionOrigin.Official);
+        var q = Question.Draft([SkillId.New()], "choice", "{}", Key, Difficulty.OnLevel, QuestionOrigin.Generated);
         if (status >= QuestionStatus.InAiReview) q.SubmitForAiReview();
         if (status >= QuestionStatus.AwaitingOwner) q.RecordAiReview(TestReviews.LooksGood());
         if (status >= QuestionStatus.Live) q.Approve("owner", Now);

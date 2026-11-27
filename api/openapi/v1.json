@@ -543,6 +543,36 @@
           }
         }
       }
+    },
+    "/api/admin/import/publish-released": {
+      "post": {
+        "tags": [
+          "Content import"
+        ],
+        "operationId": "PublishReleasedQuestions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishReleasedQuestionsResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1226,6 +1256,22 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "PublishReleasedQuestionsResponse": {
+        "required": [
+          "questionsPublished"
+        ],
+        "type": "object",
+        "properties": {
+          "questionsPublished": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },

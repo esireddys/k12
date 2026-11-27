@@ -16,7 +16,7 @@ def _client() -> Any:
     try:
         import anthropic
     except ImportError as e:  # pragma: no cover - depends on the install
-        raise SystemExit('The AI reviewer needs the "ai" extra: pip install -e ".[ai]"') from e
+        raise SystemExit("The AI reviewer needs the anthropic package. From pipeline/, run: pip install -e .") from e
     # Reads ANTHROPIC_API_KEY (or an `ant auth login` profile). Never put the key in code or in git.
     return anthropic.Anthropic(max_retries=4)
 

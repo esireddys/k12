@@ -29,9 +29,9 @@ public sealed class ContentReviewPersistenceTests : IDisposable
         var course = Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
         var skill = Skill.Define(course, "3.4(K)", "Solve", 1, "readiness", "{}");
         var reviewed = Question.Draft([skill.Id], "choice", """{"stem":"a"}""",
-            new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" }, Difficulty.OnLevel, QuestionOrigin.Official);
+            new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" }, Difficulty.OnLevel, QuestionOrigin.Generated);
         var waiting = Question.Draft([skill.Id], "numeric", """{"stem":"b"}""",
-            new AnswerSpec { Kind = AnswerKind.Integer, Value = "12" }, Difficulty.OnLevel, QuestionOrigin.Official);
+            new AnswerSpec { Kind = AnswerKind.Integer, Value = "12" }, Difficulty.OnLevel, QuestionOrigin.Generated);
         reviewed.SubmitForAiReview();
         waiting.SubmitForAiReview();
         reviewed.RecordAiReview(TestReviews.LooksGood("""{"stem":"A."}""") with
@@ -83,7 +83,7 @@ public sealed class ContentReviewPersistenceTests : IDisposable
     public async Task A_changed_review_is_saved()
     {
         var q = Question.Draft([SkillId.New()], "numeric", "{}",
-            new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" }, Difficulty.OnLevel, QuestionOrigin.Official);
+            new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" }, Difficulty.OnLevel, QuestionOrigin.Generated);
         q.SubmitForAiReview();
         await using (var db = NewContext())
         {
@@ -162,7 +162,7 @@ public sealed class QuestionConcurrencyTests : IDisposable
     public async Task Two_owners_deciding_at_once_cannot_both_win()
     {
         var q = Question.Draft([SkillId.New()], "numeric", "{}",
-            new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" }, Difficulty.OnLevel, QuestionOrigin.Official);
+            new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" }, Difficulty.OnLevel, QuestionOrigin.Generated);
         q.SubmitForAiReview();
         q.RecordAiReview(TestReviews.LooksGood());
         await using (var db = NewContext())

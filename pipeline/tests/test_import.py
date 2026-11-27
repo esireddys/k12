@@ -90,3 +90,20 @@ def test_form_payload_joins_key_and_items(tmp_path):
 def test_form_payload_rejects_a_key_that_disagrees_with_the_pdf(tmp_path, key, message):
     with pytest.raises(ValueError, match=message):
         form_payload(TEST, "math", key, extract_items(_pdf(tmp_path), 2), {1: "a", 2: "b"})
+
+
+def test_publish_released_moves_leftovers_live_and_says_how_many():
+    import httpx
+
+    from k12_pipeline.cli import publish_released
+
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append((request.method, request.url.path))
+        return httpx.Response(200, json={"questionsPublished": 64})
+
+    client = httpx.Client(base_url="http://api", transport=httpx.MockTransport(handler))
+    assert publish_released(client) == "64 published"
+    assert calls == [("POST", "/api/admin/import/publish-released")]
+    assert publish_released(None) == "not sent (--dry-run)"

@@ -15,9 +15,14 @@ public sealed record QuestionApproved(QuestionId QuestionId, string ApprovedBy, 
 
 public sealed record QuestionRejected(QuestionId QuestionId, string RejectedBy, DateTimeOffset OccurredAt) : IDomainEvent;
 
+public sealed record ReleasedQuestionPublished(QuestionId QuestionId, DateTimeOffset OccurredAt) : IDomainEvent;
+
 /// <summary>
-/// One question in the bank. Its lifecycle is Draft, AI review, owner approval, then Live.
-/// Only Live questions are shown to students.
+/// One question in the bank. Only Live questions are shown to students. How a question gets there depends on its origin:
+/// <list type="bullet">
+/// <item>Official questions come from released tests, which the publisher already reviewed. They go Live directly.</item>
+/// <item>Generated questions (written by an AI agent) go through AI review, then owner approval, then Live.</item>
+/// </list>
 /// </summary>
 public sealed class Question : AggregateRoot<QuestionId>
 {
@@ -68,7 +73,31 @@ public sealed class Question : AggregateRoot<QuestionId>
         Difficulty difficulty, QuestionOrigin origin, QuestionId? parentId = null) =>
         new(QuestionId.New(), skillIds, itemType, contentJson, answer, difficulty, origin, parentId);
 
-    public void SubmitForAiReview() => Move(QuestionStatus.Draft, QuestionStatus.InAiReview);
+    /// <summary>Hands a generated question to the AI reviewer. Released questions never need review.</summary>
+    public void SubmitForAiReview()
+    {
+        if (Origin is QuestionOrigin.Official)
+            throw new DomainException("Questions from released tests go Live directly; only generated questions are reviewed.");
+        Move(QuestionStatus.Draft, QuestionStatus.InAiReview);
+    }
+
+    /// <summary>States a released question may be published from: a new draft, or one left in review by an older import.</summary>
+    public static readonly IReadOnlyList<QuestionStatus> PublishableReleasedStatuses =
+        [QuestionStatus.Draft, QuestionStatus.InAiReview, QuestionStatus.AwaitingOwner];
+
+    /// <summary>
+    /// Puts a question from a released test in front of students. The publisher reviewed it, so no AI or owner
+    /// review is needed. A question an owner rejected stays rejected, and a retired one stays retired.
+    /// </summary>
+    public void PublishReleased(DateTimeOffset at)
+    {
+        if (Origin is not QuestionOrigin.Official)
+            throw new DomainException("Only questions from released tests can skip review; generated questions need an owner's approval.");
+        if (!PublishableReleasedStatuses.Contains(Status))
+            throw new DomainException($"Cannot publish a {Status} question.");
+        Status = QuestionStatus.Live;
+        Raise(new ReleasedQuestionPublished(Id, at));
+    }
 
     /// <summary>
     /// Records the AI reviewer's findings and hands the question to the owners. The reviewer cannot reject:
@@ -103,7 +132,10 @@ public sealed class Question : AggregateRoot<QuestionId>
         Raise(new QuestionRejected(Id, rejectedBy.Trim(), at));
     }
 
-    /// <summary>Editing a reviewed question makes a new version that goes back through review.</summary>
+    /// <summary>
+    /// Editing a question makes a new version. A generated question goes back through review;
+    /// a released one keeps its status (a Live correction of how it was transcribed stays Live).
+    /// </summary>
     public void Revise(string contentJson, AnswerSpec answer)
     {
         if (Status is QuestionStatus.Retired) throw new DomainException("A retired question cannot be revised.");
@@ -111,7 +143,7 @@ public sealed class Question : AggregateRoot<QuestionId>
         ContentJson = contentJson;
         Answer = answer;
         Version++;
-        Status = QuestionStatus.Draft;
+        if (Origin is QuestionOrigin.Generated) Status = QuestionStatus.Draft;
         AiReview = null;
         OwnerDecision = null;
     }
