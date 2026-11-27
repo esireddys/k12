@@ -3,6 +3,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using K12.Api.Auth;
+using K12.Domain.Content;
+using K12.Domain.Curriculum;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace K12.Api.Tests;
 
@@ -56,7 +59,7 @@ public sealed class ContentReviewApiTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task An_imported_item_goes_live_after_ai_review_and_owner_approval()
+    public async Task An_imported_released_item_is_live_straight_away_and_skips_both_review_queues()
     {
         var client = Client();
         var exam = $"EXAM{Guid.NewGuid():N}"[..12];
@@ -75,49 +78,30 @@ public sealed class ContentReviewApiTests : IClassFixture<ApiFactory>
                 new
                 {
                     number = 1, skillCodes = new[] { "3.4(K)" }, itemType = "numeric",
-                    content = new { image = "form/01.png", stem = "6 x 4 = �", textNeedsReview = true },
+                    content = new { image = "form/01.png", stem = "6 x 4 = ?", textNeedsReview = true },
                     answer = new { kind = "Integer", value = "24" },
                 },
             },
         })).EnsureSuccessStatusCode();
 
+        var course = await _factory.Services.GetRequiredService<ICourseRepository>().FindAsync("TX", "math", "G3");
+        var form = await _factory.Services.GetRequiredService<IExamFormRepository>().FindAsync(course!.Id, exam, 2022, "spring");
+        var id = Assert.Single(form!.Items).QuestionId.Value.ToString();
+
         var aiQueue = await client.GetFromJsonAsync<JsonObject>("/api/admin/review/ai-queue?take=500");
-        var item = aiQueue!["items"]!.AsArray().Single(i => (string)i!["source"]!["exam"]! == exam)!;
-        var id = (string)item["id"]!;
-        Assert.Equal("Grade 3", (string)item["source"]!["courseName"]!);
-
-        var recorded = await client.PostAsJsonAsync($"/api/admin/review/questions/{id}/ai-review", new
-        {
-            version = 1, reviewer = "claude-test", verdict = "LooksGood", answerKeyAgrees = true, solvedAnswer = "24",
-            suggestedDifficulty = "Easier", summary = "Clean.",
-            proposedContent = new { image = "form/01.png", stem = "6 × 4 = ?", textNeedsReview = false },
-            findings = Array.Empty<object>(),
-        });
-        recorded.EnsureSuccessStatusCode();
-
-        var queue = await client.GetFromJsonAsync<JsonObject>("/api/admin/review/queue");
-        Assert.Contains(queue!["items"]!.AsArray(), i => (string)i!["id"]! == id);
+        Assert.DoesNotContain(aiQueue!["items"]!.AsArray(), i => (string)i!["id"]! == id);
+        var ownerQueue = await client.GetFromJsonAsync<JsonObject>("/api/admin/review/queue");
+        Assert.DoesNotContain(ownerQueue!["items"]!.AsArray(), i => (string)i!["id"]! == id);
 
         var detail = await client.GetFromJsonAsync<JsonObject>($"/api/admin/review/questions/{id}");
-        var proposed = detail!["aiReview"]!["proposedContent"]!;
-
-        var approved = await client.PostAsJsonAsync($"/api/admin/review/questions/{id}/approve", new
-        {
-            version = 1, content = proposed, answer = new { kind = "Integer", value = "24" }, difficulty = "Easier",
-        });
-        approved.EnsureSuccessStatusCode();
-        var step = await approved.Content.ReadFromJsonAsync<JsonObject>();
-        Assert.Equal("Live", (string)step!["status"]!);
-
-        var again = await client.PostAsJsonAsync($"/api/admin/review/questions/{id}/approve", new { version = 2 });
-        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+        Assert.Equal(("Live", "Official"), ((string)detail!["status"]!, (string)detail["origin"]!));
 
         var check = await client.PostAsJsonAsync($"/api/practice/questions/{id}/check", new { response = "24" });
         Assert.True((await check.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("isCorrect").GetBoolean());
 
-        var after = await client.GetFromJsonAsync<JsonObject>($"/api/admin/review/questions/{id}");
-        Assert.Equal("owner@localhost", (string)after!["ownerDecision"]!["decidedBy"]!);
-        Assert.Null(after["content"]!["textNeedsReview"]);
+        var publish = await client.PostAsync("/api/admin/import/publish-released", null);
+        publish.EnsureSuccessStatusCode();
+        Assert.Equal(0, (await publish.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("questionsPublished").GetInt32());
     }
 
     [Fact]

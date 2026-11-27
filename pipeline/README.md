@@ -1,14 +1,21 @@
 # pipeline
 
 Offline Python jobs that build the question bank: import released tests, generate variants, run the AI reviewer.
-Nothing here runs in a student's request. Every question still needs owner approval in the admin console.
+Nothing here runs in a student's request. Questions from released tests go Live on import; generated
+questions need the AI reviewer and then owner approval in the admin console.
 
-```bash
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e ".[dev,ai]"
+Windows Command Prompt, from `C:\code\k12\pipeline`:
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev]"
 k12-pipeline sources
 pytest
 ```
+
+macOS or Linux: `source .venv/bin/activate` instead of the second line. A plain `pip install -e .` installs
+everything the importer and the AI reviewer need; `[dev]` adds pytest and ruff.
 
 ## Importing released tests
 
@@ -30,12 +37,26 @@ Running it again is safe: the course and skills are updated in place, and a test
 imported is skipped. The import checks that the key and the PDF agree (item count, multiple choice
 versus griddable, and that each answer letter is one of the choices) before it sends anything.
 
-Imported questions are Official and wait in AI review. Students see none of them until an owner approves each one.
-The picture of each item is the source of truth; the text read from the PDF is marked for the AI reviewer to clean up.
+Imported questions are Official and go Live straight away: the publisher already reviewed them, so they
+skip the AI reviewer and the owner queue. The picture of each item is the source of truth; the text read
+from the PDF is marked `textNeedsReview` because it can be rough.
+
+### Questions imported before this rule
+
+Imports made before released questions skipped review left them waiting in AI review. Either of these moves
+them Live (both are safe to run again; rejected or retired questions are left alone):
+
+```bat
+k12-pipeline import
+k12-pipeline publish-released
+```
+
+`import` skips the tests that are already in and then publishes any leftovers; `publish-released` only does the second part.
 
 ## Running the AI reviewer
 
-The reviewer sends each question waiting in AI review to Claude with its picture, the extracted text, the
+The reviewer is for generated questions only; released questions never wait for it.
+It sends each question waiting in AI review to Claude with its picture, the extracted text, the
 answer key and its skill. Claude solves the item from the picture, rewrites the text exactly as printed,
 describes any figure, writes a short explanation and suggests a difficulty. Plain code then double-checks
 the answer against the key and the choice letters, and decides the verdict. Every question then waits for
@@ -44,8 +65,8 @@ an owner in the web app (`/owner/review`); nothing reaches students until an own
 Needs the API running in Development, the pictures in `data/out` from `k12-pipeline import`, and an
 Anthropic API key in the `ANTHROPIC_API_KEY` environment variable. Never put the key in a file in the repo.
 
-```bash
-pip install -e ".[ai]"
+```bat
+set ANTHROPIC_API_KEY=your-key-here
 k12-pipeline review --limit 3 --dry-run   # reviews 3, writes data/out/reviews/*.json, sends nothing
 k12-pipeline review                       # reviews everything waiting and sends the results
 ```

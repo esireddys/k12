@@ -28,6 +28,16 @@ def _post(client: httpx.Client | None, path: str, body: dict) -> str:
     return json.dumps(r.json())
 
 
+def publish_released(client: httpx.Client | None) -> str:
+    """Moves released questions an older import left in review to Live. Safe to repeat."""
+    if client is None:
+        return "not sent (--dry-run)"
+    r = client.post("/api/admin/import/publish-released")
+    if r.is_error:
+        raise SystemExit(f"/api/admin/import/publish-released failed with {r.status_code}: {r.text}")
+    return f"{r.json()['questionsPublished']} published"
+
+
 def run_import(api: str, data: Path, dry_run: bool) -> None:
     out = data / "out"
     out.mkdir(parents=True, exist_ok=True)
@@ -53,6 +63,9 @@ def run_import(api: str, data: Path, dry_run: bool) -> None:
         print(f"form {slug} ({len(items)} items, pictures in {out / slug}): "
               f"{_post(client, '/api/admin/import/exam-form', payload)}")
 
+    # Released questions go Live on import. This also catches any an older import left waiting in review.
+    print(f"released questions left in review: {publish_released(client)}")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="k12-pipeline")
@@ -62,7 +75,10 @@ def main() -> None:
     imp.add_argument("--api", default="http://localhost:5143", help="API base URL (Development only for now)")
     imp.add_argument("--data", type=Path, default=DATA, help="Folder with curriculum, keys and raw")
     imp.add_argument("--dry-run", action="store_true", help="Build the payloads in data/out without sending them")
-    rev = sub.add_parser("review", help="Run the AI reviewer over questions waiting for it")
+    pub = sub.add_parser("publish-released",
+                         help="Make released questions that an older import left in review Live")
+    pub.add_argument("--api", default="http://localhost:5143", help="API base URL (Development only for now)")
+    rev = sub.add_parser("review", help="Run the AI reviewer over generated questions waiting for it")
     rev.add_argument("--api", default="http://localhost:5143", help="API base URL (Development only for now)")
     rev.add_argument("--images", type=Path, default=DATA / "out", help="Folder with the item pictures (data/out)")
     rev.add_argument("--limit", type=int, default=100, help="Review at most this many questions")
@@ -75,6 +91,8 @@ def main() -> None:
             print(f"{t.jurisdiction} {t.exam} {t.level} {t.year} {t.season} tagged={t.tagged} {t.url}")
     elif args.command == "import":
         run_import(args.api, args.data, args.dry_run)
+    elif args.command == "publish-released":
+        print(publish_released(httpx.Client(base_url=args.api, timeout=60, follow_redirects=True)))
     elif args.command == "review":
         from .review.reviewer import DEFAULT_MODEL
         from .review.runner import run_review

@@ -39,7 +39,8 @@ def form_payload(
         content: dict[str, Any] = {
             "image": image_for[item.number],
             "stem": item.stem,
-            "textNeedsReview": True,  # read from the PDF; the AI reviewer cleans it up against the image
+            # Read from the PDF, so the text may be rough; the picture is the source of truth.
+            "textNeedsReview": True,
         }
         if row.is_choice:
             content["choices"] = [{"label": c.label, "text": c.text} for c in item.choices]

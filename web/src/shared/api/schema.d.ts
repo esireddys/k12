@@ -213,6 +213,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/import/publish-released": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublishReleasedQuestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -369,6 +385,10 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        PublishReleasedQuestionsResponse: {
+            /** Format: int32 */
+            questionsPublished: number | string;
         };
         QuestionForReview: {
             /** Format: uuid */
@@ -838,6 +858,35 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    PublishReleasedQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishReleasedQuestionsResponse"];
                 };
             };
             /** @description Conflict */

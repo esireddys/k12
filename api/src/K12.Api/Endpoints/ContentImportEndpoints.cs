@@ -2,6 +2,7 @@ using System.Text.Json;
 using K12.Application.Abstractions;
 using K12.Application.ContentImport.ImportCourse;
 using K12.Application.ContentImport.ImportExamForm;
+using K12.Application.ContentImport.PublishReleased;
 using K12.Domain.Content.Answers;
 
 namespace K12.Api.Endpoints;
@@ -55,6 +56,14 @@ public static class ContentImportEndpoints
             .Produces<ImportExamFormResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPost("/publish-released", async (
+                ICommandHandler<PublishReleasedQuestionsCommand, PublishReleasedQuestionsResponse> handler,
+                CancellationToken ct) =>
+            (await handler.HandleAsync(new PublishReleasedQuestionsCommand(), ct)).ToHttp())
+            .WithName("PublishReleasedQuestions")
+            .Produces<PublishReleasedQuestionsResponse>()
             .ProducesProblem(StatusCodes.Status409Conflict);
 
         return app;

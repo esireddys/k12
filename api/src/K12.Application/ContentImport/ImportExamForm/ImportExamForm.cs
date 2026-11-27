@@ -22,12 +22,12 @@ public sealed record ImportExamFormResponse(Guid ExamFormId, int QuestionsCreate
 
 /// <summary>
 /// Turns a released test into Official questions and an exam form that keeps their order.
-/// New questions go straight to AI review; nothing reaches students until an owner approves it.
+/// Released questions were already reviewed by the publisher, so they go Live straight away with no AI or owner review.
 /// A form is imported once: importing the same exam, year and season again is a conflict.
 /// </summary>
 public sealed class ImportExamFormHandler(
     ICourseRepository courses, ISkillRepository skills, IQuestionRepository questions,
-    IExamFormRepository forms, IUnitOfWork unitOfWork)
+    IExamFormRepository forms, IClock clock, IUnitOfWork unitOfWork)
     : ICommandHandler<ImportExamFormCommand, ImportExamFormResponse>
 {
     public async Task<Result<ImportExamFormResponse>> HandleAsync(ImportExamFormCommand command, CancellationToken ct = default)
@@ -57,13 +57,14 @@ public sealed class ImportExamFormHandler(
 
         try
         {
+            var now = clock.UtcNow;
             var form = ExamForm.Create(course.Id, command.Exam, command.Year, command.Season, command.SourceUrl);
             foreach (var item in command.Items.OrderBy(i => i.Number))
             {
                 var question = Question.Draft(
                     item.SkillCodes.Select(c => skillsByCode[c.Trim()]),
                     item.ItemType, item.ContentJson, item.Answer, Difficulty.OnLevel, QuestionOrigin.Official);
-                question.SubmitForAiReview();
+                question.PublishReleased(now);
                 form.AddItem(item.Number, question.Id);
                 await questions.AddAsync(question, ct);
             }

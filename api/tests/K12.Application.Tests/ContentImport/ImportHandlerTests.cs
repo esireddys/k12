@@ -9,13 +9,14 @@ namespace K12.Application.Tests.ContentImport;
 
 public class ImportHandlerTests
 {
-    private sealed class Store : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IUnitOfWork
+    private sealed class Store : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IUnitOfWork, IClock
     {
         public List<Course> Courses { get; } = [];
         public List<Skill> Skills { get; } = [];
         public List<Question> Questions { get; } = [];
         public List<ExamForm> Forms { get; } = [];
         public int Saves { get; private set; }
+        public DateTimeOffset UtcNow { get; } = new(2026, 11, 27, 5, 0, 0, TimeSpan.Zero);
 
         public Task<Course?> FindAsync(string j, string s, string c, CancellationToken ct = default) =>
             Task.FromResult(Courses.FirstOrDefault(x =>
@@ -34,6 +35,9 @@ public class ImportHandlerTests
             Task.FromResult<IReadOnlyList<Course>>(Courses.Where(c => ids.Contains(c.Id)).ToList());
         public Task<IReadOnlyList<Skill>> ListByIdsAsync(IReadOnlyCollection<SkillId> ids, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Skill>>(Skills.Where(s => ids.Contains(s.Id)).ToList());
+        public Task<IReadOnlyList<Question>> ListByOriginAsync(
+            QuestionOrigin origin, IReadOnlyCollection<QuestionStatus> statuses, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(Questions.Where(q => q.Origin == origin && statuses.Contains(q.Status)).ToList());
         public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Question>>(Questions.Where(q => q.Status == status).Take(take).ToList());
         public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
@@ -48,7 +52,7 @@ public class ImportHandlerTests
         skills.Length > 0 ? skills : [new ImportSkill("3.2(D)", "Compare", 1, "readiness", null), new ImportSkill("3.4(K)", "Solve", 2, "readiness", null)]);
 
     private static ImportCourseHandler CourseHandler(Store s) => new(s, s, s);
-    private static ImportExamFormHandler FormHandler(Store s) => new(s, s, s, s, s);
+    private static ImportExamFormHandler FormHandler(Store s) => new(s, s, s, s, s, s);
 
     private static ImportItem Item(int n, string skill = "3.4(K)", string answer = "B") =>
         new(n, [skill], "choice", """{"stem":"?"}""", new AnswerSpec { Kind = AnswerKind.Choice, Value = answer });
@@ -90,7 +94,7 @@ public class ImportHandlerTests
     }
 
     [Fact]
-    public async Task An_exam_form_becomes_official_questions_waiting_for_ai_review()
+    public async Task An_exam_form_becomes_official_questions_that_are_live_without_review()
     {
         var store = new Store();
         await CourseHandler(store).HandleAsync(CourseCommand());
@@ -102,8 +106,12 @@ public class ImportHandlerTests
         Assert.All(store.Questions, q =>
         {
             Assert.Equal(QuestionOrigin.Official, q.Origin);
-            Assert.Equal(QuestionStatus.InAiReview, q.Status);
-            Assert.False(q.IsVisibleToStudents);
+            Assert.Equal(QuestionStatus.Live, q.Status);
+            Assert.True(q.IsVisibleToStudents);
+            Assert.Null(q.AiReview);
+            Assert.Null(q.OwnerDecision);
+            var published = Assert.IsType<ReleasedQuestionPublished>(Assert.Single(q.DomainEvents));
+            Assert.Equal(store.UtcNow, published.OccurredAt);
         });
         var form = Assert.Single(store.Forms);
         Assert.Equal([1, 2], form.Items.Select(i => i.Number));

@@ -11,7 +11,7 @@ public class QuestionTests
 
     private static Question NewDraft() => Question.Draft(
         [SkillId.New()], "numeric", "{}", new AnswerSpec { Kind = AnswerKind.Integer, Value = "144" },
-        Difficulty.OnLevel, QuestionOrigin.Official);
+        Difficulty.OnLevel, QuestionOrigin.Generated);
 
     [Fact]
     public void New_questions_start_as_drafts_hidden_from_students()
@@ -57,9 +57,72 @@ public class QuestionTests
         Assert.False(q.IsVisibleToStudents);
     }
 
+    private static Question NewReleased() => Question.Draft(
+        [SkillId.New()], "choice", "{}", new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" },
+        Difficulty.OnLevel, QuestionOrigin.Official);
+
+    [Fact]
+    public void A_released_question_goes_live_without_any_review()
+    {
+        var q = NewReleased();
+        q.PublishReleased(Now);
+
+        Assert.True(q.IsVisibleToStudents);
+        Assert.Null(q.AiReview);
+        Assert.Null(q.OwnerDecision);
+        var published = Assert.IsType<ReleasedQuestionPublished>(Assert.Single(q.DomainEvents));
+        Assert.Equal((q.Id, Now), (published.QuestionId, published.OccurredAt));
+    }
+
+    public static TheoryData<string, Action<Question>> PublishRefusals => new()
+    {
+        { "already live", q => q.PublishReleased(Now) },
+        { "retired", q => q.Retire() },
+    };
+
+    [Theory]
+    [MemberData(nameof(PublishRefusals))]
+    public void A_released_question_is_published_only_from_draft_or_review(string _, Action<Question> before)
+    {
+        var q = NewReleased();
+        before(q);
+        var status = q.Status;
+
+        Assert.Throws<DomainException>(() => q.PublishReleased(Now));
+        Assert.Equal(status, q.Status);
+    }
+
+    [Fact]
+    public void A_generated_question_cannot_skip_review()
+    {
+        var q = NewDraft();
+        Assert.Throws<DomainException>(() => q.PublishReleased(Now));
+        Assert.Equal(QuestionStatus.Draft, q.Status);
+    }
+
+    [Fact]
+    public void A_released_question_never_enters_ai_review()
+    {
+        var q = NewReleased();
+        Assert.Throws<DomainException>(q.SubmitForAiReview);
+        Assert.Equal(QuestionStatus.Draft, q.Status);
+    }
+
+    [Fact]
+    public void Correcting_a_live_released_question_keeps_it_live_as_a_new_version()
+    {
+        var q = NewReleased();
+        q.PublishReleased(Now);
+
+        q.Revise("{\"stem\":\"fixed\"}", new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" });
+
+        Assert.Equal(2, q.Version);
+        Assert.Equal(QuestionStatus.Live, q.Status);
+    }
+
     [Fact]
     public void A_question_must_be_tagged_to_a_skill() =>
         Assert.Throws<DomainException>(() => Question.Draft(
             [], "numeric", "{}", new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" },
-            Difficulty.OnLevel, QuestionOrigin.Official));
+            Difficulty.OnLevel, QuestionOrigin.Generated));
 }
