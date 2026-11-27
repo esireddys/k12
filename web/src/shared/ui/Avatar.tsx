@@ -1,12 +1,12 @@
 import type { AvatarColor } from './avatarColors'
 
 const palette: Record<AvatarColor, { background: string; color: string }> = {
-  Orange: { background: '#FFE3C2', color: '#8A4500' },
-  Blue: { background: '#D8E6FF', color: '#16449F' },
-  Green: { background: '#D3F2DE', color: '#14532D' },
-  Purple: { background: '#EDE3FF', color: '#5B21B6' },
-  Pink: { background: '#FFE0EE', color: '#9D174D' },
-  Teal: { background: '#CDF3EF', color: '#115E59' },
+  Orange: { background: 'var(--avatar-orange-bg)', color: 'var(--avatar-orange-ink)' },
+  Blue: { background: 'var(--avatar-blue-bg)', color: 'var(--avatar-blue-ink)' },
+  Green: { background: 'var(--avatar-green-bg)', color: 'var(--avatar-green-ink)' },
+  Purple: { background: 'var(--avatar-purple-bg)', color: 'var(--avatar-purple-ink)' },
+  Pink: { background: 'var(--avatar-pink-bg)', color: 'var(--avatar-pink-ink)' },
+  Teal: { background: 'var(--avatar-teal-bg)', color: 'var(--avatar-teal-ink)' },
 }
 
 /** A kid's picture: a coloured initial. Kids never get a photo. */
@@ -23,6 +23,7 @@ export function Avatar({ name, color, size = 56 }: { name: string; color: Avatar
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
+        fontFamily: 'var(--font-display)',
         fontWeight: 800,
         fontSize: size * 0.42,
         flexShrink: 0,

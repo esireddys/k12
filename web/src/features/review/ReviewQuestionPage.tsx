@@ -72,7 +72,7 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
         <Findings review={question.aiReview} answer={question.answer.value} />
 
         {!waiting && (
-          <p style={{ padding: 12, borderRadius: 12, background: '#eef1f6' }}>
+          <p style={{ padding: 12, borderRadius: 12, background: 'var(--surface-muted)' }}>
             This question is {question.status}
             {question.ownerDecision &&
               `: ${question.ownerDecision.outcome} by ${question.ownerDecision.decidedBy}${
@@ -103,7 +103,7 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
         </div>
 
         {question.aiReview && !question.aiReview.answerKeyAgrees && answerValue.trim() === question.answer.value && (
-          <p style={{ margin: 0, color: '#8a1c1c', fontWeight: 700 }}>
+          <p style={{ margin: 0, color: 'var(--danger-ink)', fontWeight: 700 }}>
             The AI reviewer disagrees with this key. Solve it yourself before you approve, or change the answer.
           </p>
         )}
@@ -113,7 +113,7 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
           <input value={note} onChange={(e) => setNote(e.target.value)} style={input} />
         </label>
 
-        {decision.isError && <p style={{ color: '#8a1c1c' }}>{decision.error.message}</p>}
+        {decision.isError && <p style={{ color: 'var(--danger-ink)' }}>{decision.error.message}</p>}
 
         {waiting && !rejecting && (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -133,7 +133,7 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
               <input autoFocus value={reason} onChange={(e) => setReason(e.target.value)} style={input} />
             </label>
             <div style={{ display: 'flex', gap: 12 }}>
-              <Button onClick={reject} disabled={decision.isPending || !reason.trim()} style={{ background: '#b42318' }}>
+              <Button onClick={reject} disabled={decision.isPending || !reason.trim()} style={{ background: 'var(--danger)' }}>
                 Reject question
               </Button>
               <Button variant="secondary" onClick={() => setRejecting(false)}>
