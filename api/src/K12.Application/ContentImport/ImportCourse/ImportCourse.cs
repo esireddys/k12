@@ -4,7 +4,8 @@ using K12.Domain.Curriculum;
 
 namespace K12.Application.ContentImport.ImportCourse;
 
-public sealed record ImportCategory(int Number, string Name);
+/// <param name="KidName">A short everyday name for kids, when the curriculum data gives one.</param>
+public sealed record ImportCategory(int Number, string Name, string? KidName = null);
 
 public sealed record ImportSkill(string Code, string Description, int? Category, string? Designation, string? LimitsJson);
 
@@ -36,7 +37,7 @@ public sealed class ImportCourseHandler(ICourseRepository courses, ISkillReposit
         if (duplicate is not null)
             return Error.Validation("import.duplicate_skill", $"Skill {duplicate.Key} appears more than once.");
 
-        var categories = command.Categories.Select(c => new ReportingCategory(c.Number, c.Name.Trim())).ToList();
+        var categories = command.Categories.Select(c => new ReportingCategory(c.Number, c.Name.Trim(), c.KidName)).ToList();
         try
         {
             var course = await courses.FindAsync(command.Jurisdiction, command.Subject, command.Code, command.Language ?? Course.DefaultLanguage, ct);

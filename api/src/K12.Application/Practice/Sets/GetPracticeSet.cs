@@ -20,6 +20,11 @@ public enum SetSource
     /// every released year. Only for courses whose curriculum data describes the test.
     /// </summary>
     PracticeTest,
+    /// <summary>
+    /// One tap of daily practice, about ten questions. For a kid, their mistakes and weakest area come first (see
+    /// <c>GetTodaySetHandler</c>); for a guest, who has no history, a mix from the whole course.
+    /// </summary>
+    Today,
 }
 
 /// <param name="Seed">Makes a shuffle repeatable, so reloading the page gives the same set.</param>
@@ -42,6 +47,9 @@ public sealed class GetPracticeSetHandler(
 {
     public const int DefaultCount = 10;
     public const int MaxCount = 60;
+
+    /// <summary>The title of daily practice, for guests and kids alike.</summary>
+    public const string TodayTitle = "Today's practice";
 
     public async Task<Result<PracticeSet>> HandleAsync(GetPracticeSetQuery query, CancellationToken ct = default)
     {
@@ -97,11 +105,11 @@ public sealed class GetPracticeSetHandler(
                 picked = SetPassages.GroupByPassage(Shuffle(await LiveQuestions.ForSkillsAsync(questions, topicSkills, ct), random).Take(count));
                 break;
             }
-            case SetSource.Shuffle:
+            case SetSource.Shuffle or SetSource.Today:
                 // Whole passages at a time, so a student reads a few selections and answers all of their questions.
                 picked = PracticeTests.TakeGroups(
                     Shuffle(await LiveQuestions.ForSkillsAsync(questions, skillsById.Keys, ct), random), count);
-                title = "Mixed";
+                title = query.Source == SetSource.Today ? TodayTitle : "Mixed";
                 break;
             case SetSource.PracticeTest:
             {

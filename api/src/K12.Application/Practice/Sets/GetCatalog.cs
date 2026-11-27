@@ -6,7 +6,9 @@ namespace K12.Application.Practice.Sets;
 
 public sealed record CatalogSkill(string Code, string Description, int QuestionCount);
 
-public sealed record CatalogCategory(int Number, string Name, int QuestionCount, IReadOnlyList<CatalogSkill> Skills);
+/// <param name="Name">The framework's name, for parents.</param>
+/// <param name="KidName">The name kids see: a short everyday one from curriculum data, or else <paramref name="Name"/>.</param>
+public sealed record CatalogCategory(int Number, string Name, int QuestionCount, IReadOnlyList<CatalogSkill> Skills, string KidName = "");
 
 /// <summary>A released test students can take in full ("Pick a year").</summary>
 public sealed record CatalogForm(Guid Id, string Exam, int Year, string Season, int QuestionCount);
@@ -70,7 +72,8 @@ public sealed class GetPracticeCatalogHandler(
                     .OrderBy(s => s.Code, SkillCodeOrder.Instance).ToList();
                 return new CatalogCategory(
                     cat.Number, cat.Name, inCategory.Count,
-                    catSkills.Select(s => new CatalogSkill(s.Code, s.Description, perSkill.GetValueOrDefault(s.Id))).ToList());
+                    catSkills.Select(s => new CatalogSkill(s.Code, s.Description, perSkill.GetValueOrDefault(s.Id))).ToList(),
+                    cat.NameForKids);
             }).ToList();
 
             var courseForms = (await forms.ListByCourseAsync(course.Id, ct))

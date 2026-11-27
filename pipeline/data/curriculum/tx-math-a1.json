@@ -42,23 +42,28 @@
   "categories": [
     {
       "number": 1,
-      "name": "Number and Algebraic Methods"
+      "name": "Number and Algebraic Methods",
+      "kidName": "Numbers and algebra"
     },
     {
       "number": 2,
-      "name": "Describing and Graphing Linear Functions, Equations, and Inequalities"
+      "name": "Describing and Graphing Linear Functions, Equations, and Inequalities",
+      "kidName": "Graphing lines"
     },
     {
       "number": 3,
-      "name": "Writing and Solving Linear Functions, Equations, and Inequalities"
+      "name": "Writing and Solving Linear Functions, Equations, and Inequalities",
+      "kidName": "Writing and solving equations"
     },
     {
       "number": 4,
-      "name": "Quadratic Functions and Equations"
+      "name": "Quadratic Functions and Equations",
+      "kidName": "Quadratics"
     },
     {
       "number": 5,
-      "name": "Exponential Functions and Equations"
+      "name": "Exponential Functions and Equations",
+      "kidName": "Exponentials"
     }
   ],
   "skills": [

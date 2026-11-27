@@ -6,7 +6,7 @@ import pytest
 
 from k12_pipeline.curriculum import course_payload, load_curriculum
 from k12_pipeline.extract import extract_items, render_item
-from k12_pipeline.forms import form_payload, form_slug
+from k12_pipeline.forms import answer_unit, form_payload, form_slug
 from k12_pipeline.keys import KeyRow, load_key
 from k12_pipeline.sources import RELEASED_TESTS, ReleasedTest
 
@@ -106,8 +106,36 @@ def test_course_payload_uses_level_code_and_keeps_limits():
     # The name students see comes from the curriculum file, never from code.
     assert body["jurisdictionName"] == "Texas"
     assert len(body["categories"]) == 4
+    # Kids see a short everyday name for each category; parents keep the framework's.
+    assert all(c["kidName"] and len(c["kidName"]) <= 60 for c in body["categories"])
     fractions = next(s for s in body["skills"] if s["code"] == "3.3(F)")
     assert fractions["limits"]["fractions"]["denominators"] == [2, 3, 4, 6, 8]
+
+
+@pytest.mark.parametrize(
+    ("stem", "unit"),
+    [
+        ("What is the area of the closet in square feet?", "square feet"),
+        ("What is the perimeter of the garden, in feet, of Ms. Lee's garden?", "feet"),
+        ("How much money, in dollars, did she save?", "dollars"),
+        ("The tank holds 12 liters. How long is the trip in Minutes?", "minutes"),
+        ("What is the area of the figure in square units?", "square units"),
+        ("How many students are in the class?", None),
+        ("She read 3 books in 4 days. How many pages?", None),
+        ("", None),
+    ],
+)
+def test_answer_unit_is_the_unit_the_stem_asks_for(stem, unit):
+    assert answer_unit(stem) == unit
+
+
+def test_a_typed_answer_carries_the_unit_its_stem_names(tmp_path):
+    items = extract_items(_pdf(tmp_path), 2)
+    items[1].stem = "What is the area of the rug in square feet?"
+    key = [KeyRow(1, 1, "r", "s", "B"), KeyRow(2, 2, "r", "s", "20")]
+    first, second = form_payload(TEST, "math", key, items, {1: "a", 2: "b"})["items"]
+    assert second["content"]["unit"] == "square feet"
+    assert "unit" not in first["content"]
 
 
 def test_extracts_choices_and_griddable_items(tmp_path):

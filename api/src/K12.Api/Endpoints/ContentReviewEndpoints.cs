@@ -24,6 +24,9 @@ public static class ContentReviewEndpoints
 
     public sealed record RejectBody(int Version, string Reason);
 
+    /// <summary>The owner's corrected content, and the key when it changes.</summary>
+    public sealed record ReviseBody(int Version, JsonElement Content, AnswerSpec? Answer);
+
     public static IEndpointRouteBuilder MapContentReviewEndpoints(this IEndpointRouteBuilder app)
     {
         var agent = app.MapGroup("/api/admin/review").WithTags("AI review").RequireAuthorization(Access.ReviewAgentPolicy);
@@ -53,6 +56,40 @@ public static class ContentReviewEndpoints
             (await handler.HandleAsync(new GetOwnerQueueQuery(), ct)).ToHttp())
             .WithName("GetOwnerQueue")
             .Produces<OwnerQueueResponse>();
+
+        owner.MapGet("/questions", async (
+                Guid? courseId, int? year, string? skill, bool? hasExplanation, bool? reported, QuestionStatus? status, int? take,
+                IQueryHandler<BrowseQuestionsQuery, BrowseQuestionsResponse> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new BrowseQuestionsQuery(
+                courseId, year, skill, hasExplanation, reported, status ?? QuestionStatus.Live, take ?? 500), ct)).ToHttp())
+            .WithName("BrowseQuestions")
+            .Produces<BrowseQuestionsResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
+        owner.MapPost("/questions/{questionId:guid}/revise", async (
+                Guid questionId, ReviseBody body, ClaimsPrincipal user,
+                ICommandHandler<ReviseLiveQuestionCommand, ReviewStepResponse> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new ReviseLiveQuestionCommand(
+                questionId, body.Version, user.ReviewerName(), body.Content, body.Answer), ct)).ToHttp())
+            .WithName("ReviseLiveQuestion")
+            .Produces<ReviewStepResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        owner.MapGet("/reports", async (
+                IQueryHandler<ListQuestionReportsQuery, QuestionReportsResponse> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new ListQuestionReportsQuery(), ct)).ToHttp())
+            .WithName("ListQuestionReports")
+            .Produces<QuestionReportsResponse>();
+
+        owner.MapPost("/questions/{questionId:guid}/reports/close", async (
+                Guid questionId, ClaimsPrincipal user,
+                ICommandHandler<CloseQuestionReportsCommand, ReportsClosed> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new CloseQuestionReportsCommand(questionId, user.ReviewerName()), ct)).ToHttp())
+            .WithName("CloseQuestionReports")
+            .Produces<ReportsClosed>()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         owner.MapGet("/questions/{questionId:guid}", async (
                 Guid questionId, IQueryHandler<GetQuestionForReviewQuery, QuestionForReview> handler, CancellationToken ct) =>

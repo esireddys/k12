@@ -20,6 +20,9 @@ internal static class Converters
 
     public static readonly ValueConverter<QuestionId, Guid> QuestionId = new(id => id.Value, v => new QuestionId(v));
 
+    public static readonly ValueConverter<K12.Domain.Content.Reports.QuestionReportId, Guid> QuestionReportId =
+        new(id => id.Value, v => new K12.Domain.Content.Reports.QuestionReportId(v));
+
     public static readonly ValueConverter<CourseId, Guid> CourseId = new(id => id.Value, v => new CourseId(v));
 
     public static readonly ValueConverter<PassageId, Guid> PassageId = new(id => id.Value, v => new PassageId(v));

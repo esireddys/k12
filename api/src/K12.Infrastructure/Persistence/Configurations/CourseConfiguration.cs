@@ -33,6 +33,8 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
             cat.HasKey("CourseId", nameof(ReportingCategory.Number));
             cat.Property(x => x.Number).ValueGeneratedNever();
             cat.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            cat.Property(x => x.KidName).HasMaxLength(Course.MaxKidNameLength);
+            cat.Ignore(x => x.NameForKids);
         });
         b.Navigation(c => c.Categories).HasField("_categories").UsePropertyAccessMode(PropertyAccessMode.Field);
 

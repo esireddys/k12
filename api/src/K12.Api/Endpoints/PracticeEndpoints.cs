@@ -1,7 +1,10 @@
+using System.Security.Claims;
+using K12.Api.Auth;
 using K12.Application.Abstractions;
 using K12.Application.ContentReview;
 using K12.Application.Practice.CheckAnswer;
 using K12.Application.Practice.Sets;
+using K12.Domain.Content.Reports;
 
 namespace K12.Api.Endpoints;
 
@@ -14,6 +17,9 @@ public static class PracticeEndpoints
     public sealed record CheckAnswerBody(string? Response);
 
     public sealed record ScoreBody(IReadOnlyList<ResponseItem> Responses);
+
+    /// <param name="Reporter">Kid or Parent from a signed-in family; anyone signed out reports as a guest.</param>
+    public sealed record ReportBody(ReportReason Reason, Reporter? Reporter);
 
     public static IEndpointRouteBuilder MapPracticeEndpoints(this IEndpointRouteBuilder app)
     {
@@ -73,6 +79,21 @@ public static class PracticeEndpoints
             (await handler.HandleAsync(new CheckAnswerCommand(questionId, body.Response), ct)).ToHttp())
             .WithName("CheckAnswer")
             .Produces<CheckAnswerResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/questions/{questionId:guid}/reports", async (
+                Guid questionId, ReportBody body, ClaimsPrincipal user,
+                ICommandHandler<ReportQuestionCommand, QuestionReportFiled> handler, CancellationToken ct) =>
+            {
+                // Only a signed-in family can say who in it reported; nothing about the person is kept either way.
+                var reporter = user.HasClaim(c => c.Type == Access.AccountIdClaim)
+                    ? body.Reporter is Reporter.Parent ? Reporter.Parent : Reporter.Kid
+                    : Reporter.Guest;
+                return (await handler.HandleAsync(new ReportQuestionCommand(questionId, body.Reason, reporter), ct)).ToHttp();
+            })
+            .WithName("ReportQuestion")
+            .Produces<QuestionReportFiled>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         return app;
