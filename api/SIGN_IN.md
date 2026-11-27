@@ -88,6 +88,7 @@ account, not to your Google account. Add them again under Google (or keep using 
 | --- | --- |
 | "Google sign-in is not set up on this server yet" | The API did not get the ID. Check `dotnet user-secrets list --project src\K12.Api` shows `Auth:Google:ClientId`, then restart the API. |
 | Popup says "The given origin is not allowed for the given client ID" or `origin_mismatch` | The origin list is missing `http://localhost:5173`, has a typo or trailing slash, or the page is on `127.0.0.1`. Fix it under **Clients > K12 local**, wait 5 minutes, hard refresh (Ctrl+F5). |
+| Popup says "Access blocked: Authorization Error ... no registered origin", Error 401: invalid_client | The Web client has no JavaScript origins (or they were typed under redirect URIs instead). Under **Clients > K12 local**, add `http://localhost:5173` and `http://localhost` to **Authorized JavaScript origins**, Save, wait 5 minutes, hard refresh. |
 | "Access blocked: K12 Practice has not completed the Google verification process" | That Gmail is not a test user. Add it under **Audience > Test users**. |
 | "That sign-in could not be verified" | The token was for another client ID (the API and the Google client disagree), or the PC clock is far off. Compare the ID in user-secrets with **Clients**, and sync the Windows clock. |
 | The button never appears, or the popup closes at once | A blocker or strict privacy setting is stopping `accounts.google.com`. Allow it for localhost, or try a normal Chrome window. |
