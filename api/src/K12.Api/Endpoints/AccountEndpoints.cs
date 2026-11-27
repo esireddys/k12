@@ -48,7 +48,7 @@ public static class AccountEndpoints
 
         auth.MapPost("/{provider}", async (
                 string provider, ProviderSignInBody body, HttpContext http,
-                ICommandHandler<SignInWithProviderCommand, AccountView> handler, CancellationToken ct) =>
+                ICommandHandler<SignInWithProviderCommand, SignedIn> handler, CancellationToken ct) =>
             await SignInAsync(http, await handler.HandleAsync(new SignInWithProviderCommand(provider, body.Token), ct)))
             .WithName("SignInWithProvider")
             .Produces<AccountView>()
@@ -59,7 +59,7 @@ public static class AccountEndpoints
             // Registered before "/{provider}" matches it: literal segments win over parameters in routing.
             auth.MapPost("/developer", async (
                     DeveloperSignInBody body, HttpContext http,
-                    ICommandHandler<SignInAsDeveloperCommand, AccountView> handler, CancellationToken ct) =>
+                    ICommandHandler<SignInAsDeveloperCommand, SignedIn> handler, CancellationToken ct) =>
                 await SignInAsync(http, await handler.HandleAsync(new SignInAsDeveloperCommand(body.Email, body.Name), ct)))
                 .WithName("SignInAsDeveloper")
                 .Produces<AccountView>()
@@ -133,14 +133,14 @@ public static class AccountEndpoints
     }
 
     /// <summary>Turns a successful sign-in into the session cookie.</summary>
-    private static async Task<IResult> SignInAsync(HttpContext http, Result<AccountView> result)
+    private static async Task<IResult> SignInAsync(HttpContext http, Result<SignedIn> result)
     {
-        if (!result.IsSuccess) return result.ToHttp();
-        var account = result.Value!;
+        if (!result.IsSuccess) return Result<AccountView>.Failure(result.Error!).ToHttp();
+        var (account, emailIsAuthoritative) = result.Value!;
         // Signing in again is how a parent who forgot the PIN gets back in, so a fresh sign-in opens the parent areas.
         var now = http.RequestServices.GetRequiredService<IClock>().UtcNow;
         await http.SignInAsync(Access.SessionScheme,
-            Access.SessionPrincipal(account.Id, account.DisplayName, account.Email, now + Access.ParentAreaWindow),
+            Access.SessionPrincipal(account.Id, account.DisplayName, account.Email, now + Access.ParentAreaWindow, emailIsAuthoritative),
             new AuthenticationProperties { IsPersistent = true });
         return Results.Ok(account);
     }

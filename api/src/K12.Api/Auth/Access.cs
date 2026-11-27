@@ -83,9 +83,17 @@ public static class Access
     /// <summary>How long the parent areas stay open after the PIN, before the PIN is asked again.</summary>
     public static readonly TimeSpan ParentAreaWindow = TimeSpan.FromMinutes(10);
 
+    /// <summary>
+    /// Present when the sign-in's provider owns the email (a Gmail or Google Workspace address, or the local developer
+    /// sign-in). Only such sessions can be granted owner rights by email.
+    /// </summary>
+    public const string AuthoritativeEmailClaim = "k12:email-authoritative";
+
     /// <summary>The claims a session cookie carries for a signed-in parent.</summary>
     /// <param name="parentAreaOpenUntil">Set when the parent areas are open on this session.</param>
-    public static ClaimsPrincipal SessionPrincipal(Guid accountId, string displayName, string email, DateTimeOffset? parentAreaOpenUntil = null)
+    /// <param name="emailIsAuthoritative">The provider owns the email, so it may be matched against Access:Owners.</param>
+    public static ClaimsPrincipal SessionPrincipal(
+        Guid accountId, string displayName, string email, DateTimeOffset? parentAreaOpenUntil = null, bool emailIsAuthoritative = false)
     {
         var claims = new List<Claim>
         {
@@ -93,6 +101,7 @@ public static class Access
             new(ClaimTypes.Name, displayName),
             new(ClaimTypes.Email, email),
         };
+        if (emailIsAuthoritative) claims.Add(new Claim(AuthoritativeEmailClaim, "true"));
         if (parentAreaOpenUntil is { } until)
             claims.Add(new Claim(ParentAreaOpenUntilClaim, until.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture)));
         return new ClaimsPrincipal(new ClaimsIdentity(claims, SessionScheme));
@@ -114,8 +123,9 @@ public static class Access
 }
 
 /// <summary>
-/// Grants roles from configuration (Access:Owners and Access:ReviewAgents, lists of emails or names),
-/// whatever signed the user in. Keeps the owner list out of code and per environment.
+/// Grants roles from configuration (Access:Owners and Access:ReviewAgents, lists of emails or names).
+/// Keeps the owner list out of code and per environment. A session gets the owner role only when its provider owns
+/// the email (see <see cref="Access.AuthoritativeEmailClaim"/>); the Development header user is trusted as typed.
 /// </summary>
 internal sealed class RolesFromConfiguration(IConfiguration configuration) : IClaimsTransformation
 {
@@ -123,7 +133,9 @@ internal sealed class RolesFromConfiguration(IConfiguration configuration) : ICl
     {
         if (principal.Identity is not ClaimsIdentity { IsAuthenticated: true } identity) return Task.FromResult(principal);
         var who = principal.ReviewerName();
-        Grant(identity, who, "Access:Owners", Access.OwnerRole);
+        var emailIsTrusted = identity.AuthenticationType == Access.DevelopmentScheme
+            || identity.HasClaim(Access.AuthoritativeEmailClaim, "true");
+        if (emailIsTrusted) Grant(identity, who, "Access:Owners", Access.OwnerRole);
         Grant(identity, who, "Access:ReviewAgents", Access.ReviewAgentRole);
         return Task.FromResult(principal);
     }

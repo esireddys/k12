@@ -100,6 +100,44 @@ public sealed class AccountApiTests : IDisposable
     }
 
     [Fact]
+    public async Task A_Google_sign_in_starts_a_session_and_finds_the_same_family_next_time()
+    {
+        using var google = new ApiFactory { DevelopmentUser = "", FakeGoogle = true };
+        var first = google.CreateClient();
+        var account = await Json(await first.PostAsJsonAsync("/api/auth/google", new { token = "sub-1|pat@gmail.com|authoritative" }));
+        await Json(await first.PostAsJsonAsync("/api/family/kids", new { name = "Maya", avatar = "Blue" }));
+
+        var otherDevice = google.CreateClient();
+        var again = await Json(await otherDevice.PostAsJsonAsync("/api/auth/google", new { token = "sub-1|pat@gmail.com|authoritative" }));
+        Assert.Equal((string)account["id"]!, (string)again["id"]!);
+        Assert.Single((await otherDevice.GetFromJsonAsync<JsonObject>("/api/family"))!["kids"]!.AsArray());
+    }
+
+    [Theory]
+    [InlineData("pat@gmail.com|authoritative", true)]
+    [InlineData("pat@example.org|not", false)]
+    public async Task Google_owners_need_an_email_Google_owns(string login, bool isOwner)
+    {
+        var email = login.Split('|')[0];
+        using var google = new ApiFactory { DevelopmentUser = "", FakeGoogle = true, MoreOwners = [email] };
+        var client = google.CreateClient();
+        await Json(await client.PostAsJsonAsync("/api/auth/google", new { token = $"sub-1|{login}" }));
+
+        Assert.Equal(isOwner, (bool)(await client.GetFromJsonAsync<JsonObject>("/api/me"))!["isOwner"]!);
+        Assert.Equal(isOwner ? HttpStatusCode.OK : HttpStatusCode.Forbidden, (await client.GetAsync("/api/admin/review/queue")).StatusCode);
+    }
+
+    [Fact]
+    public async Task An_owner_stays_an_owner_after_the_parent_areas_close_and_reopen()
+    {
+        using var google = new ApiFactory { DevelopmentUser = "", FakeGoogle = true, MoreOwners = ["pat@gmail.com"] };
+        var client = google.CreateClient();
+        await Json(await client.PostAsJsonAsync("/api/auth/google", new { token = "sub-1|pat@gmail.com|authoritative" }));
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsync("/api/family/pin/lock", null)).StatusCode);
+        Assert.True((bool)(await client.GetFromJsonAsync<JsonObject>("/api/me"))!["isOwner"]!);
+    }
+
+    [Fact]
     public async Task Outside_development_there_is_no_developer_sign_in()
     {
         using var production = new ApiFactory { Environment = "Production", DevelopmentUser = "" };
