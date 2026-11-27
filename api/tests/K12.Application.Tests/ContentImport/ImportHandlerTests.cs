@@ -44,6 +44,12 @@ public class ImportHandlerTests
             Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(Questions.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));
         public Task<IReadOnlyList<ExamForm>> ListContainingAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<ExamForm>>(Forms.Where(f => f.Items.Any(i => ids.Contains(i.QuestionId))).ToList());
+        public Task<IReadOnlyList<Course>> ListAllAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Course>>(Courses.ToList());
+        public Task<ExamForm?> GetAsync(ExamFormId id, CancellationToken ct = default) => Task.FromResult(Forms.FirstOrDefault(f => f.Id == id));
+        Task<IReadOnlyList<ExamForm>> IExamFormRepository.ListByCourseAsync(CourseId id, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ExamForm>>(Forms.Where(f => f.CourseId == id).ToList());
+        public Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(Questions.Where(q => ids.Contains(q.Id)).ToList());
     }
 
     private static ImportCourseCommand CourseCommand(params ImportSkill[] skills) => new(

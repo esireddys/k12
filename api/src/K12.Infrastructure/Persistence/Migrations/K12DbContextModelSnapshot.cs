@@ -22,6 +22,32 @@ namespace K12.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("K12.Domain.Accounts.ParentAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<DateTimeOffset>("LastSignedInAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ParentAccounts", "accounts");
+                });
+
             modelBuilder.Entity("K12.Domain.Content.ExamForm", b =>
                 {
                     b.Property<Guid>("Id")
@@ -138,6 +164,11 @@ namespace K12.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("JurisdictionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -191,6 +222,80 @@ namespace K12.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Skills", "curriculum");
+                });
+
+            modelBuilder.Entity("K12.Domain.Accounts.ParentAccount", b =>
+                {
+                    b.OwnsOne("K12.Domain.Accounts.ExternalLogin", "Login", b1 =>
+                        {
+                            b1.Property<Guid>("ParentAccountId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Provider")
+                                .IsRequired()
+                                .HasMaxLength(40)
+                                .HasColumnType("nvarchar(40)")
+                                .HasColumnName("LoginProvider");
+
+                            b1.Property<string>("Subject")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("LoginSubject");
+
+                            b1.HasKey("ParentAccountId");
+
+                            b1.HasIndex("Provider", "Subject")
+                                .IsUnique();
+
+                            b1.ToTable("ParentAccounts", "accounts");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ParentAccountId");
+                        });
+
+                    b.OwnsMany("K12.Domain.Accounts.KidProfile", "Kids", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Avatar")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("nvarchar(20)");
+
+                            b1.Property<Guid?>("CourseId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(30)
+                                .HasColumnType("nvarchar(30)");
+
+                            b1.Property<Guid>("ParentAccountId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CourseId");
+
+                            b1.HasIndex("ParentAccountId");
+
+                            b1.ToTable("KidProfiles", "accounts");
+
+                            b1.HasOne("K12.Domain.Curriculum.Course", null)
+                                .WithMany()
+                                .HasForeignKey("CourseId")
+                                .OnDelete(DeleteBehavior.SetNull);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ParentAccountId");
+                        });
+
+                    b.Navigation("Kids");
+
+                    b.Navigation("Login")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("K12.Domain.Content.ExamForm", b =>

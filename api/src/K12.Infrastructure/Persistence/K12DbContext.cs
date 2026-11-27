@@ -1,4 +1,5 @@
 using K12.Application.Abstractions;
+using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ public sealed class K12DbContext(DbContextOptions<K12DbContext> options) : DbCon
     public DbSet<Skill> Skills => Set<Skill>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<ExamForm> ExamForms => Set<ExamForm>();
+    public DbSet<ParentAccount> ParentAccounts => Set<ParentAccount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(K12DbContext).Assembly);

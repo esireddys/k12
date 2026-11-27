@@ -12,14 +12,15 @@ builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Ad
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [])
      .AllowAnyHeader()
-     .AllowAnyMethod()));
+     .AllowAnyMethod()
+     .AllowCredentials())); // the session cookie travels with the web app's requests
 
 // Content:ImageRoot may be relative to the API project (the default points at the pipeline's data/out).
 if (builder.Configuration["Content:ImageRoot"] is { Length: > 0 } imageRoot)
     builder.Configuration["Content:ImageRoot"] = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, imageRoot));
 
 builder.Services
-    .AddK12Access(builder.Environment)
+    .AddK12Access(builder.Environment, builder.Configuration)
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
 
@@ -43,6 +44,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapAccountEndpoints(app.Environment);
 app.MapPracticeEndpoints();
 app.MapContentReviewEndpoints();
 if (app.Environment.IsDevelopment()) app.MapContentImportEndpoints(); // admin role once sign-in exists

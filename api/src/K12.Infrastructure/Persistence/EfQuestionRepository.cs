@@ -9,6 +9,9 @@ public sealed class EfQuestionRepository(K12DbContext db) : IQuestionRepository
     public Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default) =>
         db.Questions.FirstOrDefaultAsync(q => q.Id == id, ct);
 
+    public async Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
+        await db.Questions.Where(q => ids.Contains(q.Id)).ToListAsync(ct);
+
     public async Task AddAsync(Question question, CancellationToken ct = default) =>
         await db.Questions.AddAsync(question, ct);
 

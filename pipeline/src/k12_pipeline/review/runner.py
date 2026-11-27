@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -23,7 +24,9 @@ def _client() -> Any:
 
 def run_review(api: str, images: Path, limit: int, dry_run: bool, model: str = DEFAULT_MODEL,
                reviewer: AiReviewer | None = None, http: httpx.Client | None = None) -> dict[str, int]:
-    http = http or httpx.Client(base_url=api, timeout=60, follow_redirects=True)
+    # Locally the API lets a request act as a named user through X-Dev-User; Access:ReviewAgents grants the role.
+    agent = os.environ.get("K12_REVIEW_AGENT", "review-agent@localhost")
+    http = http or httpx.Client(base_url=api, timeout=60, follow_redirects=True, headers={"X-Dev-User": agent})
     r = http.get("/api/admin/review/ai-queue", params={"take": limit})
     if r.is_error:
         raise SystemExit(f"Could not read the AI review queue ({r.status_code}): {r.text}")

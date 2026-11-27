@@ -50,6 +50,8 @@ def test_keys_alternate_choice_letters_by_item():
 def test_course_payload_uses_level_code_and_keeps_limits():
     body = course_payload(load_curriculum(DATA / "curriculum" / "tx-math-g3.json"))
     assert (body["jurisdiction"], body["code"]) == ("TX", "G3")
+    # The name students see comes from the curriculum file, never from code.
+    assert body["jurisdictionName"] == "Texas"
     assert len(body["categories"]) == 4
     fractions = next(s for s in body["skills"] if s["code"] == "3.3(F)")
     assert fractions["limits"]["fractions"]["denominators"] == [2, 3, 4, 6, 8]

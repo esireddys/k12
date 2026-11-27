@@ -21,7 +21,7 @@ public sealed class Course : AggregateRoot<CourseId>
     /// <summary>For the persistence layer only.</summary>
     private Course() : base(default)
     {
-        Jurisdiction = Subject = Code = Name = FrameworkCode = FrameworkName = string.Empty;
+        Jurisdiction = Subject = Code = Name = FrameworkCode = FrameworkName = JurisdictionName = string.Empty;
     }
 
     private Course(CourseId id, string jurisdiction, string subject, string code) : base(id)
@@ -29,11 +29,14 @@ public sealed class Course : AggregateRoot<CourseId>
         Jurisdiction = Required(jurisdiction, "jurisdiction").ToUpperInvariant();
         Subject = Required(subject, "subject").ToLowerInvariant();
         Code = Required(code, "code").ToUpperInvariant();
-        Name = FrameworkCode = FrameworkName = string.Empty;
+        Name = FrameworkCode = FrameworkName = JurisdictionName = string.Empty;
     }
 
     /// <summary>A two-letter state or country code, for example "TX".</summary>
     public string Jurisdiction { get; }
+    /// <summary>The jurisdiction's display name from curriculum data, for example "Texas". Empty until an import names it.</summary>
+    public string JurisdictionName { get; private set; }
+
     public string Subject { get; }
     /// <summary>The level code within the jurisdiction, for example "G3" or "A1".</summary>
     public string Code { get; }
@@ -66,6 +69,9 @@ public sealed class Course : AggregateRoot<CourseId>
         _categories.Clear();
         _categories.AddRange(list.OrderBy(c => c.Number));
     }
+
+    /// <summary>Sets the name students see for the jurisdiction. Comes from curriculum data, never from code.</summary>
+    public void NameJurisdiction(string? name) => JurisdictionName = (name ?? string.Empty).Trim();
 
     public bool HasCategory(int number) => _categories.Any(c => c.Number == number);
 

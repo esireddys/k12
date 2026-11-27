@@ -1,21 +1,31 @@
 import type { ButtonHTMLAttributes } from 'react'
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' }
+type Variant = 'primary' | 'secondary' | 'dark' | 'ghost'
+type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'md' | 'lg' }
 
-/** Shared button with a 44px minimum touch target. */
-export function Button({ variant = 'primary', style, ...rest }: Props) {
-  const primary = variant === 'primary'
+const looks: Record<Variant, { background: string; color: string; border: string }> = {
+  primary: { background: 'var(--accent)', color: '#fff', border: '2px solid var(--accent)' },
+  secondary: { background: 'var(--surface)', color: 'var(--ink)', border: '2px solid var(--border)' },
+  dark: { background: 'var(--surface)', color: 'var(--ink)', border: '2px solid var(--ink)' },
+  ghost: { background: 'transparent', color: 'var(--accent)', border: '2px solid transparent' },
+}
+
+/** Shared button with a 44px minimum touch target (56px for large). */
+export function Button({ variant = 'primary', size = 'md', style, disabled, ...rest }: Props) {
+  const look = looks[variant]
   return (
     <button
       {...rest}
+      disabled={disabled}
       style={{
-        padding: '12px 20px',
+        padding: size === 'lg' ? '16px 28px' : '12px 20px',
+        minHeight: size === 'lg' ? 56 : 44,
         borderRadius: 14,
-        border: primary ? 'none' : '2px solid var(--border)',
-        background: primary ? 'var(--accent)' : 'var(--surface)',
-        color: primary ? '#fff' : 'var(--ink)',
+        ...look,
         fontWeight: 800,
-        cursor: 'pointer',
+        fontSize: size === 'lg' ? 20 : 16,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.55 : 1,
         ...style,
       }}
     />
