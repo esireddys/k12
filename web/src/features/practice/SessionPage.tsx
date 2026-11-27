@@ -45,7 +45,8 @@ function Session({ learner, course }: { learner: Learner; course: CatalogCourse 
     next.set('seed', String(newSeed()))
     navigate(`/practice/session?${next}`)
   }
-  const Run = session.mode === 'exam' ? ExamRun : PracticeRun
+  // The full practice test is always taken like the real one: timed, answers at the end.
+  const Run = session.mode === 'exam' || session.request.source === 'PracticeTest' ? ExamRun : PracticeRun
   // Keyed by the URL so "Try another set" starts fresh.
   return (
     <Run
@@ -53,6 +54,8 @@ function Session({ learner, course }: { learner: Learner; course: CatalogCourse 
       title={set.data.title}
       course={course}
       questions={set.data.questions}
+      passages={set.data.passages ?? []}
+      timeLimitMinutes={set.data.timeLimitMinutes == null ? undefined : Number(set.data.timeLimitMinutes)}
       learner={learner}
       source={session.request.source}
       storageKey={`k12.exam:${learner.kind === 'kid' ? learner.kidId : 'guest'}:${params.toString()}`}

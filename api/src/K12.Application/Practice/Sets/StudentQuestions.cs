@@ -16,10 +16,13 @@ public sealed record QuestionSourceView(string Exam, int Year, string Season, in
 /// the right number pad keys.
 /// </summary>
 /// <param name="TextNeedsReview">The text was read from a PDF and may be rough: the picture is what to read.</param>
+/// <param name="Category">The reporting category the question counts toward: its own, or else its skill's.</param>
+/// <param name="PassageId">The reading selection to show beside the question, one of the set's passages.</param>
 public sealed record StudentQuestion(
     Guid Id, string ItemType, AnswerKind AnswerKind, string Stem, IReadOnlyList<ChoiceView> Choices,
     bool HasImage, bool ShowImage, bool TextNeedsReview, string? FigureDescription,
-    string? SkillCode, string? SkillDescription, int? Category, Difficulty Difficulty, QuestionSourceView? Source);
+    string? SkillCode, string? SkillDescription, int? Category, Difficulty Difficulty, QuestionSourceView? Source,
+    Guid? PassageId = null);
 
 /// <summary>The parts of a question's content JSON the student screens use. Anything else is ignored.</summary>
 internal sealed record QuestionContent(
@@ -65,9 +68,13 @@ internal static class StudentQuestions
         return new StudentQuestion(
             q.Id.Value, q.ItemType, q.Answer.Kind, content.Stem, content.Choices,
             content.Image is not null, content.ShowImage || content.TextNeedsReview, content.TextNeedsReview,
-            content.FigureDescription, skill?.Code, skill?.Description, skill?.CategoryNumber, q.Difficulty,
-            sources.GetValueOrDefault(q.Id));
+            content.FigureDescription, skill?.Code, skill?.Description, CategoryOf(q, skills), q.Difficulty,
+            sources.GetValueOrDefault(q.Id), q.PassageId?.Value);
     }
+
+    /// <summary>The reporting category a question counts toward: the item's own when the key gave one, else its first skill's.</summary>
+    public static int? CategoryOf(Question q, IReadOnlyDictionary<SkillId, Skill> skills) =>
+        q.ReportingCategory ?? q.SkillIds.Where(skills.ContainsKey).Select(id => skills[id].CategoryNumber).FirstOrDefault(n => n is not null);
 
     public static Dictionary<QuestionId, QuestionSourceView> Sources(IEnumerable<ExamForm> forms)
     {

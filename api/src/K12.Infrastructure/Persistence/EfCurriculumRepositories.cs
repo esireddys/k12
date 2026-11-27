@@ -5,10 +5,12 @@ namespace K12.Infrastructure.Persistence;
 
 public sealed class EfCourseRepository(K12DbContext db) : ICourseRepository
 {
-    public Task<Course?> FindAsync(string jurisdiction, string subject, string code, CancellationToken ct = default)
+    public Task<Course?> FindAsync(
+        string jurisdiction, string subject, string code, string language = Course.DefaultLanguage, CancellationToken ct = default)
     {
         var (j, s, c) = CourseKey.Normalize(jurisdiction, subject, code);
-        return db.Courses.FirstOrDefaultAsync(x => x.Jurisdiction == j && x.Subject == s && x.Code == c, ct);
+        var l = Course.NormalizeLanguage(language);
+        return db.Courses.FirstOrDefaultAsync(x => x.Jurisdiction == j && x.Subject == s && x.Code == c && x.Language == l, ct);
     }
 
     public async Task<IReadOnlyList<Course>> ListByIdsAsync(IReadOnlyCollection<CourseId> ids, CancellationToken ct = default) =>

@@ -6,6 +6,7 @@ from typing import Any
 
 from .extract import ExtractedItem
 from .keys import KeyRow
+from .passages import ExtractedPassage
 from .sources import ReleasedTest
 
 
@@ -29,11 +30,17 @@ def _answer(row: KeyRow, gridded_kind: str | None) -> dict[str, Any]:
 
 
 def form_payload(
-    test: ReleasedTest, subject: str, key: list[KeyRow], items: list[ExtractedItem], image_for: dict[int, str]
+    test: ReleasedTest, subject: str, key: list[KeyRow], items: list[ExtractedItem], image_for: dict[int, str],
+    passages: list[ExtractedPassage] | None = None, pages_for: dict[str, list[str]] | None = None,
 ) -> dict[str, Any]:
     """The body for POST /api/admin/import/exam-form. Raises when the key and the PDF disagree."""
     if len(key) != len(items):
         raise ValueError(f"key has {len(key)} items, PDF has {len(items)}")
+    passages = passages or []
+    passage_of = {n: p.key for p in passages for n in p.items}
+    if test.has_passages and len(passage_of) != len(items):
+        missing = [i.number for i in items if i.number not in passage_of]
+        raise ValueError(f"items with no selection before them: {missing}")
 
     out = []
     for row, item in zip(key, items, strict=True):
@@ -53,15 +60,21 @@ def form_payload(
         }
         if row.is_choice:
             content["choices"] = [{"label": c.label, "text": c.text} for c in item.choices]
-        out.append({
+        entry: dict[str, Any] = {
             "number": row.item,
             "skillCodes": [row.skill],
             "itemType": "choice" if row.is_choice else "numeric",
             "content": content,
             "answer": _answer(row, test.gridded_kind),
-        })
+            # The key's reporting category for this item. A reading skill counts as literary or informational
+            # depending on the selection, so the item's category is kept rather than read from its skill.
+            "category": row.category,
+        }
+        if row.item in passage_of:
+            entry["passage"] = passage_of[row.item]
+        out.append(entry)
 
-    return {
+    payload: dict[str, Any] = {
         "jurisdiction": test.jurisdiction,
         "subject": subject,
         "courseCode": test.level,
@@ -69,5 +82,17 @@ def form_payload(
         "year": test.year,
         "season": test.season,
         "sourceUrl": test.url,
+        "language": test.language,
         "items": out,
     }
+    if passages:
+        payload["passages"] = [
+            {
+                "key": p.key,
+                "title": p.title,
+                # The page pictures are what students read; the text is for search and read-aloud once checked.
+                "content": {"pages": (pages_for or {}).get(p.key, []), "text": p.text, "textNeedsReview": True},
+            }
+            for p in passages
+        ]
+    return payload

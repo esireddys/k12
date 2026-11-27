@@ -1,13 +1,80 @@
 import { Link, useNavigate } from 'react-router'
-import { courseLabel, examNames, jurisdictionLabel } from '../../shared/catalog/useCatalog'
+import {
+  courseLabel,
+  examNames,
+  jurisdictionLabel,
+  sameGradeSubjects,
+  subjectLabel,
+  useCatalog,
+  type CatalogCourse,
+} from '../../shared/catalog/useCatalog'
 import { learnerStore, type Learner } from '../../shared/learner/learner'
 import { Avatar } from '../../shared/ui/Avatar'
 import type { AvatarColor } from '../../shared/ui/avatarColors'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
+import { ParentLockedError, useSaveKidCourse } from './api/usePractice'
 import { useKidSummary } from './api/useProgress'
 import { LearnerGuard } from './components/LearnerGuard'
 import { sessionUrl } from './model/session'
+import { timeLimitText } from './model/timeLimit'
+
+/**
+ * Math, Reading, ...: the subjects of the kid's grade. Switching is the kid's own choice (no parent PIN): it is
+ * saved to a kid's profile so their mistakes and progress follow, and kept on the device for a guest.
+ */
+function SubjectSwitcher({ learner, course }: { learner: Learner; course: CatalogCourse }) {
+  const catalog = useCatalog()
+  const save = useSaveKidCourse()
+  const navigate = useNavigate()
+  const subjects = sameGradeSubjects(course, catalog.data ?? [])
+  if (subjects.length < 2) return null
+
+  const choose = (courseId: string) => {
+    if (courseId === course.id) return
+    if (learner.kind !== 'kid') return learnerStore.setCourse(courseId)
+    save.mutate(
+      { kidId: learner.kidId, courseId },
+      {
+        onSuccess: () => learnerStore.setCourse(courseId),
+        onError: (e) => {
+          if (e instanceof ParentLockedError) navigate(`/parent/unlock?next=${encodeURIComponent('/home')}`)
+        },
+      },
+    )
+  }
+
+  return (
+    <div role="radiogroup" aria-label="Subject" className="row" style={{ gap: 10 }}>
+      {subjects.map((s) => {
+        const on = s.id === course.id
+        return (
+          <button
+            key={s.id}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            disabled={save.isPending}
+            onClick={() => choose(s.id)}
+            className="chip"
+            style={{
+              fontSize: 18,
+              padding: '12px 20px',
+              border: `3px solid ${on ? 'var(--accent)' : 'var(--border)'}`,
+              background: on ? 'var(--accent)' : 'var(--surface)',
+              color: on ? '#fff' : 'var(--ink)',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            {subjectLabel(s.subject)}
+          </button>
+        )
+      })}
+      {save.isError && !(save.error instanceof ParentLockedError) && <span role="alert">{save.error.message}</span>}
+    </div>
+  )
+}
 
 /** Streak and stars for a kid. Guests have none: nothing they do is saved. */
 function Badges({ kidId }: { kidId: string }) {
@@ -82,10 +149,24 @@ export function KidHomePage() {
               </div>
             </div>
 
+            <SubjectSwitcher learner={learner} course={course} />
+
             {learner.kind === 'guest' && (
               <div className="banner" style={{ fontSize: 15 }}>
                 <Icon name="info" /> Guest practice: nothing is saved. A parent can sign in with Google to add kid profiles.
               </div>
+            )}
+
+            {course.practiceTest && (
+              <Link to={sessionUrl('exam', { source: 'PracticeTest' })} className="card" style={{ borderColor: 'var(--accent)', borderWidth: 3 }}>
+                <Icon name="medal" size={36} color="var(--accent)" />
+                <h2>Full practice test</h2>
+                <p>
+                  Just like the real {exams || 'test'}: {Number(course.practiceTest.itemCount)} questions
+                  {course.practiceTest.minutes ? `, ${timeLimitText(Number(course.practiceTest.minutes))}` : ''}, a fresh mix from every year.
+                  Answers at the end.
+                </p>
+              </Link>
             )}
 
             <div className="grid-2">
@@ -97,7 +178,7 @@ export function KidHomePage() {
               <Link to={sessionUrl('practice', { source: 'Shuffle', count: 10 })} className="card">
                 <Icon name="shuffle" size={36} color="var(--accent)" />
                 <h2>Mixed practice</h2>
-                <p>10 questions from everything in {courseLabel(course)}.</p>
+                <p>{course.hasPassages ? 'A couple of reading selections' : '10 questions'} from everything in {courseLabel(course)}.</p>
               </Link>
               <Link to="/practice/tests" className="card" style={learner.kind === 'kid' ? undefined : { gridColumn: '1 / -1' }}>
                 <Icon name="clock" size={36} color="var(--accent)" />

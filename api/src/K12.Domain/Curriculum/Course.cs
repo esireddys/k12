@@ -28,15 +28,29 @@ public sealed class Course : AggregateRoot<CourseId>
     private Course() : base(default)
     {
         Jurisdiction = Subject = Code = Name = FrameworkCode = FrameworkName = JurisdictionName = string.Empty;
+        Language = DefaultLanguage;
     }
 
-    private Course(CourseId id, string jurisdiction, string subject, string code) : base(id)
+    private Course(CourseId id, string jurisdiction, string subject, string code, string language) : base(id)
     {
         Jurisdiction = Required(jurisdiction, "jurisdiction").ToUpperInvariant();
         Subject = Required(subject, "subject").ToLowerInvariant();
         Code = Required(code, "code").ToUpperInvariant();
+        Language = NormalizeLanguage(language);
         Name = FrameworkCode = FrameworkName = JurisdictionName = string.Empty;
     }
+
+    /// <summary>English. Every course is English for now; other languages are separate courses with their own tests.</summary>
+    public const string DefaultLanguage = "en";
+
+    /// <summary>
+    /// The language the course is taught and tested in, as a lowercase language tag such as "en" or "es". A state's
+    /// Spanish Grade 3 math test is its own course next to the English one, with its own released forms.
+    /// </summary>
+    public string Language { get; }
+
+    /// <summary>The full-length practice test that mirrors the real statewide test, once curriculum data describes one.</summary>
+    public PracticeTestBlueprint? PracticeTest { get; private set; }
 
     /// <summary>A two-letter state or country code, for example "TX".</summary>
     public string Jurisdiction { get; }
@@ -64,9 +78,9 @@ public sealed class Course : AggregateRoot<CourseId>
 
     public static Course Create(
         string jurisdiction, string subject, string code, string name,
-        string frameworkCode, string frameworkName, IEnumerable<ReportingCategory> categories)
+        string frameworkCode, string frameworkName, IEnumerable<ReportingCategory> categories, string language = DefaultLanguage)
     {
-        var course = new Course(CourseId.New(), jurisdiction, subject, code);
+        var course = new Course(CourseId.New(), jurisdiction, subject, code, language);
         course.Describe(name, frameworkCode, frameworkName, categories);
         return course;
     }
@@ -101,6 +115,29 @@ public sealed class Course : AggregateRoot<CourseId>
         Kind = kind;
         TypicalGrade = typicalGrade;
     }
+
+    /// <summary>Describes the course's full practice test, or removes it when <paramref name="blueprint"/> is empty.</summary>
+    public void DescribePracticeTest(PracticeTestBlueprint? blueprint)
+    {
+        blueprint?.EnsureValidFor(this);
+        PracticeTest = blueprint;
+    }
+
+    /// <summary>Lowercases a language tag and checks its shape ("en", "es", "pt-br").</summary>
+    public static string NormalizeLanguage(string? language)
+    {
+        var tag = string.IsNullOrWhiteSpace(language) ? DefaultLanguage : language.Trim().ToLowerInvariant();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(tag, "^[a-z]{2,3}(-[a-z0-9]{2,8})?$"))
+            throw new DomainException($"'{language}' is not a language tag such as \"en\" or \"es\".");
+        return tag;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="other"/> is another subject at the same level, for example Grade 3 reading next to
+    /// Grade 3 math in the same state and language. Moving between those is not a change of grade.
+    /// </summary>
+    public bool IsSameLevelAs(Course other) =>
+        other.Jurisdiction == Jurisdiction && other.Code == Code && other.Language == Language;
 
     public bool HasCategory(int number) => _categories.Any(c => c.Number == number);
 

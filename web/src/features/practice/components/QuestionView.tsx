@@ -2,20 +2,21 @@ import { useState } from 'react'
 import { questionImageUrl, type StudentQuestion } from '../api/usePractice'
 import { kindHint } from '../model/numberPad'
 import { NumberPad } from './NumberPad'
+import { ZoomablePicture } from './ZoomablePicture'
 
 export type Marking = { correct?: string; picked?: string; wasRight?: boolean }
 
-/** The printed item. When the text came from a PDF and may be rough, the picture is what the student reads. */
+/** The printed item. When the text came from a PDF and may be rough, the picture is what the student reads. Tap to enlarge. */
 export function QuestionPicture({ question, compact }: { question: StudentQuestion; compact?: boolean }) {
   const [broken, setBroken] = useState(false)
   if (!question.hasImage || !question.showImage || broken) return null
   return (
-    <div style={{ borderRadius: 16, border: '2px solid var(--border)', background: '#fff', padding: compact ? 6 : 12, display: 'grid', placeItems: 'center' }}>
-      <img
+    <div className="question-picture" style={{ padding: compact ? 6 : undefined }}>
+      <ZoomablePicture
         src={questionImageUrl(question.id)}
         alt={question.figureDescription ?? 'The question as printed on the test'}
-        onError={() => setBroken(true)}
-        style={{ maxWidth: '100%', maxHeight: compact ? 280 : 520, height: 'auto' }}
+        maxHeight={compact ? '280px' : undefined}
+        onBroken={() => setBroken(true)}
       />
     </div>
   )
@@ -38,9 +39,10 @@ export function QuestionView({
   const textOk = !question.textNeedsReview
   const choice = question.answerKind === 'Choice'
 
+  // Picture and answers sit side by side on a landscape tablet so the answers are never below the fold.
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="card" style={{ gap: 16, padding: '20px 24px' }}>
+    <div className="question-body">
+      <div className="card question-card">
         {textOk && question.stem && <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.4 }}>{question.stem}</div>}
         <QuestionPicture question={question} />
         {!textOk && !question.hasImage && <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.4 }}>{question.stem}</div>}
@@ -50,7 +52,8 @@ export function QuestionView({
         <div
           role="radiogroup"
           aria-label="Answer choices"
-          style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(question.choices.length, 4)}, minmax(0, 1fr))`, gap: 14 }}
+          className={`choices${textOk ? ' with-text' : ''}`}
+          style={{ ['--choice-count' as string]: Math.min(question.choices.length, 4) }}
         >
           {question.choices.map((c) => {
             const picked = response === c.label
@@ -85,7 +88,7 @@ export function QuestionView({
           })}
         </div>
       ) : (
-        <div className="row" style={{ alignItems: 'flex-start', gap: 28 }}>
+        <div className="row answer-area" style={{ alignItems: 'flex-start', gap: 28 }}>
           <div style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <label htmlFor="typed-answer" style={{ fontSize: 18, fontWeight: 800 }}>
               Your answer

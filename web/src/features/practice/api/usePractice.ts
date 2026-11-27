@@ -7,6 +7,7 @@ import type { SetRequest } from '../model/session'
 export type StudentQuestion = components['schemas']['StudentQuestion']
 export type ScoredResponse = components['schemas']['ScoredResponse']
 export type AnswerKind = components['schemas']['AnswerKind']
+export type PassageView = components['schemas']['PassageView']
 
 /** The questions for one session. Kept for the whole session, so a re-render never reshuffles them. */
 export function usePracticeSet(request: SetRequest | null) {
@@ -64,3 +65,6 @@ export function useSaveKidCourse() {
 
 /** The printed item's picture, served by the API for Live questions only. */
 export const questionImageUrl = (questionId: string) => `${env.apiUrl}/api/practice/questions/${questionId}/image`
+
+/** One printed page of a reading selection (1 is the first), served by the API. */
+export const passagePageUrl = (passageId: string, page: number) => `${env.apiUrl}/api/practice/passages/${passageId}/pages/${page}`

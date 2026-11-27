@@ -12,6 +12,12 @@ public sealed record CatalogCategory(int Number, string Name, int QuestionCount,
 public sealed record CatalogForm(Guid Id, string Exam, int Year, string Season, int QuestionCount);
 
 /// <summary>
+/// The full-length practice test a course offers: as many items as the real test and its time limit (empty when
+/// untimed). <paramref name="Available"/> is how many Live questions it can draw from.
+/// </summary>
+public sealed record CatalogPracticeTest(int ItemCount, int? Minutes, int Available);
+
+/// <summary>
 /// One course students can pick, with what they can practice in it. Every name (jurisdiction, course, framework,
 /// exam, category) is curriculum data from the import. Kind is "Grade" (Grade 3 math) or "Course" (Algebra I), and
 /// TypicalGrade is the grade students usually take it in (0 is kindergarten), when the curriculum says.
@@ -20,7 +26,8 @@ public sealed record CatalogCourse(
     Guid Id, string Jurisdiction, string JurisdictionName, string Subject, string Code, string Name,
     string FrameworkCode, string FrameworkName, int QuestionCount,
     IReadOnlyList<CatalogCategory> Categories, IReadOnlyList<CatalogForm> Forms,
-    string Kind, int? TypicalGrade);
+    string Kind, int? TypicalGrade, string Language = Course.DefaultLanguage, CatalogPracticeTest? PracticeTest = null,
+    bool HasPassages = false);
 
 public sealed record PracticeCatalog(IReadOnlyList<CatalogCourse> Courses);
 
@@ -50,16 +57,19 @@ public sealed class GetPracticeCatalogHandler(
         foreach (var course in ordered)
         {
             var courseSkills = await skills.ListByCourseAsync(course.Id, ct);
-            var skillIds = courseSkills.Select(s => s.Id).ToHashSet();
-            var courseQuestions = live.Where(q => q.SkillIds.Any(skillIds.Contains)).ToList();
+            var skillsById = courseSkills.ToDictionary(s => s.Id);
+            var courseQuestions = live.Where(q => q.SkillIds.Any(skillsById.ContainsKey)).ToList();
 
             var categories = course.Categories.Select(cat =>
             {
-                var catSkills = courseSkills.Where(s => s.CategoryNumber == cat.Number).OrderBy(s => s.Code, StringComparer.Ordinal).ToList();
-                var catSkillIds = catSkills.Select(s => s.Id).ToHashSet();
+                // A question counts toward its own category (reading items do, by selection), else its skill's.
+                var inCategory = courseQuestions.Where(q => StudentQuestions.CategoryOf(q, skillsById) == cat.Number).ToList();
+                var usedHere = inCategory.SelectMany(q => q.SkillIds).ToHashSet();
+                var catSkills = courseSkills
+                    .Where(s => s.CategoryNumber == cat.Number || (s.CategoryNumber is null && usedHere.Contains(s.Id)))
+                    .OrderBy(s => s.Code, SkillCodeOrder.Instance).ToList();
                 return new CatalogCategory(
-                    cat.Number, cat.Name,
-                    courseQuestions.Count(q => q.SkillIds.Any(catSkillIds.Contains)),
+                    cat.Number, cat.Name, inCategory.Count,
                     catSkills.Select(s => new CatalogSkill(s.Code, s.Description, perSkill.GetValueOrDefault(s.Id))).ToList());
             }).ToList();
 
@@ -71,9 +81,33 @@ public sealed class GetPracticeCatalogHandler(
             result.Add(new CatalogCourse(
                 course.Id.Value, course.Jurisdiction, course.JurisdictionName, course.Subject, course.Code, course.Name,
                 course.FrameworkCode, course.FrameworkName, courseQuestions.Count, categories, courseForms,
-                course.Kind.ToString(), course.TypicalGrade));
+                course.Kind.ToString(), course.TypicalGrade, course.Language,
+                course.PracticeTest is { } test ? new CatalogPracticeTest(test.ItemCount, test.Minutes, courseQuestions.Count) : null,
+                courseQuestions.Any(q => q.PassageId is not null)));
         }
 
         return new PracticeCatalog(result);
     }
+}
+
+/// <summary>Orders skill codes the way people read them: "3.9(D)" before "3.10(A)".</summary>
+internal sealed class SkillCodeOrder : IComparer<string>
+{
+    public static readonly SkillCodeOrder Instance = new();
+
+    public int Compare(string? x, string? y)
+    {
+        var a = Parts(x ?? "");
+        var b = Parts(y ?? "");
+        for (var i = 0; i < Math.Min(a.Count, b.Count); i++)
+        {
+            var c = a[i] is int m && b[i] is int n ? m.CompareTo(n) : string.CompareOrdinal(a[i].ToString(), b[i].ToString());
+            if (c != 0) return c;
+        }
+        return a.Count.CompareTo(b.Count);
+    }
+
+    private static List<object> Parts(string code) =>
+        System.Text.RegularExpressions.Regex.Matches(code, @"\d+|[^\d]+")
+            .Select(m => int.TryParse(m.Value, out var n) ? (object)n : m.Value).ToList();
 }

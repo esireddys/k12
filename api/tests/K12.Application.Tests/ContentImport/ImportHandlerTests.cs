@@ -9,8 +9,13 @@ namespace K12.Application.Tests.ContentImport;
 
 public class ImportHandlerTests
 {
-    private sealed class Store : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IUnitOfWork, IClock
+    private sealed class Store : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IPassageRepository, IUnitOfWork, IClock
     {
+        public List<Passage> Passages { get; } = [];
+        public Task<Passage?> GetAsync(PassageId id, CancellationToken ct = default) => Task.FromResult(Passages.FirstOrDefault(p => p.Id == id));
+        public Task<IReadOnlyList<Passage>> ListByIdsAsync(IReadOnlyCollection<PassageId> ids, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Passage>>(Passages.Where(p => ids.Contains(p.Id)).ToList());
+        public Task AddAsync(Passage passage, CancellationToken ct = default) { Passages.Add(passage); return Task.CompletedTask; }
         public List<Course> Courses { get; } = [];
         public List<Skill> Skills { get; } = [];
         public List<Question> Questions { get; } = [];
@@ -18,9 +23,10 @@ public class ImportHandlerTests
         public int Saves { get; private set; }
         public DateTimeOffset UtcNow { get; } = new(2026, 11, 27, 5, 0, 0, TimeSpan.Zero);
 
-        public Task<Course?> FindAsync(string j, string s, string c, CancellationToken ct = default) =>
+        public Task<Course?> FindAsync(string j, string s, string c, string language = Course.DefaultLanguage, CancellationToken ct = default) =>
             Task.FromResult(Courses.FirstOrDefault(x =>
-                x.Jurisdiction == j.ToUpperInvariant() && x.Subject == s.ToLowerInvariant() && x.Code == c.ToUpperInvariant()));
+                x.Jurisdiction == j.ToUpperInvariant() && x.Subject == s.ToLowerInvariant() && x.Code == c.ToUpperInvariant()
+                && x.Language == language));
         public Task AddAsync(Course course, CancellationToken ct = default) { Courses.Add(course); return Task.CompletedTask; }
         public Task<IReadOnlyList<Skill>> ListByCourseAsync(CourseId id, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<Skill>>(Skills.Where(s => s.CourseId == id).ToList());
@@ -58,7 +64,7 @@ public class ImportHandlerTests
         skills.Length > 0 ? skills : [new ImportSkill("3.2(D)", "Compare", 1, "readiness", null), new ImportSkill("3.4(K)", "Solve", 2, "readiness", null)]);
 
     private static ImportCourseHandler CourseHandler(Store s) => new(s, s, s);
-    private static ImportExamFormHandler FormHandler(Store s) => new(s, s, s, s, s, s);
+    private static ImportExamFormHandler FormHandler(Store s) => new(s, s, s, s, s, s, s);
 
     private static ImportItem Item(int n, string skill = "3.4(K)", string answer = "B") =>
         new(n, [skill], "choice", """{"stem":"?"}""", new AnswerSpec { Kind = AnswerKind.Choice, Value = answer });

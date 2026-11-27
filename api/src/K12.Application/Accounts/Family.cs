@@ -53,17 +53,33 @@ public sealed class UpdateKidHandler(IParentAccountRepository accounts, ICourseR
 public sealed class ChooseKidCourseHandler(IParentAccountRepository accounts, ICourseRepository courses, IUnitOfWork unitOfWork)
     : ICommandHandler<ChooseKidCourseCommand, KidView>
 {
-    public Task<Result<KidView>> HandleAsync(ChooseKidCourseCommand command, CancellationToken ct = default) =>
-        FamilyChange.RunAsync(accounts, courses, unitOfWork, command.AccountId, command.CourseId, ct, (account, courseId) =>
+    public async Task<Result<KidView>> HandleAsync(ChooseKidCourseCommand command, CancellationToken ct = default)
+    {
+        // Another subject in the same grade (reading next to math) is the kid's own choice; a new grade is the parent's.
+        var sameGrade = await IsSameGradeAsync(command, ct);
+        return await FamilyChange.RunAsync(accounts, courses, unitOfWork, command.AccountId, command.CourseId, ct, (account, courseId) =>
         {
             var id = new KidProfileId(command.KidId);
             if (!account.HasKid(id)) return null;
             var kid = account.Kids.Single(k => k.Id == id);
-            if (kid.CourseId is { } current && current != courseId && account.HasPin && !command.ParentAreaOpen)
+            if (kid.CourseId is { } current && current != courseId && !sameGrade && account.HasPin && !command.ParentAreaOpen)
                 throw new ParentAreaLockedException();
             account.ChooseCourse(id, courseId!.Value);
             return kid;
         });
+    }
+
+    private async Task<bool> IsSameGradeAsync(ChooseKidCourseCommand command, CancellationToken ct)
+    {
+        var account = await accounts.GetAsync(new ParentAccountId(command.AccountId), ct);
+        var current = account?.Kids.FirstOrDefault(k => k.Id == new KidProfileId(command.KidId))?.CourseId;
+        if (current is not { } from) return false;
+        var to = new CourseId(command.CourseId);
+        var both = await courses.ListByIdsAsync([from, to], ct);
+        var a = both.FirstOrDefault(c => c.Id == from);
+        var b = both.FirstOrDefault(c => c.Id == to);
+        return a is not null && b is not null && a.IsSameLevelAs(b);
+    }
 }
 
 /// <summary>Removes a kid and forgets everything saved about them: their history and progress go too.</summary>

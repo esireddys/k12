@@ -6,6 +6,30 @@
   "levelName": "Grade 3",
   "kind": "grade",
   "typicalGrade": 3,
+  "language": "en",
+  "practiceTest": {
+    "note": "Shape of the real STAAR test, from the released forms: items, time limit in minutes, items per reporting category.",
+    "items": 32,
+    "minutes": 240,
+    "mix": [
+      {
+        "category": 1,
+        "items": 8
+      },
+      {
+        "category": 2,
+        "items": 13
+      },
+      {
+        "category": 3,
+        "items": 7
+      },
+      {
+        "category": 4,
+        "items": 4
+      }
+    ]
+  },
   "framework": {
     "code": "TEKS",
     "name": "Texas Essential Knowledge and Skills"

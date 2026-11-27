@@ -44,6 +44,7 @@ public static class DependencyInjection
             services.AddSingleton<ICourseRepository, InMemoryCourseRepository>();
             services.AddSingleton<ISkillRepository, InMemorySkillRepository>();
             services.AddSingleton<IExamFormRepository, InMemoryExamFormRepository>();
+            services.AddSingleton<IPassageRepository, InMemoryPassageRepository>();
             services.AddSingleton<IParentAccountRepository, InMemoryParentAccountRepository>();
             services.AddSingleton<IKidProgressRepository, InMemoryKidProgressRepository>();
             services.AddSingleton<IPracticeSessionRepository, InMemoryPracticeSessionRepository>();
@@ -57,6 +58,7 @@ public static class DependencyInjection
         services.AddScoped<ICourseRepository, EfCourseRepository>();
         services.AddScoped<ISkillRepository, EfSkillRepository>();
         services.AddScoped<IExamFormRepository, EfExamFormRepository>();
+        services.AddScoped<IPassageRepository, EfPassageRepository>();
         services.AddScoped<IParentAccountRepository, EfParentAccountRepository>();
         services.AddScoped<IKidProgressRepository, EfKidProgressRepository>();
         services.AddScoped<IPracticeSessionRepository, EfPracticeSessionRepository>();

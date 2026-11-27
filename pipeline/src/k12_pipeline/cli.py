@@ -12,6 +12,7 @@ from .curriculum import course_payload, load_curriculum
 from .extract import extract_items, render_item
 from .forms import form_payload, form_slug
 from .keys import load_key
+from .passages import find_passages, render_passage_pages
 from .sources import RELEASED_TESTS
 
 DATA = Path(__file__).resolve().parents[2] / "data"
@@ -48,9 +49,9 @@ def run_import(api: str, data: Path, dry_run: bool) -> None:
 
     for test in RELEASED_TESTS:
         slug = form_slug(test, test.subject)
-        pdf = data / "raw" / test.pdf_name
-        if not pdf.exists():
-            print(f"skip {slug}: download {test.url} to {pdf}")
+        pdf = test.find_pdf(data / "raw")
+        if pdf is None:
+            print(f"skip {slug}: download {test.url} to {test.expected_path(data / 'raw')}")
             continue
         items = extract_items(pdf, test.items)
         images = {}
@@ -58,7 +59,15 @@ def run_import(api: str, data: Path, dry_run: bool) -> None:
             rel = f"{slug}/{item.number:02}.png"
             render_item(pdf, item, out / rel)
             images[item.number] = rel
-        payload = form_payload(test, test.subject, load_key(data / "keys" / f"{slug}.csv"), items, images)
+        passages, pages = [], {}
+        if test.has_passages:
+            passages = find_passages(pdf, items)
+            for p in passages:
+                pages[p.key] = [
+                    f"{slug}/{path.name}" for path in render_passage_pages(pdf, p, out / slug)
+                ]
+        payload = form_payload(
+            test, test.subject, load_key(data / "keys" / f"{slug}.csv"), items, images, passages, pages)
         (out / f"{slug}.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"form {slug} ({len(items)} items, pictures in {out / slug}): "
               f"{_post(client, '/api/admin/import/exam-form', payload)}")
@@ -88,7 +97,8 @@ def main() -> None:
 
     if args.command == "sources":
         for t in RELEASED_TESTS:
-            print(f"{t.jurisdiction} {t.exam} {t.level} {t.year} {t.season} tagged={t.tagged} {t.url}")
+            print(f"{t.jurisdiction} {t.exam} {t.level} {t.subject} {t.year} {t.season} tagged={t.tagged} {t.url}"
+                  f"\n    save as {t.expected_path(Path('data') / 'raw')}")
     elif args.command == "import":
         run_import(args.api, args.data, args.dry_run)
     elif args.command == "publish-released":

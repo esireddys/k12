@@ -245,6 +245,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/practice/passages/{passageId}/pages/{page}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPassagePage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/practice/questions/{questionId}/check": {
         parameters: {
             query?: never;
@@ -626,6 +642,11 @@ export interface components {
             kind: string;
             /** Format: int32 */
             typicalGrade: null | number | string;
+            /** @default en */
+            language: string;
+            practiceTest?: null | components["schemas"]["CatalogPracticeTest"];
+            /** @default false */
+            hasPassages: boolean;
         };
         CatalogForm: {
             /** Format: uuid */
@@ -636,6 +657,14 @@ export interface components {
             season: string;
             /** Format: int32 */
             questionCount: number | string;
+        };
+        CatalogPracticeTest: {
+            /** Format: int32 */
+            itemCount: number | string;
+            /** Format: int32 */
+            minutes: null | number | string;
+            /** Format: int32 */
+            available: number | string;
         };
         CatalogSkill: {
             code: string;
@@ -680,6 +709,12 @@ export interface components {
             number: number | string;
             name: string;
         };
+        ImportCategoryShare: {
+            /** Format: int32 */
+            category: number | string;
+            /** Format: int32 */
+            items: number | string;
+        };
         ImportCourseBody: {
             jurisdiction: string;
             subject: string;
@@ -693,6 +728,8 @@ export interface components {
             kind?: null | string;
             /** Format: int32 */
             typicalGrade?: null | number | string;
+            language?: null | string;
+            practiceTest?: null | components["schemas"]["ImportPracticeTest"];
         };
         ImportCourseResponse: {
             /** Format: uuid */
@@ -713,6 +750,8 @@ export interface components {
             season: string;
             sourceUrl: string;
             items: components["schemas"]["ImportItemBody"][];
+            passages?: null | components["schemas"]["ImportPassageBody"][];
+            language?: null | string;
         };
         ImportExamFormResponse: {
             /** Format: uuid */
@@ -727,6 +766,21 @@ export interface components {
             itemType: string;
             content: components["schemas"]["JsonElement"];
             answer: components["schemas"]["AnswerSpec"];
+            passage?: null | string;
+            /** Format: int32 */
+            category?: null | number | string;
+        };
+        ImportPassageBody: {
+            key: string;
+            title: string;
+            content: components["schemas"]["JsonElement"];
+        };
+        ImportPracticeTest: {
+            /** Format: int32 */
+            items: number | string;
+            /** Format: int32 */
+            minutes: null | number | string;
+            mix: null | components["schemas"]["ImportCategoryShare"][];
         };
         ImportSkillBody: {
             code: string;
@@ -843,6 +897,14 @@ export interface components {
             /** Format: date-time */
             parentAreaOpenUntil: null | string;
         };
+        PassageView: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: int32 */
+            pageCount: number | string;
+            text: null | string;
+        };
         PinBody: {
             pin: string;
         };
@@ -859,6 +921,9 @@ export interface components {
             source: components["schemas"]["SetSource"];
             title: string;
             questions: components["schemas"]["StudentQuestion"][];
+            passages?: null | components["schemas"]["PassageView"][];
+            /** Format: int32 */
+            timeLimitMinutes?: null | number | string;
         };
         ProblemDetails: {
             type?: null | string;
@@ -1010,7 +1075,7 @@ export interface components {
             finishedAt: null | string;
         };
         /** @enum {unknown} */
-        SetSource: "Shuffle" | "Year" | "Topic" | "Mistakes";
+        SetSource: "Shuffle" | "Year" | "Topic" | "Mistakes" | "PracticeTest";
         SignInOptions: {
             providers: components["schemas"]["ProviderOption"][];
             developerSignIn: boolean;
@@ -1046,6 +1111,8 @@ export interface components {
             category: null | number | string;
             difficulty: components["schemas"]["Difficulty"];
             source: null | components["schemas"]["QuestionSourceView"];
+            /** Format: uuid */
+            passageId?: null | string;
         };
         UnlockResponse: {
             result: components["schemas"]["PinCheck"];
@@ -1532,6 +1599,36 @@ export interface operations {
             header?: never;
             path: {
                 questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetPassagePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                passageId: string;
+                page: number;
             };
             cookie?: never;
         };

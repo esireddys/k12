@@ -20,7 +20,11 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         b.Property(c => c.FrameworkName).HasMaxLength(200).IsRequired();
         b.Property(c => c.Kind).HasConversion<string>().HasMaxLength(20);
         b.Property(c => c.TypicalGrade);
-        b.HasIndex(c => new { c.Jurisdiction, c.Subject, c.Code }).IsUnique();
+        b.Property(c => c.Language).HasMaxLength(12).IsRequired().HasDefaultValue(Course.DefaultLanguage);
+        b.Property(c => c.PracticeTest)
+            .HasConversion(Converters.PracticeTest!, Converters.PracticeTestComparer)
+            .HasColumnName("PracticeTestJson");
+        b.HasIndex(c => new { c.Jurisdiction, c.Subject, c.Code, c.Language }).IsUnique();
 
         b.OwnsMany(c => c.Categories, cat =>
         {

@@ -38,10 +38,14 @@ public sealed class Question : AggregateRoot<QuestionId>
 
     private Question(
         QuestionId id, IEnumerable<SkillId> skillIds, string itemType, string contentJson,
-        AnswerSpec answer, Difficulty difficulty, QuestionOrigin origin, QuestionId? parentId) : base(id)
+        AnswerSpec answer, Difficulty difficulty, QuestionOrigin origin, QuestionId? parentId,
+        PassageId? passageId, int? reportingCategory) : base(id)
     {
         _skillIds = skillIds.ToList();
         if (_skillIds.Count == 0) throw new DomainException("A question must be tagged to at least one skill.");
+        if (reportingCategory is < 1) throw new DomainException("Reporting category numbers start at 1.");
+        PassageId = passageId;
+        ReportingCategory = reportingCategory;
         ItemType = itemType;
         ContentJson = contentJson;
         Answer = answer;
@@ -59,6 +63,16 @@ public sealed class Question : AggregateRoot<QuestionId>
     public Difficulty Difficulty { get; private set; }
     public QuestionOrigin Origin { get; }
     public QuestionId? ParentId { get; }
+
+    /// <summary>The reading selection this question is about, if any. Students see the passage beside it.</summary>
+    public PassageId? PassageId { get; }
+
+    /// <summary>
+    /// The reporting category the test counted this item under, when the item says so. Some skills are reported
+    /// in more than one category (a reading skill counts as literary or informational depending on the passage),
+    /// so the item's own category wins over its skill's. Empty means "use the skill's category".
+    /// </summary>
+    public int? ReportingCategory { get; }
     public QuestionStatus Status { get; private set; }
     public int Version { get; private set; }
 
@@ -70,8 +84,9 @@ public sealed class Question : AggregateRoot<QuestionId>
 
     public static Question Draft(
         IEnumerable<SkillId> skillIds, string itemType, string contentJson, AnswerSpec answer,
-        Difficulty difficulty, QuestionOrigin origin, QuestionId? parentId = null) =>
-        new(QuestionId.New(), skillIds, itemType, contentJson, answer, difficulty, origin, parentId);
+        Difficulty difficulty, QuestionOrigin origin, QuestionId? parentId = null,
+        PassageId? passageId = null, int? reportingCategory = null) =>
+        new(QuestionId.New(), skillIds, itemType, contentJson, answer, difficulty, origin, parentId, passageId, reportingCategory);
 
     /// <summary>Hands a generated question to the AI reviewer. Released questions never need review.</summary>
     public void SubmitForAiReview()

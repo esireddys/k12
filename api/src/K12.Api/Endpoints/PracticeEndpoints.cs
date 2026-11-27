@@ -53,6 +53,18 @@ public static class PracticeEndpoints
             .Produces(StatusCodes.Status200OK, contentType: "image/png")
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        group.MapGet("/passages/{passageId:guid}/pages/{page:int}", async (
+                Guid passageId, int page, IQueryHandler<GetPassagePageQuery, ItemImage> handler, HttpContext http, CancellationToken ct) =>
+            {
+                var result = await handler.HandleAsync(new GetPassagePageQuery(passageId, page), ct);
+                if (!result.IsSuccess) return result.ToHttp();
+                http.Response.Headers.CacheControl = "public, max-age=86400";
+                return Results.Stream(result.Value!.Content, result.Value.ContentType);
+            })
+            .WithName("GetPassagePage")
+            .Produces(StatusCodes.Status200OK, contentType: "image/png")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("/questions/{questionId:guid}/check", async (
                 Guid questionId,
                 CheckAnswerBody body,
