@@ -54,12 +54,17 @@ def form_payload(
 
         content: dict[str, Any] = {
             "image": image_for[item.number],
+            # Paragraphs on their own lines. Read from the PDF's text layer.
             "stem": item.stem,
-            # Read from the PDF, so the text may be rough; the picture is the source of truth.
-            "textNeedsReview": True,
+            # The stem text is shown instead of the picture only when it is the whole printed stem (no figure,
+            # emphasis or fraction). Otherwise the picture is what students read.
+            "textNeedsReview": not item.stem_is_text,
+            "showImage": not item.stem_is_text,
         }
         if row.is_choice:
             content["choices"] = [{"label": c.label, "text": c.text} for c in item.choices]
+            # The answer buttons show the choice text, and the picture stops above the choices.
+            content["choicesAreText"] = item.choices_are_text
         entry: dict[str, Any] = {
             "number": row.item,
             "skillCodes": [row.skill],

@@ -36,8 +36,16 @@ k12-pipeline import --dry-run  # builds data/out without sending anything
 ```
 
 Running it again is safe: the course and skills are updated in place, and a test that is already
-imported is skipped. The import checks that the key and the PDF agree (item count, multiple choice
+imported is refreshed: its questions take the newer pictures and text (same ids, status and kids' progress),
+except ones an owner edited, which are kept. The import checks that the key and the PDF agree (item count, multiple choice
 versus griddable, and that each answer letter is one of the choices) before it sends anything.
+
+What students see from an item: the text read from the PDF is shown only where it is the whole of what is
+printed. A stem with no figure, emphasis or fraction is shown as text instead of the picture; choices that are
+plain words, numbers or simple fractions go on the answer buttons and the picture stops above them. Everything
+else stays a picture. Pictures leave out the printed item number, the "Record your answer and fill in the
+bubbles" line, form ids and the side margins, and are drawn at 3 pixels per point. Selection pages leave out the
+"Then fill in the answer on your answer document" instruction.
 
 Reading tests also get their selections: each "Read the selection ..." page starts a passage, every page of it is
 saved as a picture (`p1-1.png`, `p1-2.png`, ...) and the items after it are linked to it, so students read the
@@ -63,7 +71,7 @@ k12-pipeline import
 k12-pipeline publish-released
 ```
 
-`import` skips the tests that are already in and then publishes any leftovers; `publish-released` only does the second part.
+`import` refreshes the tests that are already in and then publishes any leftovers; `publish-released` only does the second part.
 
 ## Running the AI reviewer
 

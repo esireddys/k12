@@ -549,6 +549,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/import/exam-form/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RefreshExamForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/import/publish-released": {
         parameters: {
             query?: never;
@@ -669,6 +685,20 @@ export interface components {
         CatalogSkill: {
             code: string;
             description: string;
+            /** Format: int32 */
+            questionCount: number | string;
+        };
+        CategoryView: {
+            /** Format: int32 */
+            number: number | string;
+            name: string;
+            level: components["schemas"]["MasteryLevel"];
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            accuracy: null | number | string;
             /** Format: int32 */
             questionCount: number | string;
         };
@@ -819,11 +849,12 @@ export interface components {
             mistakesToFix: number | string;
             lastExam: null | components["schemas"]["ExamResultView"];
             /** Format: int32 */
-            skillsMastered: number | string;
-            /** Format: int32 */
-            skillsTotal: number | string;
+            categoriesMastered: number | string;
+            categories: components["schemas"]["CategoryView"][];
             needsAttention: components["schemas"]["SkillStanding"][];
             skills: components["schemas"]["SkillStanding"][];
+            /** Format: int32 */
+            skillsCountedInCategoriesOnly: number | string;
             recentSessions: components["schemas"]["SessionView"][];
         };
         KidSummary: {
@@ -839,6 +870,7 @@ export interface components {
             answered: number | string;
             /** Format: int32 */
             mistakesToFix: number | string;
+            categories: components["schemas"]["CategoryView"][];
         };
         KidView: {
             /** Format: uuid */
@@ -1001,6 +1033,14 @@ export interface components {
             score: components["schemas"]["ScoreResult"];
             session: components["schemas"]["SessionView"];
         };
+        RefreshExamFormResponse: {
+            /** Format: uuid */
+            examFormId: string;
+            /** Format: int32 */
+            questionsRefreshed: number | string;
+            /** Format: int32 */
+            questionsKeptAsEdited: number | string;
+        };
         RejectBody: {
             /** Format: int32 */
             version: number | string;
@@ -1093,6 +1133,16 @@ export interface components {
             /** Format: int32 */
             accuracy: null | number | string;
             hasQuestions: boolean;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            questionCount: number | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            openMistakes: number | string;
         };
         StudentQuestion: {
             /** Format: uuid */
@@ -1113,6 +1163,8 @@ export interface components {
             source: null | components["schemas"]["QuestionSourceView"];
             /** Format: uuid */
             passageId?: null | string;
+            /** @default false */
+            choicesAreText: boolean;
         };
         UnlockResponse: {
             result: components["schemas"]["PinCheck"];
@@ -2316,6 +2368,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportExamFormResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RefreshExamForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportExamFormBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshExamFormResponse"];
                 };
             };
             /** @description Bad Request */

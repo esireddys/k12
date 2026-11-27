@@ -18,16 +18,21 @@ public sealed record QuestionSourceView(string Exam, int Year, string Season, in
 /// <param name="TextNeedsReview">The text was read from a PDF and may be rough: the picture is what to read.</param>
 /// <param name="Category">The reporting category the question counts toward: its own, or else its skill's.</param>
 /// <param name="PassageId">The reading selection to show beside the question, one of the set's passages.</param>
+/// <param name="ChoicesAreText">The choice text is the whole printed choice: show it on the answer buttons.</param>
 public sealed record StudentQuestion(
     Guid Id, string ItemType, AnswerKind AnswerKind, string Stem, IReadOnlyList<ChoiceView> Choices,
     bool HasImage, bool ShowImage, bool TextNeedsReview, string? FigureDescription,
     string? SkillCode, string? SkillDescription, int? Category, Difficulty Difficulty, QuestionSourceView? Source,
-    Guid? PassageId = null);
+    Guid? PassageId = null, bool ChoicesAreText = false);
 
 /// <summary>The parts of a question's content JSON the student screens use. Anything else is ignored.</summary>
+/// <param name="ChoicesAreText">
+/// The choice text is the whole printed choice, so students can read it on the buttons. The importer says so per
+/// item ("choicesAreText"); content without the flag has reviewed text unless it says the text needs review.
+/// </param>
 internal sealed record QuestionContent(
     string? Image, string Stem, IReadOnlyList<ChoiceView> Choices, bool ShowImage, bool TextNeedsReview,
-    string? FigureDescription, string? Explanation)
+    string? FigureDescription, string? Explanation, bool ChoicesAreText)
 {
     public static QuestionContent Read(string json)
     {
@@ -51,9 +56,11 @@ internal sealed record QuestionContent(
             }
         }
 
+        var textNeedsReview = Bool("textNeedsReview", false);
+        var choicesAreText = Bool("choicesAreText", !textNeedsReview) && choices.Count > 0 && choices.All(c => c.Text.Length > 0);
         return new QuestionContent(
-            Str("image"), Str("stem") ?? "", choices, Bool("showImage", true), Bool("textNeedsReview", false),
-            Str("figureDescription"), Str("explanation"));
+            Str("image"), Str("stem") ?? "", choices, Bool("showImage", true), textNeedsReview,
+            Str("figureDescription"), Str("explanation"), choicesAreText);
     }
 }
 
@@ -69,7 +76,7 @@ internal static class StudentQuestions
             q.Id.Value, q.ItemType, q.Answer.Kind, content.Stem, content.Choices,
             content.Image is not null, content.ShowImage || content.TextNeedsReview, content.TextNeedsReview,
             content.FigureDescription, skill?.Code, skill?.Description, CategoryOf(q, skills), q.Difficulty,
-            sources.GetValueOrDefault(q.Id), q.PassageId?.Value);
+            sources.GetValueOrDefault(q.Id), q.PassageId?.Value, content.ChoicesAreText);
     }
 
     /// <summary>The reporting category a question counts toward: the item's own when the key gave one, else its first skill's.</summary>

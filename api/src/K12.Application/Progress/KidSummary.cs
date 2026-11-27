@@ -12,13 +12,16 @@ public sealed record GetKidSummaryQuery(Guid AccountId, Guid KidId, DateOnly? Lo
 
 /// <param name="Stars">One per right answer, ever.</param>
 /// <param name="MistakesToFix">Missed questions in the kid's course still waiting to be answered right.</param>
-public sealed record KidSummary(Guid KidId, int Streak, int BestStreak, int Stars, int Answered, int MistakesToFix);
+/// <param name="Categories">Progress in each reporting category of the kid's course, which fills as they practice.</param>
+public sealed record KidSummary(
+    Guid KidId, int Streak, int BestStreak, int Stars, int Answered, int MistakesToFix, IReadOnlyList<CategoryView> Categories);
 
 /// <summary>A set of the kid's missed questions in their course, oldest miss first.</summary>
 public sealed record GetMistakesSetQuery(Guid AccountId, Guid KidId, int? Count);
 
 public sealed class GetKidSummaryHandler(
-    IParentAccountRepository accounts, IKidProgressRepository progress, IQuestionRepository questions, ISkillRepository skills, IClock clock)
+    IParentAccountRepository accounts, IKidProgressRepository progress, IQuestionRepository questions, ISkillRepository skills,
+    ICourseRepository courses, IPracticeSessionRepository sessions, IClock clock)
     : IQueryHandler<GetKidSummaryQuery, KidSummary>
 {
     public async Task<Result<KidSummary>> HandleAsync(GetKidSummaryQuery query, CancellationToken ct = default)
@@ -26,13 +29,21 @@ public sealed class GetKidSummaryHandler(
         var family = await KidAccess.LoadAsync(accounts, query.AccountId, query.KidId, ct);
         if (!family.IsSuccess) return family.Error!;
         var kid = family.Value!.Kid;
-        var kidProgress = await progress.GetAsync(kid.Id, ct);
-        if (kidProgress is null) return new KidSummary(kid.Id.Value, 0, 0, 0, 0, 0);
+        var kidProgress = await progress.GetAsync(kid.Id, ct) ?? KidProgress.Start(kid.Id);
+
+        var course = kid.CourseId is { } cid ? (await courses.ListByIdsAsync([cid], ct)).FirstOrDefault() : null;
+        IReadOnlyList<CategoryView> categories = [];
+        if (course is not null)
+        {
+            var courseSkills = await skills.ListByCourseAsync(course.Id, ct);
+            var live = CategoryViews.LiveIn(await questions.ListByStatusAsync(QuestionStatus.Live, int.MaxValue, ct), courseSkills);
+            categories = await CategoryViews.ForAsync(kid.Id, course, courseSkills, live, sessions, questions, ct);
+        }
 
         var toFix = await Mistakes.OpenInCourseAsync(kidProgress, kid.CourseId, questions, skills, ct);
         return new KidSummary(
             kid.Id.Value, kidProgress.CurrentStreak(KidAccess.Today(query.LocalDate, clock)), kidProgress.BestStreak(),
-            kidProgress.TotalCorrect, kidProgress.TotalAnswered, toFix.Count);
+            kidProgress.TotalCorrect, kidProgress.TotalAnswered, toFix.Count, categories);
     }
 }
 

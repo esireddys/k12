@@ -136,6 +136,9 @@ public sealed class InMemoryPracticeSessionRepository : IPracticeSessionReposito
         Task.FromResult<IReadOnlyList<PracticeSession>>(_store.Values
             .Where(s => s.KidId == kidId && s.Answers.Count > 0).OrderByDescending(s => s.StartedAt).Take(take).ToList());
 
+    public Task<IReadOnlyList<PracticeSession>> ListByCourseAsync(KidProfileId kidId, CourseId courseId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<PracticeSession>>(_store.Values.Where(s => s.KidId == kidId && s.CourseId == courseId).ToList());
+
     public Task AddAsync(PracticeSession session, CancellationToken ct = default)
     {
         _store[session.Id] = session;

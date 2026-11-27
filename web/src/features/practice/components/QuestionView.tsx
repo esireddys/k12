@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { questionImageUrl, type StudentQuestion } from '../api/usePractice'
 import { kindHint } from '../model/numberPad'
+import { MathText } from './MathText'
 import { NumberPad } from './NumberPad'
 import { ZoomablePicture } from './ZoomablePicture'
 
@@ -37,13 +38,19 @@ export function QuestionView({
   marking?: Marking
 }) {
   const textOk = !question.textNeedsReview
+  // The importer checked that each choice's text is the whole printed choice; otherwise the picture shows them.
+  const choiceText = question.choicesAreText
   const choice = question.answerKind === 'Choice'
 
   // Picture and answers sit side by side on a landscape tablet so the answers are never below the fold.
   return (
     <div className="question-body">
       <div className="card question-card">
-        {textOk && question.stem && <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.4 }}>{question.stem}</div>}
+        {textOk && question.stem && (
+          <div className="question-stem">
+            <MathText text={question.stem} />
+          </div>
+        )}
         <QuestionPicture question={question} />
         {!textOk && !question.hasImage && <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.4 }}>{question.stem}</div>}
       </div>
@@ -52,7 +59,7 @@ export function QuestionView({
         <div
           role="radiogroup"
           aria-label="Answer choices"
-          className={`choices${textOk ? ' with-text' : ''}`}
+          className={`choices${choiceText ? ' with-text' : ''}`}
           style={{ ['--choice-count' as string]: Math.min(question.choices.length, 4) }}
         >
           {question.choices.map((c) => {
@@ -81,8 +88,14 @@ export function QuestionView({
                   cursor: locked ? 'default' : 'pointer',
                 }}
               >
-                {c.label}
-                {textOk && c.text ? ` · ${c.text}` : ''}
+                {choiceText && c.text ? (
+                  <span className="choice-with-text">
+                    <span className="choice-letter">{c.label}</span>
+                    <MathText text={c.text} />
+                  </span>
+                ) : (
+                  c.label
+                )}
               </button>
             )
           })}

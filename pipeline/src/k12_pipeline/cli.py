@@ -29,6 +29,23 @@ def _post(client: httpx.Client | None, path: str, body: dict) -> str:
     return json.dumps(r.json())
 
 
+def import_form(client: httpx.Client | None, payload: dict) -> str:
+    """Imports a released form. A form imported before is refreshed instead: its questions take the newer pictures
+    and text choices, keeping their ids, status and the kids' progress (owner edits are kept too)."""
+    if client is None:
+        return "not sent (--dry-run)"
+    r = client.post("/api/admin/import/exam-form", json=payload)
+    if r.status_code == 409:
+        r = client.post("/api/admin/import/exam-form/refresh", json=payload)
+        if r.is_error:
+            raise SystemExit(f"/api/admin/import/exam-form/refresh failed with {r.status_code}: {r.text}")
+        body = r.json()
+        return f"already imported; {body['questionsRefreshed']} refreshed, {body['questionsKeptAsEdited']} kept as edited"
+    if r.is_error:
+        raise SystemExit(f"/api/admin/import/exam-form failed with {r.status_code}: {r.text}")
+    return json.dumps(r.json())
+
+
 def publish_released(client: httpx.Client | None) -> str:
     """Moves released questions an older import left in review to Live. Safe to repeat."""
     if client is None:
@@ -70,7 +87,7 @@ def run_import(api: str, data: Path, dry_run: bool) -> None:
             test, test.subject, load_key(data / "keys" / f"{slug}.csv"), items, images, passages, pages)
         (out / f"{slug}.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"form {slug} ({len(items)} items, pictures in {out / slug}): "
-              f"{_post(client, '/api/admin/import/exam-form', payload)}")
+              f"{import_form(client, payload)}")
 
     # Released questions go Live on import. This also catches any an older import left waiting in review.
     print(f"released questions left in review: {publish_released(client)}")

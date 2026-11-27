@@ -1,4 +1,5 @@
 using K12.Domain.Accounts;
+using K12.Domain.Curriculum;
 using K12.Domain.Progress;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,9 @@ public sealed class EfPracticeSessionRepository(K12DbContext db) : IPracticeSess
         var sessions = await db.PracticeSessions.Where(s => ids.Contains(s.Id)).ToListAsync(ct);
         return sessions.OrderByDescending(s => s.StartedAt).ToList();
     }
+
+    public async Task<IReadOnlyList<PracticeSession>> ListByCourseAsync(KidProfileId kidId, CourseId courseId, CancellationToken ct = default) =>
+        await db.PracticeSessions.Where(s => s.KidId == kidId && s.CourseId == courseId).ToListAsync(ct);
 
     public async Task AddAsync(PracticeSession session, CancellationToken ct = default) => await db.PracticeSessions.AddAsync(session, ct);
 

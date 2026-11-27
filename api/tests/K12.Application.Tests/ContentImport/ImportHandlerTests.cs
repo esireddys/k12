@@ -1,6 +1,7 @@
 using K12.Application.Abstractions;
 using K12.Application.ContentImport.ImportCourse;
 using K12.Application.ContentImport.ImportExamForm;
+using K12.Application.ContentImport.RefreshExamForm;
 using K12.Domain.Content;
 using K12.Domain.Content.Answers;
 using K12.Domain.Curriculum;
@@ -199,5 +200,62 @@ public class ImportHandlerTests
         Assert.Equal(code, result.Error!.Code);
         Assert.Empty(store.Questions);
         Assert.Equal(saves, store.Saves);
+    }
+
+    private static ImportItem ItemWith(int n, string content, string answer = "B") =>
+        new(n, ["3.4(K)"], "choice", content, new AnswerSpec { Kind = AnswerKind.Choice, Value = answer });
+
+    [Fact]
+    public async Task Refreshing_a_form_updates_untouched_questions_and_keeps_ids_status_and_owner_edits()
+    {
+        var store = new Store();
+        await CourseHandler(store).HandleAsync(CourseCommand());
+        await FormHandler(store).HandleAsync(FormCommand(Item(1), Item(2)));
+        var ids = store.Questions.Select(q => q.Id).ToList();
+        store.Questions[1].Revise("""{"stem":"fixed by an owner"}""", new AnswerSpec { Kind = AnswerKind.Choice, Value = "B" });
+
+        const string better = """{"stem":"?","choicesAreText":true}""";
+        var handler = new RefreshExamFormHandler(store, store, store, store);
+        var result = await handler.HandleAsync(new RefreshExamFormCommand(FormCommand(ItemWith(1, better), ItemWith(2, better))));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal((1, 1), (result.Value!.QuestionsRefreshed, result.Value.QuestionsKeptAsEdited));
+        Assert.Equal(ids, store.Questions.Select(q => q.Id).ToList());
+        Assert.Equal(better, store.Questions[0].ContentJson);
+        Assert.Equal("""{"stem":"fixed by an owner"}""", store.Questions[1].ContentJson);
+        Assert.All(store.Questions, q => Assert.Equal(QuestionStatus.Live, q.Status));
+
+        var again = await handler.HandleAsync(new RefreshExamFormCommand(FormCommand(ItemWith(1, better), ItemWith(2, better))));
+        Assert.Equal(0, again.Value!.QuestionsRefreshed);
+    }
+
+    public static TheoryData<string, ImportItem[], string> RefusedRefreshes => new()
+    {
+        { "a changed key", [ItemWith(1, "{}", answer: "C"), ItemWith(2, "{}")], "import.invalid_item" },
+        { "an item more", [Item(1), Item(2), Item(3)], "import.items_differ" },
+    };
+
+    [Theory]
+    [MemberData(nameof(RefusedRefreshes))]
+    public async Task A_refresh_cannot_change_keys_or_items(string _, ImportItem[] items, string code)
+    {
+        var store = new Store();
+        await CourseHandler(store).HandleAsync(CourseCommand());
+        await FormHandler(store).HandleAsync(FormCommand(Item(1), Item(2)));
+        var saves = store.Saves;
+
+        var result = await new RefreshExamFormHandler(store, store, store, store).HandleAsync(new RefreshExamFormCommand(FormCommand(items)));
+
+        Assert.Equal(code, result.Error!.Code);
+        Assert.Equal(saves, store.Saves);
+    }
+
+    [Fact]
+    public async Task Refreshing_a_form_that_was_never_imported_says_to_import_it()
+    {
+        var store = new Store();
+        await CourseHandler(store).HandleAsync(CourseCommand());
+        var result = await new RefreshExamFormHandler(store, store, store, store).HandleAsync(new RefreshExamFormCommand(FormCommand(Item(1))));
+        Assert.Equal("import.form_not_found", result.Error!.Code);
     }
 }

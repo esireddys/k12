@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Avatar } from '../../shared/ui/Avatar'
 import { Button } from '../../shared/ui/Button'
+import { CategoryBars } from '../../shared/ui/CategoryBars'
 import { TopBar } from '../../shared/ui/TopBar'
 import { useFamily } from './api/useFamily'
 import { useKidDashboard, useLock, useParentGate, type KidDashboard, type SkillStanding } from './api/useParentArea'
@@ -37,7 +38,7 @@ function Tile({ label, value, note }: { label: string; value: string; note?: str
 }
 
 function SkillRow({ skill }: { skill: SkillStanding }) {
-  const weak = skill.level !== 'Mastered' && skill.accuracy != null && Number(skill.accuracy) < 70
+  const weak = Number(skill.openMistakes) > 0 || (skill.level !== 'Mastered' && skill.accuracy != null && Number(skill.accuracy) < 70)
   return (
     <div
       style={{
@@ -54,7 +55,11 @@ function SkillRow({ skill }: { skill: SkillStanding }) {
         <b>{skill.code}</b> {skill.description}
       </span>
       <span style={{ fontWeight: 700, color: weak ? 'var(--miss-ink)' : 'var(--ink-quiet)', whiteSpace: 'nowrap' }}>
-        {Number(skill.answered) > 0 ? `${skill.accuracy}% · ${skill.answered} tries · ${levelText[skill.level]}` : 'Not started'}
+        {Number(skill.openMistakes) > 0
+          ? `${skill.openMistakes} to fix · ${skill.accuracy}% of ${skill.answered}`
+          : Number(skill.answered) > 0
+            ? `${skill.accuracy}% · ${skill.answered} tries · ${levelText[skill.level]}`
+            : 'Not started'}
       </span>
     </div>
   )
@@ -64,7 +69,8 @@ function Dashboard({ d }: { d: KidDashboard }) {
   const [allSkills, setAllSkills] = useState(false)
   const exam = d.lastExam
   const change = exam?.previousPercent != null ? Number(exam.percent) - Number(exam.previousPercent) : null
-  const skills = d.skills.filter((s) => s.hasQuestions)
+  const skills = d.skills
+  const fewQuestions = Number(d.skillsCountedInCategoriesOnly)
 
   return (
     <>
@@ -80,13 +86,23 @@ function Dashboard({ d }: { d: KidDashboard }) {
               : 'No full test yet'
           }
         />
-        <Tile label="Skills mastered" value={`${d.skillsMastered} / ${d.skillsTotal}`} note={d.frameworkName ?? d.courseName ?? undefined} />
+        <Tile label="Areas mastered" value={`${d.categoriesMastered} / ${d.categories.length}`} note="Reporting categories of the test" />
       </div>
+
+      <section className="card" aria-labelledby="by-category" style={{ gap: 14 }}>
+        <h2 id="by-category" style={{ fontSize: 18 }}>
+          Progress by reporting category
+        </h2>
+        <p className="quiet" style={{ margin: 0, fontSize: 15 }}>
+          How the state test reports results{d.courseName ? ` for ${d.courseName}` : ''}. Mastered means nearly all of the latest answers in that area were right.
+        </p>
+        <CategoryBars categories={d.categories} showCounts />
+      </section>
 
       <div className="row" style={{ alignItems: 'stretch', gap: 16 }}>
         <div className="card" style={{ flex: '2 1 380px', gap: 10 }}>
           <h2 style={{ fontSize: 18 }}>Needs attention</h2>
-          {d.needsAttention.length === 0 && <p className="quiet">Nothing stands out yet. More practice will show where to focus.</p>}
+          {d.needsAttention.length === 0 && <p className="quiet">Nothing stands out yet. Missed questions and low scores show up here.</p>}
           {d.needsAttention.map((s) => (
             <SkillRow key={s.code} skill={s} />
           ))}
@@ -95,10 +111,17 @@ function Dashboard({ d }: { d: KidDashboard }) {
               {d.name} has <b>{d.mistakesToFix}</b> missed {Number(d.mistakesToFix) === 1 ? 'question' : 'questions'} waiting in “Fix my mistakes”.
             </p>
           )}
-          <Button variant="ghost" style={{ alignSelf: 'flex-start' }} onClick={() => setAllSkills((v) => !v)} aria-expanded={allSkills}>
-            {allSkills ? 'Hide skills' : `See all ${skills.length} skills`}
-          </Button>
+          {skills.length > 0 && (
+            <Button variant="ghost" style={{ alignSelf: 'flex-start' }} onClick={() => setAllSkills((v) => !v)} aria-expanded={allSkills}>
+              {allSkills ? 'Hide skills' : `See ${skills.length} skills with enough questions`}
+            </Button>
+          )}
           {allSkills && skills.map((s) => <SkillRow key={s.code} skill={s} />)}
+          {allSkills && fewQuestions > 0 && (
+            <p className="quiet" style={{ margin: 0, fontSize: 14 }}>
+              {fewQuestions} more skills have only a few questions each, too few to judge on their own. They count in their reporting category above.
+            </p>
+          )}
         </div>
 
         <div className="card" style={{ flex: '1 1 280px', gap: 10 }}>

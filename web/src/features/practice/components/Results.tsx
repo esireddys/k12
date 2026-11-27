@@ -6,6 +6,11 @@ import type { ScoredResponse, StudentQuestion } from '../api/usePractice'
 import { QuestionPicture } from './QuestionView'
 import { sourceText } from '../model/source'
 
+/** The kid's pick with its value ("B · 16") when the choices are plain text. */
+const pickedText = (q: StudentQuestion, said: string) => {
+  const text = q.choicesAreText ? q.choices.find((c) => c.label === said)?.text : undefined
+  return text ? `${said} · ${text}` : said
+}
 const answerText = (r: ScoredResponse) => (r.correctChoiceText ? `${r.correctAnswer} · ${r.correctChoiceText}` : r.correctAnswer)
 
 /** Score, a breakdown by topic, and the answer key with explanations. */
@@ -104,7 +109,7 @@ export function Results({
             {r && (
               <div className="row" style={{ fontSize: 17 }}>
                 <span>
-                  You said: <strong>{said || '(blank)'}</strong>
+                  You said: <strong>{said ? pickedText(q, said) : '(blank)'}</strong>
                 </span>
                 <span>
                   Correct: <strong style={{ color: 'var(--good-ink)' }}>{answerText(r)}</strong>
@@ -115,7 +120,7 @@ export function Results({
             <details>
               <summary style={{ cursor: 'pointer', fontWeight: 700, color: 'var(--accent)', padding: '6px 0' }}>Show the question</summary>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 8 }}>
-                {!q.textNeedsReview && <div style={{ fontSize: 18 }}>{q.stem}</div>}
+                {!q.textNeedsReview && <div style={{ fontSize: 18, whiteSpace: 'pre-line' }}>{q.stem}</div>}
                 <QuestionPicture question={q} compact />
                 {sourceText(q.source) && <span className="quiet">{sourceText(q.source)}</span>}
               </div>

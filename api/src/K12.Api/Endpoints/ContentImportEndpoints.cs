@@ -3,6 +3,7 @@ using K12.Application.Abstractions;
 using K12.Application.ContentImport.ImportCourse;
 using K12.Application.ContentImport.ImportExamForm;
 using K12.Application.ContentImport.PublishReleased;
+using K12.Application.ContentImport.RefreshExamForm;
 using K12.Domain.Content.Answers;
 
 namespace K12.Api.Endpoints;
@@ -54,15 +55,20 @@ public static class ContentImportEndpoints
                 ImportExamFormBody body,
                 ICommandHandler<ImportExamFormCommand, ImportExamFormResponse> handler,
                 CancellationToken ct) =>
-            (await handler.HandleAsync(new ImportExamFormCommand(
-                body.Jurisdiction, body.Subject, body.CourseCode, body.Exam, body.Year, body.Season, body.SourceUrl,
-                body.Items.Select(i => new ImportItem(
-                    i.Number, i.SkillCodes, i.ItemType, i.Content.GetRawText(), i.Answer, i.Passage, i.Category)).ToList(),
-                (body.Passages ?? []).Select(p => new ImportPassage(p.Key, p.Title, p.Content.GetRawText())).ToList(),
-                body.Language),
-                ct)).ToHttp())
+            (await handler.HandleAsync(ToCommand(body), ct)).ToHttp())
             .WithName("ImportExamForm")
             .Produces<ImportExamFormResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPost("/exam-form/refresh", async (
+                ImportExamFormBody body,
+                ICommandHandler<RefreshExamFormCommand, RefreshExamFormResponse> handler,
+                CancellationToken ct) =>
+            (await handler.HandleAsync(new RefreshExamFormCommand(ToCommand(body)), ct)).ToHttp())
+            .WithName("RefreshExamForm")
+            .Produces<RefreshExamFormResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -77,4 +83,11 @@ public static class ContentImportEndpoints
 
         return app;
     }
+
+    private static ImportExamFormCommand ToCommand(ImportExamFormBody body) => new(
+        body.Jurisdiction, body.Subject, body.CourseCode, body.Exam, body.Year, body.Season, body.SourceUrl,
+        body.Items.Select(i => new ImportItem(
+            i.Number, i.SkillCodes, i.ItemType, i.Content.GetRawText(), i.Answer, i.Passage, i.Category)).ToList(),
+        (body.Passages ?? []).Select(p => new ImportPassage(p.Key, p.Title, p.Content.GetRawText())).ToList(),
+        body.Language);
 }
