@@ -31,6 +31,10 @@ dotnet tool restore
 dotnet ef database update --project src/K12.Infrastructure --startup-project src/K12.Api
 ```
 
+`dotnet ef` reads the same `ConnectionStrings:K12` as the API (its appsettings, its user secrets, or the
+`ConnectionStrings__K12` environment variable), so the user secret above is all it needs. `--connection "..."`
+overrides it for one run.
+
 Then open SSMS, connect to `localhost\SQLEXPRESS` with Windows Authentication (tick "Trust server certificate"), and look at `K12` > Tables: `content.Questions` and `curriculum.Skills`.
 
 `content.Questions` also holds the review trail: `AiReviewJson` (the AI reviewer's findings and proposed text)
