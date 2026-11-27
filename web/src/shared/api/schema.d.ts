@@ -261,6 +261,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/family/kids/{kidId}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RecordAnswers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/sessions/{sessionId}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FinishSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetKidSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/mistakes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMistakesSet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetKidDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetParentGate"];
+        put: operations["SetParentPin"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/pin/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UnlockParentArea"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/pin/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LockParentArea"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/review/ai-queue": {
         parameters: {
             query?: never;
@@ -536,6 +664,15 @@ export interface components {
         };
         /** @enum {unknown} */
         Difficulty: "Easier" | "OnLevel" | "Harder";
+        ExamResultView: {
+            title: string;
+            /** Format: int32 */
+            percent: number | string;
+            /** Format: int32 */
+            previousPercent: null | number | string;
+            /** Format: date-time */
+            finishedAt: string;
+        };
         /** @enum {unknown} */
         FindingSeverity: "Info" | "Warning" | "Problem";
         ImportCategory: {
@@ -606,6 +743,49 @@ export interface components {
             /** Format: uuid */
             courseId: null | string;
         };
+        KidDashboard: {
+            /** Format: uuid */
+            kidId: string;
+            name: string;
+            avatar: components["schemas"]["AvatarColor"];
+            /** Format: uuid */
+            courseId: null | string;
+            courseName: null | string;
+            frameworkName: null | string;
+            /** Format: int32 */
+            streak: number | string;
+            /** Format: int32 */
+            bestStreak: number | string;
+            week: components["schemas"]["WeekView"];
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            mistakesToFix: number | string;
+            lastExam: null | components["schemas"]["ExamResultView"];
+            /** Format: int32 */
+            skillsMastered: number | string;
+            /** Format: int32 */
+            skillsTotal: number | string;
+            needsAttention: components["schemas"]["SkillStanding"][];
+            skills: components["schemas"]["SkillStanding"][];
+            recentSessions: components["schemas"]["SessionView"][];
+        };
+        KidSummary: {
+            /** Format: uuid */
+            kidId: string;
+            /** Format: int32 */
+            streak: number | string;
+            /** Format: int32 */
+            bestStreak: number | string;
+            /** Format: int32 */
+            stars: number | string;
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            mistakesToFix: number | string;
+        };
         KidView: {
             /** Format: uuid */
             id: string;
@@ -614,6 +794,8 @@ export interface components {
             /** Format: uuid */
             courseId: null | string;
         };
+        /** @enum {unknown} */
+        MasteryLevel: "NotStarted" | "Learning" | "Practicing" | "Mastered";
         MeResponse: {
             name: string;
             email: string;
@@ -654,9 +836,23 @@ export interface components {
             };
             items: components["schemas"]["OwnerQueueItem"][];
         };
+        ParentGateResponse: {
+            hasPin: boolean;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            /** Format: date-time */
+            parentAreaOpenUntil: null | string;
+        };
+        PinBody: {
+            pin: string;
+        };
+        /** @enum {unknown} */
+        PinCheck: "Unlocked" | "Wrong" | "LockedOut" | "NoPin";
         PracticeCatalog: {
             courses: components["schemas"]["CatalogCourse"][];
         };
+        /** @enum {unknown} */
+        PracticeMode: "Practice" | "Exam";
         PracticeSet: {
             /** Format: uuid */
             courseId: string;
@@ -723,6 +919,23 @@ export interface components {
             summary: string;
             findings: components["schemas"]["AiFinding"][];
         };
+        RecordBody: {
+            /** Format: uuid */
+            sessionId: string;
+            mode: components["schemas"]["PracticeMode"];
+            source: null | string;
+            title: null | string;
+            /** Format: date */
+            localDate: null | string;
+            /** Format: int32 */
+            elapsedSeconds: number | string;
+            responses: components["schemas"]["ResponseItem"][];
+            finish: boolean;
+        };
+        RecordedScore: {
+            score: components["schemas"]["ScoreResult"];
+            session: components["schemas"]["SessionView"];
+        };
         RejectBody: {
             /** Format: int32 */
             version: number | string;
@@ -779,11 +992,42 @@ export interface components {
             total: number | string;
             items: components["schemas"]["ScoredResponse"][];
         };
+        SessionView: {
+            /** Format: uuid */
+            id: string;
+            mode: components["schemas"]["PracticeMode"];
+            source: string;
+            title: string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            minutes: number | string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            finishedAt: null | string;
+        };
         /** @enum {unknown} */
-        SetSource: "Shuffle" | "Year" | "Topic";
+        SetSource: "Shuffle" | "Year" | "Topic" | "Mistakes";
         SignInOptions: {
             providers: components["schemas"]["ProviderOption"][];
             developerSignIn: boolean;
+        };
+        SkillStanding: {
+            code: string;
+            description: string;
+            /** Format: int32 */
+            category: null | number | string;
+            level: components["schemas"]["MasteryLevel"];
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            accuracy: null | number | string;
+            hasQuestions: boolean;
         };
         StudentQuestion: {
             /** Format: uuid */
@@ -802,6 +1046,25 @@ export interface components {
             category: null | number | string;
             difficulty: components["schemas"]["Difficulty"];
             source: null | components["schemas"]["QuestionSourceView"];
+        };
+        UnlockResponse: {
+            result: components["schemas"]["PinCheck"];
+            /** Format: int32 */
+            triesLeft: number | string;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            /** Format: date-time */
+            parentAreaOpenUntil: null | string;
+        };
+        WeekView: {
+            /** Format: int32 */
+            daysPracticed: number | string;
+            /** Format: int32 */
+            minutes: number | string;
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
         };
     };
     responses: never;
@@ -998,6 +1261,15 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
         };
     };
     UpdateKid: {
@@ -1026,6 +1298,15 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1062,6 +1343,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */
@@ -1101,6 +1391,15 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1288,6 +1587,312 @@ export interface operations {
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
+            };
+        };
+    };
+    RecordAnswers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordedScore"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    FinishSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetKidSummary: {
+        parameters: {
+            query?: {
+                localDate?: string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidSummary"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMistakesSet: {
+        parameters: {
+            query?: {
+                count?: number | string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeSet"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetKidDashboard: {
+        parameters: {
+            query?: {
+                localDate?: string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidDashboard"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetParentGate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParentGateResponse"];
+                };
+            };
+        };
+    };
+    SetParentPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParentGateResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UnlockParentArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnlockResponse"];
+                };
+            };
+        };
+    };
+    LockParentArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

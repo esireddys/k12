@@ -13,6 +13,8 @@ public enum SetSource
     Year,
     /// <summary>One reporting category or one skill, in random order.</summary>
     Topic,
+    /// <summary>A kid's own missed questions, until they answer each one right. Kids only, never guests.</summary>
+    Mistakes,
 }
 
 /// <param name="Seed">Makes a shuffle repeatable, so reloading the page gives the same set.</param>

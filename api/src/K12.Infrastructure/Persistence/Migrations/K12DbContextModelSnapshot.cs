@@ -232,6 +232,64 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.ToTable("Skills", "curriculum");
                 });
 
+            modelBuilder.Entity("K12.Domain.Progress.KidProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("KidId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("KidProgress", "progress");
+                });
+
+            modelBuilder.Entity("K12.Domain.Progress.PracticeSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("KidId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("LastActiveAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Seconds")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("KidId", "StartedAt");
+
+                    b.ToTable("PracticeSessions", "progress");
+                });
+
             modelBuilder.Entity("K12.Domain.Accounts.ParentAccount", b =>
                 {
                     b.OwnsOne("K12.Domain.Accounts.ExternalLogin", "Login", b1 =>
@@ -300,10 +358,43 @@ namespace K12.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("ParentAccountId");
                         });
 
+                    b.OwnsOne("K12.Domain.Accounts.ParentPin", "Pin", b1 =>
+                        {
+                            b1.Property<Guid>("ParentAccountId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Hash")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("PinHash");
+
+                            b1.Property<DateTimeOffset?>("LockedUntil")
+                                .HasColumnType("datetimeoffset")
+                                .HasColumnName("PinLockedUntil");
+
+                            b1.Property<DateTimeOffset>("SetAt")
+                                .HasColumnType("datetimeoffset")
+                                .HasColumnName("PinSetAt");
+
+                            b1.Property<int>("WrongTries")
+                                .HasColumnType("int")
+                                .HasColumnName("PinWrongTries");
+
+                            b1.HasKey("ParentAccountId");
+
+                            b1.ToTable("ParentAccounts", "accounts");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ParentAccountId");
+                        });
+
                     b.Navigation("Kids");
 
                     b.Navigation("Login")
                         .IsRequired();
+
+                    b.Navigation("Pin");
                 });
 
             modelBuilder.Entity("K12.Domain.Content.ExamForm", b =>
@@ -416,6 +507,171 @@ namespace K12.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("K12.Domain.Progress.KidProgress", b =>
+                {
+                    b.OwnsMany("K12.Domain.Progress.Mistake", "Mistakes", b1 =>
+                        {
+                            b1.Property<Guid>("KidId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("QuestionId");
+
+                            b1.Property<DateTimeOffset>("FirstMissedAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<DateTimeOffset?>("FixedAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<DateTimeOffset>("LastMissedAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<Guid?>("SkillId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("TimesMissed")
+                                .HasColumnType("int");
+
+                            b1.HasKey("KidId", "Id");
+
+                            b1.HasIndex("Id");
+
+                            b1.ToTable("Mistakes", "progress");
+
+                            b1.HasOne("K12.Domain.Content.Question", null)
+                                .WithMany()
+                                .HasForeignKey("Id")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
+
+                            b1.WithOwner()
+                                .HasForeignKey("KidId");
+                        });
+
+                    b.OwnsMany("K12.Domain.Progress.PracticeDay", "Days", b1 =>
+                        {
+                            b1.Property<Guid>("KidId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<DateOnly>("Id")
+                                .HasColumnType("date")
+                                .HasColumnName("Date");
+
+                            b1.Property<int>("Answered")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Correct")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Seconds")
+                                .HasColumnType("int");
+
+                            b1.HasKey("KidId", "Id");
+
+                            b1.ToTable("PracticeDays", "progress");
+
+                            b1.WithOwner()
+                                .HasForeignKey("KidId");
+                        });
+
+                    b.OwnsMany("K12.Domain.Progress.SkillProgress", "Skills", b1 =>
+                        {
+                            b1.Property<Guid>("KidId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("SkillId");
+
+                            b1.Property<int>("Answered")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Correct")
+                                .HasColumnType("int");
+
+                            b1.Property<DateTimeOffset>("LastAnsweredAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<string>("Recent")
+                                .IsRequired()
+                                .HasMaxLength(10)
+                                .IsUnicode(false)
+                                .HasColumnType("varchar(10)");
+
+                            b1.HasKey("KidId", "Id");
+
+                            b1.HasIndex("Id");
+
+                            b1.ToTable("SkillProgress", "progress");
+
+                            b1.HasOne("K12.Domain.Curriculum.Skill", null)
+                                .WithMany()
+                                .HasForeignKey("Id")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
+
+                            b1.WithOwner()
+                                .HasForeignKey("KidId");
+                        });
+
+                    b.Navigation("Days");
+
+                    b.Navigation("Mistakes");
+
+                    b.Navigation("Skills");
+                });
+
+            modelBuilder.Entity("K12.Domain.Progress.PracticeSession", b =>
+                {
+                    b.HasOne("K12.Domain.Curriculum.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsMany("K12.Domain.Progress.SessionAnswer", "Answers", b1 =>
+                        {
+                            b1.Property<Guid>("SessionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("QuestionId");
+
+                            b1.Property<DateTimeOffset>("AnsweredAt")
+                                .HasColumnType("datetimeoffset");
+
+                            b1.Property<bool>("IsCorrect")
+                                .HasColumnType("bit");
+
+                            b1.Property<string>("Response")
+                                .IsRequired()
+                                .HasMaxLength(40)
+                                .HasColumnType("nvarchar(40)");
+
+                            b1.Property<Guid?>("SkillId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.HasKey("SessionId", "Id");
+
+                            b1.HasIndex("Id");
+
+                            b1.ToTable("SessionAnswers", "progress");
+
+                            b1.HasOne("K12.Domain.Content.Question", null)
+                                .WithMany()
+                                .HasForeignKey("Id")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
+
+                            b1.WithOwner()
+                                .HasForeignKey("SessionId");
+                        });
+
+                    b.Navigation("Answers");
                 });
 #pragma warning restore 612, 618
         }

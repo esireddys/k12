@@ -5,6 +5,8 @@ import { Button } from '../../shared/ui/Button'
 import { TopBar } from '../../shared/ui/TopBar'
 import { useAddKid, useFamily, useRemoveKid, useUpdateKid, type Kid } from './api/useFamily'
 import { KidForm } from './components/KidForm'
+import { ParentGate } from './components/ParentGate'
+import { PrivacyNote } from './components/PrivacyNote'
 import { SignedInOnly } from './components/SignedInOnly'
 
 function KidRow({ kid }: { kid: Kid }) {
@@ -68,7 +70,7 @@ function Manage() {
 
   return (
     <main className="page">
-      <TopBar back="/kids" title="Your family" />
+      <TopBar back="/parent" title="Your family" />
       <p className="quiet" style={{ margin: 0 }}>
         Kids practice under your sign-in. A profile keeps only a first name or nickname, a picture colour and a grade:
         no email, photo or location.
@@ -90,6 +92,7 @@ function Manage() {
       ) : (
         <p className="quiet">A family can have up to 8 kids.</p>
       )}
+      <PrivacyNote />
       <p className="quiet" style={{ fontSize: 14 }}>
         Signed in as {family.data?.displayName} ({family.data?.email}).
       </p>
@@ -100,7 +103,9 @@ function Manage() {
 export function ManageFamilyPage() {
   return (
     <SignedInOnly>
-      <Manage />
+      <ParentGate>
+        <Manage />
+      </ParentGate>
     </SignedInOnly>
   )
 }

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router'
 import { courseLabel, courseLevelHint, hasQuestions, jurisdictionLabel, useCatalog } from '../../shared/catalog/useCatalog'
 import { learnerStore, useLearner } from '../../shared/learner/learner'
 import { TopBar } from '../../shared/ui/TopBar'
-import { useSaveKidCourse } from './api/usePractice'
+import { ParentLockedError, useSaveKidCourse } from './api/usePractice'
 
 /** Pick a state and a grade or course (such as Algebra I). For a kid it is saved to their profile; for a guest it stays on this device. */
 export function ChooseCoursePage() {
@@ -14,15 +14,31 @@ export function ChooseCoursePage() {
   const byJurisdiction = [...new Map(courses.map((c) => [c.jurisdiction, jurisdictionLabel(c)])).entries()]
 
   const choose = (courseId: string) => {
-    learnerStore.setCourse(courseId)
-    if (learner?.kind === 'kid') save.mutate({ kidId: learner.kidId, courseId })
-    navigate('/home')
+    if (learner?.kind !== 'kid') {
+      learnerStore.setCourse(courseId)
+      navigate('/home')
+      return
+    }
+    // A kid picks their first grade; changing it later is a parent's call, behind the parent PIN.
+    save.mutate(
+      { kidId: learner.kidId, courseId },
+      {
+        onSuccess: () => {
+          learnerStore.setCourse(courseId)
+          navigate('/home')
+        },
+        onError: (e) => {
+          if (e instanceof ParentLockedError) navigate(`/parent/unlock?next=${encodeURIComponent('/course')}`)
+        },
+      },
+    )
   }
 
   return (
     <main className="page">
       <TopBar back={learner?.kind === 'kid' ? '/kids' : '/'} title="Pick your grade or course" />
       {catalog.isError && <p role="alert">Could not load the courses. Is the API running?</p>}
+      {save.isError && !(save.error instanceof ParentLockedError) && <p role="alert">{save.error.message}</p>}
       {byJurisdiction.map(([code, name]) => (
         <section key={code} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h2 style={{ margin: 0, fontSize: 22 }}>{name}</h2>

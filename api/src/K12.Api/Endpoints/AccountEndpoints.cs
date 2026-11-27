@@ -86,6 +86,7 @@ public static class AccountEndpoints
                 KidBody body, ClaimsPrincipal user, ICommandHandler<AddKidCommand, KidView> handler, CancellationToken ct) =>
             (await handler.HandleAsync(new AddKidCommand(user.AccountId(), body.Name, body.Avatar, body.CourseId), ct)).ToHttp())
             .WithName("AddKid")
+            .RequireParentArea()
             .Produces<KidView>()
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
@@ -93,16 +94,19 @@ public static class AccountEndpoints
                 Guid kidId, KidBody body, ClaimsPrincipal user, ICommandHandler<UpdateKidCommand, KidView> handler, CancellationToken ct) =>
             (await handler.HandleAsync(new UpdateKidCommand(user.AccountId(), kidId, body.Name, body.Avatar, body.CourseId), ct)).ToHttp())
             .WithName("UpdateKid")
+            .RequireParentArea()
             .Produces<KidView>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         family.MapPut("/kids/{kidId:guid}/course", async (
-                Guid kidId, ChooseCourseBody body, ClaimsPrincipal user,
+                Guid kidId, ChooseCourseBody body, ClaimsPrincipal user, IClock clock,
                 ICommandHandler<ChooseKidCourseCommand, KidView> handler, CancellationToken ct) =>
-            (await handler.HandleAsync(new ChooseKidCourseCommand(user.AccountId(), kidId, body.CourseId), ct)).ToHttp())
+            (await handler.HandleAsync(new ChooseKidCourseCommand(
+                user.AccountId(), kidId, body.CourseId, user.ParentAreaOpenUntil(clock.UtcNow) is not null), ct)).ToHttp())
             .WithName("ChooseKidCourse")
             .Produces<KidView>()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -110,6 +114,7 @@ public static class AccountEndpoints
                 Guid kidId, ClaimsPrincipal user, ICommandHandler<RemoveKidCommand, AccountView> handler, CancellationToken ct) =>
             (await handler.HandleAsync(new RemoveKidCommand(user.AccountId(), kidId), ct)).ToHttp())
             .WithName("RemoveKid")
+            .RequireParentArea()
             .Produces<AccountView>()
             .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -132,7 +137,10 @@ public static class AccountEndpoints
     {
         if (!result.IsSuccess) return result.ToHttp();
         var account = result.Value!;
-        await http.SignInAsync(Access.SessionScheme, Access.SessionPrincipal(account.Id, account.DisplayName, account.Email),
+        // Signing in again is how a parent who forgot the PIN gets back in, so a fresh sign-in opens the parent areas.
+        var now = http.RequestServices.GetRequiredService<IClock>().UtcNow;
+        await http.SignInAsync(Access.SessionScheme,
+            Access.SessionPrincipal(account.Id, account.DisplayName, account.Email, now + Access.ParentAreaWindow),
             new AuthenticationProperties { IsPersistent = true });
         return Results.Ok(account);
     }

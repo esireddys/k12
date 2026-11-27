@@ -16,3 +16,10 @@ public interface IUnitOfWork
 /// <summary>Another request changed the aggregate between this use case loading and saving it.</summary>
 public sealed class ConcurrencyConflictException(Exception inner)
     : Exception("Someone else changed this at the same time.", inner);
+
+/// <summary>Hashes the parent PIN so only a slow, salted hash is stored. Implemented in Infrastructure.</summary>
+public interface IPinHasher
+{
+    string Hash(string pin);
+    bool Verify(string pin, string hash);
+}

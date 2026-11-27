@@ -22,23 +22,39 @@ public sealed record ScoreResult(int Correct, int Total, IReadOnlyList<ScoredRes
 /// <summary>
 /// Checks each response against its question's answer spec and returns the key and explanation with it.
 /// The key is only ever sent back for a question the student has just answered or finished.
-/// Recording the result for a kid's progress comes with the practice history.
+/// Guests use this and nothing is saved; a kid's answers go through <c>RecordAnswersHandler</c>, which saves them.
 /// </summary>
 public sealed class ScoreResponsesHandler(IQuestionRepository questions) : ICommandHandler<ScoreResponsesCommand, ScoreResult>
 {
-    public const int MaxResponses = 100;
+    public const int MaxResponses = Scoring.MaxResponses;
 
     public async Task<Result<ScoreResult>> HandleAsync(ScoreResponsesCommand command, CancellationToken ct = default)
     {
-        if (command.Responses.Count == 0) return Error.Validation("score.empty", "Nothing to score.");
-        if (command.Responses.Count > MaxResponses) return Error.Validation("score.too_many", $"Send at most {MaxResponses} answers.");
+        var scored = await Scoring.ScoreAsync(questions, command.Responses, ct);
+        return scored.IsSuccess ? scored.Value!.Result : scored.Error!;
+    }
+}
 
-        var ids = command.Responses.Select(r => new QuestionId(r.QuestionId)).Distinct().ToList();
+/// <summary>A scored batch and the questions it was scored against.</summary>
+internal sealed record ScoredBatch(ScoreResult Result, IReadOnlyDictionary<Guid, Question> Questions);
+
+/// <summary>Scoring shared by guests and kids. Only Live questions can be scored.</summary>
+internal static class Scoring
+{
+    public const int MaxResponses = 100;
+
+    public static async Task<Result<ScoredBatch>> ScoreAsync(
+        IQuestionRepository questions, IReadOnlyList<ResponseItem> responses, CancellationToken ct)
+    {
+        if (responses.Count == 0) return Error.Validation("score.empty", "Nothing to score.");
+        if (responses.Count > MaxResponses) return Error.Validation("score.too_many", $"Send at most {MaxResponses} answers.");
+
+        var ids = responses.Select(r => new QuestionId(r.QuestionId)).Distinct().ToList();
         var byId = (await questions.ListByIdsAsync(ids, ct)).Where(q => q.IsVisibleToStudents).ToDictionary(q => q.Id.Value);
-        var missing = command.Responses.FirstOrDefault(r => !byId.ContainsKey(r.QuestionId));
+        var missing = responses.FirstOrDefault(r => !byId.ContainsKey(r.QuestionId));
         if (missing is not null) return Error.NotFound("question.not_found", "No such question.");
 
-        var items = command.Responses.Select(r =>
+        var items = responses.Select(r =>
         {
             var q = byId[r.QuestionId];
             var content = QuestionContent.Read(q.ContentJson);
@@ -53,6 +69,6 @@ public sealed class ScoreResponsesHandler(IQuestionRepository questions) : IComm
                 content.Explanation);
         }).ToList();
 
-        return new ScoreResult(items.Count(i => i.IsCorrect), items.Count, items);
+        return new ScoredBatch(new ScoreResult(items.Count(i => i.IsCorrect), items.Count, items), byId);
     }
 }

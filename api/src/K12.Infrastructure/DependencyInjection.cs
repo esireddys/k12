@@ -5,8 +5,10 @@ using K12.Infrastructure.Content;
 using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
+using K12.Domain.Progress;
 using K12.Infrastructure.Identity;
 using K12.Infrastructure.Persistence;
+using K12.Infrastructure.Security;
 using K12.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +26,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton<IPinHasher, Pbkdf2PinHasher>();
 
         // Item pictures: a local folder for now (the pipeline's data/out); Blob Storage when the cloud store is added.
         var imageRoot = configuration["Content:ImageRoot"];
@@ -42,6 +45,8 @@ public static class DependencyInjection
             services.AddSingleton<ISkillRepository, InMemorySkillRepository>();
             services.AddSingleton<IExamFormRepository, InMemoryExamFormRepository>();
             services.AddSingleton<IParentAccountRepository, InMemoryParentAccountRepository>();
+            services.AddSingleton<IKidProgressRepository, InMemoryKidProgressRepository>();
+            services.AddSingleton<IPracticeSessionRepository, InMemoryPracticeSessionRepository>();
             services.AddSingleton<IUnitOfWork, InMemoryUnitOfWork>();
             return services;
         }
@@ -53,6 +58,8 @@ public static class DependencyInjection
         services.AddScoped<ISkillRepository, EfSkillRepository>();
         services.AddScoped<IExamFormRepository, EfExamFormRepository>();
         services.AddScoped<IParentAccountRepository, EfParentAccountRepository>();
+        services.AddScoped<IKidProgressRepository, EfKidProgressRepository>();
+        services.AddScoped<IPracticeSessionRepository, EfPracticeSessionRepository>();
         return services;
     }
 }

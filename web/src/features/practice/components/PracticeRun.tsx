@@ -1,29 +1,41 @@
 import { useState } from 'react'
 import type { CatalogCourse } from '../../../shared/catalog/useCatalog'
+import type { Learner } from '../../../shared/learner/learner'
 import { Button } from '../../../shared/ui/Button'
-import { useScore, type ScoredResponse, type StudentQuestion } from '../api/usePractice'
+import type { ScoredResponse, StudentQuestion } from '../api/usePractice'
+import { useSessionScoring } from '../api/useProgress'
 import { QuestionView } from './QuestionView'
 import { Results } from './Results'
 import { sourceText } from '../model/source'
 import { SessionHeader } from './SessionHeader'
 
-/** Practice mode: check each answer as you go and see the key and explanation right away. */
+/** Practice mode: check each answer as you go and see the key and explanation right away. A kid's answers are saved as they go. */
 export function PracticeRun({
   title,
   course,
   questions,
+  learner,
+  source,
   onAgain,
 }: {
   title: string
   course: CatalogCourse
   questions: StudentQuestion[]
+  learner: Learner
+  source: string
+  /** Unused: practice keeps nothing on the device. Accepted so both runs take the same props. */
+  storageKey?: string
   onAgain: () => void
 }) {
   const [index, setIndex] = useState(0)
   const [responses, setResponses] = useState<Record<string, string>>({})
   const [scored, setScored] = useState<Record<string, ScoredResponse>>({})
   const [finished, setFinished] = useState(false)
-  const score = useScore()
+  const { score, finish } = useSessionScoring({ learner, mode: 'practice', source, title })
+  const seeResults = () => {
+    setFinished(true)
+    if (Object.keys(scored).length > 0) finish.mutate()
+  }
 
   if (finished)
     return <Results title={title} course={course} questions={questions} scored={scored} responses={responses} onAgain={onAgain} />
@@ -34,7 +46,7 @@ export function PracticeRun({
   const last = index === questions.length - 1
 
   const check = () =>
-    score.mutate([{ questionId: q.id, response }], {
+    score.mutate({ responses: [{ questionId: q.id, response }] }, {
       onSuccess: (data) => setScored((s) => ({ ...s, [q.id]: data.items[0] })),
     })
 
@@ -80,14 +92,14 @@ export function PracticeRun({
               {result.explanation ?? (result.isCorrect ? 'Nice work.' : 'Look at the question again and see how the answer fits.')}
             </div>
           </div>
-          <Button size="lg" onClick={() => (last ? setFinished(true) : setIndex(index + 1))} autoFocus>
+          <Button size="lg" onClick={() => (last ? seeResults() : setIndex(index + 1))} autoFocus>
             {last ? 'See results' : 'Next'}
           </Button>
         </div>
       ) : (
         <div className="row" style={{ justifyContent: 'flex-end' }}>
           {score.error && <span role="alert">{score.error.message}</span>}
-          <Button variant="secondary" onClick={() => (last ? setFinished(true) : setIndex(index + 1))}>
+          <Button variant="secondary" onClick={() => (last ? seeResults() : setIndex(index + 1))}>
             Skip
           </Button>
           <Button size="lg" onClick={check} disabled={!response || score.isPending}>

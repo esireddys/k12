@@ -43,7 +43,12 @@ Sign in on the welcome screen as an owner to use the review screens at http://lo
 [SIGN_IN.md](SIGN_IN.md)). Scripts can send the header `X-Dev-User: someone@example.org` to act as someone without a
 cookie; outside Development neither the developer sign-in nor the header exists.
 
-Parent accounts and kid profiles are in `accounts.ParentAccounts` and `accounts.KidProfiles`.
+Parent accounts and kid profiles are in `accounts.ParentAccounts` and `accounts.KidProfiles`. The parent PIN is stored
+only as a salted hash (`PinHash`), with `PinWrongTries` and `PinLockedUntil` for the lock after five wrong tries.
+
+A kid's saved practice is in the `progress` schema: `PracticeSessions` and `SessionAnswers` (every set and answer),
+`SkillProgress` (mastery per skill), `Mistakes` (missed questions for "Fix my mistakes"; `FixedAt` is set once answered
+right) and `PracticeDays` (for streaks and the weekly view). Guests never write here. Removing a kid deletes their rows.
 
 Item pictures are served from `Content:ImageRoot`, which defaults to `../../../pipeline/data/out`
 (relative to `src/K12.Api`). Override it with user secrets if your pictures live elsewhere.

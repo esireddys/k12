@@ -46,6 +46,7 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapAccountEndpoints(app.Environment);
 app.MapPracticeEndpoints();
+app.MapProgressEndpoints();
 app.MapContentReviewEndpoints();
 if (app.Environment.IsDevelopment()) app.MapContentImportEndpoints(); // admin role once sign-in exists
 

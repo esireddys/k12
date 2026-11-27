@@ -5,6 +5,7 @@ using K12.Domain.Content;
 using K12.Domain.Content.Answers;
 using K12.Domain.Content.Review;
 using K12.Domain.Curriculum;
+using K12.Domain.Progress;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -28,6 +29,11 @@ internal static class Converters
     public static readonly ValueConverter<KidProfileId, Guid> KidProfileId = new(id => id.Value, v => new KidProfileId(v));
 
     public static readonly ValueConverter<SkillId, Guid> SkillId = new(id => id.Value, v => new SkillId(v));
+
+    public static readonly ValueConverter<SkillId?, Guid?> OptionalSkillId = new(
+        id => id.HasValue ? id.Value.Value : null, v => v.HasValue ? new SkillId(v.Value) : null);
+
+    public static readonly ValueConverter<PracticeSessionId, Guid> PracticeSessionId = new(id => id.Value, v => new PracticeSessionId(v));
 
     /// <summary>Stores the answer spec as JSON in an nvarchar(max) column.</summary>
     public static readonly ValueConverter<AnswerSpec, string> AnswerSpec = new(

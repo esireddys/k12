@@ -63,6 +63,21 @@ public sealed class ParentAccount : AggregateRoot<ParentAccountId>
     public DateTimeOffset LastSignedInAt { get; private set; }
     public IReadOnlyList<KidProfile> Kids => _kids;
 
+    /// <summary>The PIN that guards the parent areas on a shared device. Empty until the parent sets one.</summary>
+    public ParentPin? Pin { get; private set; }
+
+    public bool HasPin => Pin is not null;
+
+    /// <summary>
+    /// Sets or changes the PIN. Callers check who is asking first: the first PIN can be set by the signed-in parent,
+    /// a change needs the parent areas unlocked (by the old PIN or a fresh sign-in).
+    /// </summary>
+    /// <param name="hash">The hash of a PIN that passed <see cref="ParentPin.Valid"/>. The domain never sees the digits stored.</param>
+    public void SetPin(string hash, DateTimeOffset at) => Pin = new ParentPin(hash, at);
+
+    /// <summary>Records one try at the PIN. <paramref name="matches"/> is whether the typed PIN matched the hash.</summary>
+    public PinCheck CheckPin(bool matches, DateTimeOffset at) => Pin?.Check(matches, at) ?? PinCheck.NoPin;
+
     /// <summary>Creates the account the first time a parent signs in.</summary>
     public static ParentAccount Register(ExternalLogin login, string email, string displayName, DateTimeOffset at)
     {
