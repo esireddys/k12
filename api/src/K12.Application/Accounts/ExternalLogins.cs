@@ -1,7 +1,15 @@
 namespace K12.Application.Accounts;
 
 /// <summary>A sign-in the identity provider vouched for.</summary>
-public sealed record VerifiedLogin(string Provider, string Subject, string Email, string Name);
+/// <param name="EmailIsAuthoritative">
+/// True only when the provider owns the mailbox, so the email proves who this is today, for example a Gmail address
+/// or a Google Workspace account. Other addresses were checked once, when the account was made, and can be reused
+/// later, so they are good enough to label a family but never to grant owner rights.
+/// </param>
+public sealed record VerifiedLogin(string Provider, string Subject, string Email, string Name, bool EmailIsAuthoritative = false);
+
+/// <summary>A finished sign-in: the family, and whether its email may be trusted for roles such as owner.</summary>
+public sealed record SignedIn(AccountView Account, bool EmailIsAuthoritative);
 
 /// <summary>
 /// Checks a token from an identity provider, for example a Google ID token from the browser.

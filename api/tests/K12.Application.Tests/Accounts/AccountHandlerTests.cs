@@ -12,11 +12,16 @@ public class AccountHandlerTests
         public bool IsConfigured => configured;
         public string? ClientId => configured ? "client.apps.googleusercontent.com" : null;
 
-        /// <summary>Accepts "good:subject:email" tokens and refuses everything else.</summary>
+        /// <summary>Accepts "good:subject:email" (and "good:subject:email:authoritative") tokens and refuses everything else.</summary>
         public Task<VerifiedLogin?> VerifyAsync(string token, CancellationToken ct = default)
         {
             var parts = token.Split(':');
-            return Task.FromResult(parts is ["good", var sub, var email] ? new VerifiedLogin("google", sub, email, "Pat") : null);
+            return Task.FromResult(parts switch
+            {
+                ["good", var sub, var email] => new VerifiedLogin("google", sub, email, "Pat"),
+                ["good", var sub, var email, "authoritative"] => new VerifiedLogin("google", sub, email, "Pat", EmailIsAuthoritative: true),
+                _ => null,
+            });
         }
     }
 
@@ -29,9 +34,11 @@ public class AccountHandlerTests
     [InlineData("google", "", true, "auth.missing_token")]
     [InlineData("google", "good:1:pat@example.org", false, "auth.provider_not_configured")]
     [InlineData("facebook", "good:1:pat@example.org", true, "auth.provider_not_configured")]
+    [InlineData("google", "good:1:pat@example.org:oversized", true, "auth.invalid_token")]
     public async Task Sign_in_needs_a_configured_provider_and_a_token_it_accepts(string provider, string token, bool configured, string? error)
     {
         var s = new TestStore();
+        if (token.EndsWith(":oversized")) token = "good:1:pat@example.org" + new string('x', SignInWithProviderHandler.MaxTokenLength);
         var result = await SignIn(s, configured).HandleAsync(new SignInWithProviderCommand(provider, token));
         Assert.Equal(error, result.Error?.Code);
         Assert.Equal(error is null ? 1 : 0, s.Accounts.Count);
@@ -44,10 +51,19 @@ public class AccountHandlerTests
         var first = await SignIn(s).HandleAsync(new SignInWithProviderCommand("google", "good:1:pat@example.org"));
         var again = await SignIn(s).HandleAsync(new SignInWithProviderCommand("google", "good:1:pat.new@example.org"));
 
-        Assert.Equal(first.Value!.Id, again.Value!.Id);
-        Assert.Equal("pat.new@example.org", again.Value.Email);
+        Assert.Equal(first.Value!.Account.Id, again.Value!.Account.Id);
+        Assert.Equal("pat.new@example.org", again.Value.Account.Email);
         Assert.Single(s.Accounts);
         Assert.Equal(2, s.Saves);
+    }
+
+    [Theory]
+    [InlineData("good:1:pat@gmail.com:authoritative", true)]
+    [InlineData("good:1:pat@example.org", false)]
+    public async Task Sign_in_says_whether_the_provider_owns_the_email(string token, bool authoritative)
+    {
+        var result = await SignIn(new TestStore()).HandleAsync(new SignInWithProviderCommand("google", token));
+        Assert.Equal(authoritative, result.Value!.EmailIsAuthoritative);
     }
 
     [Theory]

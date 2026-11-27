@@ -34,7 +34,8 @@ public static class ParentArea
     {
         var user = http.User;
         return http.SignInAsync(Access.SessionScheme,
-            Access.SessionPrincipal(user.AccountId(), user.Identity?.Name ?? "", user.FindFirstValue(ClaimTypes.Email) ?? "", until),
+            Access.SessionPrincipal(user.AccountId(), user.Identity?.Name ?? "", user.FindFirstValue(ClaimTypes.Email) ?? "", until,
+                user.HasClaim(Access.AuthoritativeEmailClaim, "true")),
             new AuthenticationProperties { IsPersistent = true });
     }
 }
