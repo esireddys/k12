@@ -124,8 +124,10 @@ public class TodayAndSubjectTests
         Assert.Equal((f.Math.Id.Value, 1, 1), (math.CourseId!.Value, math.MistakesToFix, math.RecentSessions.Count));
         Assert.Equal((f.Reading.Id.Value, 0, 0), (reading.CourseId!.Value, reading.MistakesToFix, reading.RecentSessions.Count));
         Assert.Equal(["Across genres"], reading.Categories.Select(c => c.Name));
+        // Answer totals follow the subject; the week is the kid's whole week.
+        Assert.Equal((1, 0, 1), (math.Answered, reading.Answered, reading.Week.Answered));
 
-        // A course of another grade is not a subject of hers: her own shows instead.
+        // A course of another grade is not one of the kid's subjects: their own shows instead.
         var other = Course.Create("TX", "math", "A1", "Algebra I", "FW", "Framework", [new ReportingCategory(1, "Numbers")]);
         f.S.Courses.Add(other);
         Assert.Equal(f.Math.Id.Value, (await f.DashboardAsync(other.Id.Value)).CourseId);

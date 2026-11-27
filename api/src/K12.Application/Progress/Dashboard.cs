@@ -107,6 +107,14 @@ public sealed class GetKidDashboardHandler(
         var practicable = standings.Count(s => s.View.HasQuestions);
         var categories = course is null ? [] : await CategoryViews.ForAsync(kid.Id, course, courseSkills, live, sessions, questions, ct);
 
+        // Answer totals follow the subject on show; the week and the streak are about the kid, whatever the subject.
+        var (answered, correct) = (kidProgress.TotalAnswered, kidProgress.TotalCorrect);
+        if (course is not null)
+        {
+            var courseAnswers = (await sessions.ListByCourseAsync(kid.Id, course.Id, ct)).SelectMany(s => s.Answers).Where(a => a.Answered).ToList();
+            (answered, correct) = (courseAnswers.Count, courseAnswers.Count(a => a.IsCorrect));
+        }
+
         var week = kidProgress.DaysBetween(today.AddDays(-6), today);
         var recent = (await sessions.ListRecentAsync(kid.Id, RecentCount * 3, ct))
             .Where(s => course is null || s.CourseId == course.Id).Take(RecentCount).ToList();
@@ -120,7 +128,7 @@ public sealed class GetKidDashboardHandler(
             kidProgress.CurrentStreak(today), kidProgress.BestStreak(),
             new WeekView(week.Count(d => d.Answered > 0), (int)Math.Round(week.Sum(d => d.Seconds) / 60.0),
                 week.Sum(d => d.Answered), week.Sum(d => d.Correct), week.Sum(d => d.Seconds)),
-            kidProgress.TotalAnswered, kidProgress.TotalCorrect, toFix.Count,
+            answered, correct, toFix.Count,
             lastExam, categories.Count(c => c.Level == MasteryLevel.Mastered), categories,
             attention, listed, practicable - listed.Count, recent.Select(Sessions.View).ToList());
     }
