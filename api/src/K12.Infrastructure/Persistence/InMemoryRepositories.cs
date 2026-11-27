@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
+using K12.Domain.Progress;
 
 namespace K12.Infrastructure.Persistence;
 
@@ -85,6 +86,47 @@ public sealed class InMemoryParentAccountRepository : IParentAccountRepository
     public Task AddAsync(ParentAccount account, CancellationToken ct = default)
     {
         _store[account.Id] = account;
+        return Task.CompletedTask;
+    }
+}
+
+public sealed class InMemoryKidProgressRepository : IKidProgressRepository
+{
+    private readonly ConcurrentDictionary<KidProfileId, KidProgress> _store = new();
+
+    public Task<KidProgress?> GetAsync(KidProfileId kidId, CancellationToken ct = default) => Task.FromResult(_store.GetValueOrDefault(kidId));
+
+    public Task<IReadOnlyList<KidProgress>> ListAsync(IReadOnlyCollection<KidProfileId> kidIds, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<KidProgress>>(_store.Values.Where(p => kidIds.Contains(p.Id)).ToList());
+
+    public Task AddAsync(KidProgress progress, CancellationToken ct = default)
+    {
+        _store[progress.Id] = progress;
+        return Task.CompletedTask;
+    }
+
+    public void Remove(KidProgress progress) => _store.TryRemove(progress.Id, out _);
+}
+
+public sealed class InMemoryPracticeSessionRepository : IPracticeSessionRepository
+{
+    private readonly ConcurrentDictionary<PracticeSessionId, PracticeSession> _store = new();
+
+    public Task<PracticeSession?> GetAsync(PracticeSessionId id, CancellationToken ct = default) => Task.FromResult(_store.GetValueOrDefault(id));
+
+    public Task<IReadOnlyList<PracticeSession>> ListRecentAsync(KidProfileId kidId, int take, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<PracticeSession>>(_store.Values
+            .Where(s => s.KidId == kidId && s.Answers.Count > 0).OrderByDescending(s => s.StartedAt).Take(take).ToList());
+
+    public Task AddAsync(PracticeSession session, CancellationToken ct = default)
+    {
+        _store[session.Id] = session;
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveAllForKidAsync(KidProfileId kidId, CancellationToken ct = default)
+    {
+        foreach (var session in _store.Values.Where(s => s.KidId == kidId).ToList()) _store.TryRemove(session.Id, out _);
         return Task.CompletedTask;
     }
 }

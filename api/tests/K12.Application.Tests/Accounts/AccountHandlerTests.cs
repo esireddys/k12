@@ -88,7 +88,7 @@ public class AccountHandlerTests
         var view = await new GetAccountHandler(s).HandleAsync(new GetAccountQuery(account.Id.Value));
         Assert.Single(view.Value!.Kids);
 
-        var removed = await new RemoveKidHandler(s, s).HandleAsync(new RemoveKidCommand(account.Id.Value, added.Value.Id));
+        var removed = await new RemoveKidHandler(s, s, s, s).HandleAsync(new RemoveKidCommand(account.Id.Value, added.Value.Id));
         Assert.Empty(removed.Value!.Kids);
     }
 
@@ -99,7 +99,7 @@ public class AccountHandlerTests
         { "family.invalid", async (s, a, _) => (await new AddKidHandler(s, s, s).HandleAsync(new AddKidCommand(a.Id.Value, "maya@example.org", AvatarColor.Blue, null))).Error?.Code },
         { "family.no_kid", async (s, a, _) => (await new UpdateKidHandler(s, s, s).HandleAsync(new UpdateKidCommand(a.Id.Value, Guid.NewGuid(), "Maya", AvatarColor.Blue, null))).Error?.Code },
         { "family.no_kid", async (s, a, c) => (await new ChooseKidCourseHandler(s, s, s).HandleAsync(new ChooseKidCourseCommand(a.Id.Value, Guid.NewGuid(), c.Id.Value))).Error?.Code },
-        { "family.no_kid", async (s, a, _) => (await new RemoveKidHandler(s, s).HandleAsync(new RemoveKidCommand(a.Id.Value, Guid.NewGuid()))).Error?.Code },
+        { "family.no_kid", async (s, a, _) => (await new RemoveKidHandler(s, s, s, s).HandleAsync(new RemoveKidCommand(a.Id.Value, Guid.NewGuid()))).Error?.Code },
     };
 
     [Theory]

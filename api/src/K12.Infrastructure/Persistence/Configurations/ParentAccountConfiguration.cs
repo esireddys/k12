@@ -43,6 +43,16 @@ internal sealed class ParentAccountConfiguration : IEntityTypeConfiguration<Pare
         });
         b.Navigation(a => a.Kids).HasField("_kids").UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        // Only a salted hash of the parent PIN is kept, with the wrong-try count that locks it.
+        b.OwnsOne(a => a.Pin, pin =>
+        {
+            pin.Property(p => p.Hash).HasColumnName("PinHash").HasMaxLength(200).IsRequired();
+            pin.Property(p => p.SetAt).HasColumnName("PinSetAt");
+            pin.Property(p => p.WrongTries).HasColumnName("PinWrongTries");
+            pin.Property(p => p.LockedUntil).HasColumnName("PinLockedUntil");
+        });
+        b.Ignore(a => a.HasPin);
+
         b.Ignore(a => a.DomainEvents);
     }
 }

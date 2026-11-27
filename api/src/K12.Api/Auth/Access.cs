@@ -74,15 +74,36 @@ public static class Access
 
     public const string SessionCookieName = "k12.session";
 
+    /// <summary>
+    /// Until when the parent areas are open on this session, as Unix seconds. Set by the parent PIN or a fresh
+    /// sign-in, and kept in the session cookie, which the server encrypts and signs, so a kid cannot forge it.
+    /// </summary>
+    public const string ParentAreaOpenUntilClaim = "k12:parent-open-until";
+
+    /// <summary>How long the parent areas stay open after the PIN, before the PIN is asked again.</summary>
+    public static readonly TimeSpan ParentAreaWindow = TimeSpan.FromMinutes(10);
+
     /// <summary>The claims a session cookie carries for a signed-in parent.</summary>
-    public static ClaimsPrincipal SessionPrincipal(Guid accountId, string displayName, string email) =>
-        new(new ClaimsIdentity(
-            [
-                new Claim(AccountIdClaim, accountId.ToString()),
-                new Claim(ClaimTypes.Name, displayName),
-                new Claim(ClaimTypes.Email, email),
-            ],
-            SessionScheme));
+    /// <param name="parentAreaOpenUntil">Set when the parent areas are open on this session.</param>
+    public static ClaimsPrincipal SessionPrincipal(Guid accountId, string displayName, string email, DateTimeOffset? parentAreaOpenUntil = null)
+    {
+        var claims = new List<Claim>
+        {
+            new(AccountIdClaim, accountId.ToString()),
+            new(ClaimTypes.Name, displayName),
+            new(ClaimTypes.Email, email),
+        };
+        if (parentAreaOpenUntil is { } until)
+            claims.Add(new Claim(ParentAreaOpenUntilClaim, until.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, SessionScheme));
+    }
+
+    /// <summary>Until when the parent areas are open on this session, if they are open at <paramref name="now"/>.</summary>
+    public static DateTimeOffset? ParentAreaOpenUntil(this ClaimsPrincipal user, DateTimeOffset now) =>
+        long.TryParse(user.FindFirstValue(ParentAreaOpenUntilClaim), out var seconds)
+        && DateTimeOffset.FromUnixTimeSeconds(seconds) is var until && until > now
+            ? until
+            : null;
 
     /// <summary>The signed-in parent's account id. Only call it behind <see cref="ParentPolicy"/>.</summary>
     public static Guid AccountId(this ClaimsPrincipal user) => Guid.Parse(user.FindFirstValue(AccountIdClaim)!);

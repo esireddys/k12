@@ -212,6 +212,16 @@
           "required": true
         },
         "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -263,6 +273,16 @@
           "required": true
         },
         "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -312,6 +332,16 @@
           }
         ],
         "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -369,6 +399,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/KidView"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -657,6 +697,409 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/family/kids/{kidId}/answers": {
+      "post": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "RecordAnswers",
+        "parameters": [
+          {
+            "name": "kidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordedScore"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/kids/{kidId}/sessions/{sessionId}/finish": {
+      "post": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "FinishSession",
+        "parameters": [
+          {
+            "name": "kidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionView"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/kids/{kidId}/summary": {
+      "get": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "GetKidSummary",
+        "parameters": [
+          {
+            "name": "kidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "localDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KidSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/kids/{kidId}/mistakes": {
+      "get": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "GetMistakesSet",
+        "parameters": [
+          {
+            "name": "kidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeSet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/kids/{kidId}/dashboard": {
+      "get": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "GetKidDashboard",
+        "parameters": [
+          {
+            "name": "kidId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "localDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KidDashboard"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/pin": {
+      "get": {
+        "tags": [
+          "Parent PIN"
+        ],
+        "operationId": "GetParentGate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParentGateResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Parent PIN"
+        ],
+        "operationId": "SetParentPin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParentGateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/pin/unlock": {
+      "post": {
+        "tags": [
+          "Parent PIN"
+        ],
+        "operationId": "UnlockParentArea",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnlockResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family/pin/lock": {
+      "post": {
+        "tags": [
+          "Parent PIN"
+        ],
+        "operationId": "LockParentArea",
+        "responses": {
+          "204": {
+            "description": "No Content"
           }
         }
       }
@@ -1603,6 +2046,41 @@
           "Harder"
         ]
       },
+      "ExamResultView": {
+        "required": [
+          "title",
+          "percent",
+          "previousPercent",
+          "finishedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "percent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "previousPercent": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "FindingSeverity": {
         "enum": [
           "Info",
@@ -1885,6 +2363,204 @@
           }
         }
       },
+      "KidDashboard": {
+        "required": [
+          "kidId",
+          "name",
+          "avatar",
+          "courseId",
+          "courseName",
+          "frameworkName",
+          "streak",
+          "bestStreak",
+          "week",
+          "answered",
+          "correct",
+          "mistakesToFix",
+          "lastExam",
+          "skillsMastered",
+          "skillsTotal",
+          "needsAttention",
+          "skills",
+          "recentSessions"
+        ],
+        "type": "object",
+        "properties": {
+          "kidId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "avatar": {
+            "$ref": "#/components/schemas/AvatarColor"
+          },
+          "courseId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "courseName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "frameworkName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "streak": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "bestStreak": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "week": {
+            "$ref": "#/components/schemas/WeekView"
+          },
+          "answered": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "correct": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "mistakesToFix": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "lastExam": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ExamResultView"
+              }
+            ]
+          },
+          "skillsMastered": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "skillsTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "needsAttention": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillStanding"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillStanding"
+            }
+          },
+          "recentSessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            }
+          }
+        }
+      },
+      "KidSummary": {
+        "required": [
+          "kidId",
+          "streak",
+          "bestStreak",
+          "stars",
+          "answered",
+          "mistakesToFix"
+        ],
+        "type": "object",
+        "properties": {
+          "kidId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "streak": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "bestStreak": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "stars": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "answered": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "mistakesToFix": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "KidView": {
         "required": [
           "id",
@@ -1912,6 +2588,14 @@
             "format": "uuid"
           }
         }
+      },
+      "MasteryLevel": {
+        "enum": [
+          "NotStarted",
+          "Learning",
+          "Practicing",
+          "Mastered"
+        ]
       },
       "MeResponse": {
         "required": [
@@ -2101,6 +2785,52 @@
           }
         }
       },
+      "ParentGateResponse": {
+        "required": [
+          "hasPin",
+          "lockedUntil",
+          "parentAreaOpenUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "hasPin": {
+            "type": "boolean"
+          },
+          "lockedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parentAreaOpenUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PinBody": {
+        "required": [
+          "pin"
+        ],
+        "type": "object",
+        "properties": {
+          "pin": {
+            "type": "string"
+          }
+        }
+      },
+      "PinCheck": {
+        "enum": [
+          "Unlocked",
+          "Wrong",
+          "LockedOut",
+          "NoPin"
+        ]
+      },
       "PracticeCatalog": {
         "required": [
           "courses"
@@ -2114,6 +2844,12 @@
             }
           }
         }
+      },
+      "PracticeMode": {
+        "enum": [
+          "Practice",
+          "Exam"
+        ]
       },
       "PracticeSet": {
         "required": [
@@ -2407,6 +3143,79 @@
           }
         }
       },
+      "RecordBody": {
+        "required": [
+          "sessionId",
+          "mode",
+          "source",
+          "title",
+          "localDate",
+          "elapsedSeconds",
+          "responses",
+          "finish"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/PracticeMode"
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "localDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "elapsedSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "responses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResponseItem"
+            }
+          },
+          "finish": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RecordedScore": {
+        "required": [
+          "score",
+          "session"
+        ],
+        "type": "object",
+        "properties": {
+          "score": {
+            "$ref": "#/components/schemas/ScoreResult"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionView"
+          }
+        }
+      },
       "RejectBody": {
         "required": [
           "version",
@@ -2635,11 +3444,76 @@
           }
         }
       },
+      "SessionView": {
+        "required": [
+          "id",
+          "mode",
+          "source",
+          "title",
+          "correct",
+          "total",
+          "minutes",
+          "startedAt",
+          "finishedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/PracticeMode"
+          },
+          "source": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "correct": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "minutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "SetSource": {
         "enum": [
           "Shuffle",
           "Year",
-          "Topic"
+          "Topic",
+          "Mistakes"
         ]
       },
       "SignInOptions": {
@@ -2656,6 +3530,67 @@
             }
           },
           "developerSignIn": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SkillStanding": {
+        "required": [
+          "code",
+          "description",
+          "category",
+          "level",
+          "answered",
+          "correct",
+          "accuracy",
+          "hasQuestions"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "level": {
+            "$ref": "#/components/schemas/MasteryLevel"
+          },
+          "answered": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "correct": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "accuracy": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hasQuestions": {
             "type": "boolean"
           }
         }
@@ -2748,6 +3683,85 @@
             ]
           }
         }
+      },
+      "UnlockResponse": {
+        "required": [
+          "result",
+          "triesLeft",
+          "lockedUntil",
+          "parentAreaOpenUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/PinCheck"
+          },
+          "triesLeft": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "lockedUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "parentAreaOpenUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "WeekView": {
+        "required": [
+          "daysPracticed",
+          "minutes",
+          "answered",
+          "correct"
+        ],
+        "type": "object",
+        "properties": {
+          "daysPracticed": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "minutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "answered": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "correct": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
       }
     }
   },
@@ -2763,6 +3777,12 @@
     },
     {
       "name": "Practice"
+    },
+    {
+      "name": "Progress"
+    },
+    {
+      "name": "Parent PIN"
     },
     {
       "name": "AI review"

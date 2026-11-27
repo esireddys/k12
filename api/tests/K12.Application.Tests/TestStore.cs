@@ -3,12 +3,14 @@ using K12.Application.ContentReview;
 using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Curriculum;
+using K12.Domain.Progress;
 
 namespace K12.Application.Tests;
 
 /// <summary>Every repository in memory, for handler tests that span aggregates.</summary>
 public sealed class TestStore
-    : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IParentAccountRepository, IUnitOfWork, IClock, IItemImageStore
+    : ICourseRepository, ISkillRepository, IQuestionRepository, IExamFormRepository, IParentAccountRepository, IUnitOfWork, IClock, IItemImageStore,
+      IKidProgressRepository, IPracticeSessionRepository, IPinHasher
 {
     public List<Course> Courses { get; } = [];
     public List<Skill> Skills { get; } = [];
@@ -16,6 +18,8 @@ public sealed class TestStore
     public List<ExamForm> Forms { get; } = [];
     public List<ParentAccount> Accounts { get; } = [];
     public Dictionary<string, byte[]> Images { get; } = [];
+    public List<KidProgress> Progress { get; } = [];
+    public List<PracticeSession> Sessions { get; } = [];
     public int Saves { get; private set; }
     public DateTimeOffset UtcNow { get; set; } = new(2026, 11, 27, 5, 0, 0, TimeSpan.Zero);
 
@@ -68,4 +72,23 @@ public sealed class TestStore
     // Pictures
     public Task<ItemImage?> OpenAsync(string relativePath, CancellationToken ct = default) =>
         Task.FromResult(Images.TryGetValue(relativePath, out var bytes) ? new ItemImage(new MemoryStream(bytes), "image/png") : null);
+
+    // Progress
+    public Task<KidProgress?> GetAsync(KidProfileId kidId, CancellationToken ct = default) => Task.FromResult(Progress.FirstOrDefault(p => p.Id == kidId));
+    public Task<IReadOnlyList<KidProgress>> ListAsync(IReadOnlyCollection<KidProfileId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<KidProgress>>(Progress.Where(p => ids.Contains(p.Id)).ToList());
+    public Task AddAsync(KidProgress progress, CancellationToken ct = default) { Progress.Add(progress); return Task.CompletedTask; }
+    public void Remove(KidProgress progress) => Progress.Remove(progress);
+
+    // Sessions
+    public Task<PracticeSession?> GetAsync(PracticeSessionId id, CancellationToken ct = default) => Task.FromResult(Sessions.FirstOrDefault(s => s.Id == id));
+    public Task<IReadOnlyList<PracticeSession>> ListRecentAsync(KidProfileId kidId, int take, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<PracticeSession>>(Sessions.Where(s => s.KidId == kidId && s.Answers.Count > 0)
+            .OrderByDescending(s => s.StartedAt).Take(take).ToList());
+    public Task AddAsync(PracticeSession session, CancellationToken ct = default) { Sessions.Add(session); return Task.CompletedTask; }
+    public Task RemoveAllForKidAsync(KidProfileId kidId, CancellationToken ct = default) { Sessions.RemoveAll(s => s.KidId == kidId); return Task.CompletedTask; }
+
+    // PIN hashing: readable in tests, never in production.
+    public string Hash(string pin) => "hash:" + pin;
+    public bool Verify(string pin, string hash) => hash == "hash:" + pin;
 }
