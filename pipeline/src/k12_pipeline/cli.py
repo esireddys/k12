@@ -15,7 +15,8 @@ from .extract import extract_items, render_item
 from .forms import form_payload, form_slug
 from .keys import load_key
 from .passages import find_passages, render_passage_pages
-from .sources import RELEASED_TESTS
+from .sources import RELEASED_TESTS, SKIPPED_TESTS, TEA_RELEASED_PAGE
+from .tea_listing import compare, format_check, parse_listing
 
 DATA = Path(__file__).resolve().parents[2] / "data"
 
@@ -72,6 +73,10 @@ def run_import(api: str, data: Path, dry_run: bool) -> None:
         if pdf is None:
             print(f"skip {slug}: download {test.url} to {test.expected_path(data / 'raw')}")
             continue
+        key_csv = data / "keys" / f"{slug}.csv"
+        if not key_csv.exists():
+            print(f"skip {slug}: no answer key yet; copy {test.key_url or 'the published key'} into {key_csv}")
+            continue
         items = extract_items(pdf, test.items)
         images = {}
         for item in items:
@@ -86,13 +91,27 @@ def run_import(api: str, data: Path, dry_run: bool) -> None:
                     f"{slug}/{path.name}" for path in render_passage_pages(pdf, p, out / slug)
                 ]
         payload = form_payload(
-            test, test.subject, load_key(data / "keys" / f"{slug}.csv"), items, images, passages, pages)
+            test, test.subject, load_key(key_csv), items, images, passages, pages)
         (out / f"{slug}.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"form {slug} ({len(items)} items, pictures in {out / slug}): "
               f"{import_form(client, payload)}")
 
     # Released questions go Live on import. This also catches any an older import left waiting in review.
     print(f"released questions left in review: {publish_released(client)}")
+
+
+def read_tea_page(page: Path | None) -> str:
+    """TEA's released-tests page: a copy saved from the browser, or read from TEA once. Links only; no PDF is fetched."""
+    if page is not None:
+        return page.read_text(encoding="utf-8", errors="replace")
+    try:
+        r = httpx.get(TEA_RELEASED_PAGE, timeout=30, follow_redirects=True)
+        r.raise_for_status()
+    except httpx.HTTPError as e:
+        raise SystemExit(
+            f"Could not read {TEA_RELEASED_PAGE} ({e}). Open it in your browser, save it as a web page "
+            "(HTML only), then run: k12-pipeline downloads --check-tea --page <saved file>") from e
+    return r.text
 
 
 def main() -> None:
@@ -104,6 +123,10 @@ def main() -> None:
     dl.add_argument("--all", action="store_true", help="Also list the PDFs that are already downloaded")
     dl.add_argument("--open", action="store_true",
                     help="Open each missing PDF's link in your browser and make its folder; you save it by hand")
+    dl.add_argument("--check-tea", action="store_true",
+                    help="Read TEA's released-tests page (links only) and list years we neither import nor skip")
+    dl.add_argument("--page", type=Path, default=None,
+                    help="With --check-tea: a copy of TEA's page saved from your browser, instead of reading it")
     imp = sub.add_parser("import", help="Load curriculum and released tests into the API")
     imp.add_argument("--api", default="http://localhost:5143",
                      help="API base URL. A deployed API also needs the K12_IMPORT_KEY environment variable")
@@ -124,6 +147,8 @@ def main() -> None:
         for t in RELEASED_TESTS:
             print(f"{t.jurisdiction} {t.exam} {t.level} {t.subject} {t.year} {t.season} tagged={t.tagged} {t.url}"
                   f"\n    save as {t.expected_path(Path('data') / 'raw')}")
+        for s in SKIPPED_TESTS:
+            print(f"skipped {s.jurisdiction} {s.exam} {s.level} {s.subject} {', '.join(map(str, s.years))}: {s.reason}")
     elif args.command == "downloads":
         statuses = check_downloads(RELEASED_TESTS, args.data / "raw")
         print(format_report(statuses, show_all=args.all))
@@ -131,6 +156,9 @@ def main() -> None:
             import webbrowser
 
             print(f"Opened {open_missing(statuses, webbrowser.open)} links in your browser.")
+        if args.check_tea:
+            listings = parse_listing(read_tea_page(args.page))
+            print(format_check(compare(listings, RELEASED_TESTS, SKIPPED_TESTS)))
     elif args.command == "import":
         run_import(args.api, args.data, args.dry_run)
     elif args.command == "publish-released":

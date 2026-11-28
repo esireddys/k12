@@ -103,7 +103,7 @@ def form_payload(
         "exam": test.exam,
         "year": test.year,
         "season": test.season,
-        "sourceUrl": test.url,
+        "sourceUrl": test.source_url,
         "language": test.language,
         "items": out,
     }

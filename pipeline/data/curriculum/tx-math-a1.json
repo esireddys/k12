@@ -164,6 +164,12 @@
       "description": "Graph the solution set of a system of two linear inequalities"
     },
     {
+      "code": "A.4(A)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Find the correlation coefficient and say how strong a linear association is"
+    },
+    {
       "code": "A.4(B)",
       "category": 2,
       "designation": "supporting",
@@ -180,6 +186,12 @@
       "category": 3,
       "designation": "readiness",
       "description": "Solve linear equations in one variable, including the distributive property and variables on both sides"
+    },
+    {
+      "code": "A.5(B)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Solve one-variable linear inequalities, including variables on both sides"
     },
     {
       "code": "A.5(C)",
@@ -320,10 +332,22 @@
       "description": "Evaluate a function written in function notation"
     },
     {
+      "code": "A.12(C)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Find terms of arithmetic and geometric sequences from a formula or rule"
+    },
+    {
       "code": "A.12(D)",
       "category": 1,
       "designation": "supporting",
       "description": "Write a formula for the nth term of an arithmetic or geometric sequence"
+    },
+    {
+      "code": "A.12(E)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Solve a formula or literal equation for a given variable"
     }
   ]
 }

@@ -31,6 +31,24 @@ k12-pipeline downloads --open   :: opens each missing link in your browser and m
 Keep the file name the browser gives (the helper also knows the renamed copies TEA sometimes serves), then run
 `k12-pipeline import`. The list comes from `sources.py`; add a row there for each new released test.
 
+Which years are imported (all in `sources.py`):
+
+- Grade 3 Math and Algebra I: 2016 to 2019, 2021 and 2022. TEA took 2018 and older off its site, so those links
+  go to the Internet Archive's copy of TEA's original file; the import still records TEA's own link as the source.
+  The 2016 Grade 3 form has 46 items; the others have 32 (Grade 3) or 54 (Algebra I).
+- Grade 3 Reading: 2021 and 2022.
+- Left out on purpose (`SKIPPED_TESTS`): math before 2016 and reading before 2021 test older TEKS whose skill codes
+  mean something else today, and 2023 on are online tests with new item types (TEA posts only their answer keys).
+  No STAAR was given in 2020.
+
+To see whether TEA has posted a year we neither import nor skip (it reads the page's links only, never a PDF):
+
+```bat
+k12-pipeline downloads --check-tea
+:: if TEA refuses the request, save the page from your browser (HTML only) and pass it instead:
+k12-pipeline downloads --check-tea --page "%USERPROFILE%\Downloads\STAAR Released Test Questions.html"
+```
+
 ## Importing released tests
 
 What lives where:

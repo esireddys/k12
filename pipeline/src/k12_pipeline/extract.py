@@ -262,6 +262,7 @@ def _read_text(item: ExtractedItem, own: list[_Line], page: pymupdf.Page) -> Non
     for c in item.choices:
         c.text = _clean(c.text)
     item.choices.sort(key=lambda c: labels.index(c.label))
+    _complete_choices(item, labels)
     item.griddable = GRIDDABLE_HINT.lower() in item.stem.lower()
     if item.griddable:
         item.stem = item.stem[: item.stem.lower().index(GRIDDABLE_HINT.lower())].strip()
@@ -285,13 +286,22 @@ def _read_text(item: ExtractedItem, own: list[_Line], page: pymupdf.Page) -> Non
     )
 
 
+def _complete_choices(item: ExtractedItem, labels: str) -> None:
+    """Adds a choice the text layer lost (some older forms print a choice line with no readable text) as an
+    empty one, so every answer button is there. The choices then stay in the picture, which shows them all."""
+    if not item.choices or len(item.choices) == len(labels):
+        return
+    found = {c.label: c for c in item.choices}
+    item.choices = [found.get(label) or Choice(label, "") for label in labels]
+
+
 def _plain(text: str) -> bool:
     """Text a student can read as is: nothing unreadable and no stacked fraction (whose layout the text loses)."""
     return UNREADABLE not in text and "_" not in text and "￼" not in text
 
 
 def _choices_plain(item: ExtractedItem, choice_lines: dict[str, list[_Line]], labels: str) -> bool:
-    if [c.label for c in item.choices] != list(labels):
+    if [c.label for c in item.choices] != list(labels) or set(choice_lines) != set(labels):
         return False
     columns = {round(lines[0].x0) for lines in choice_lines.values()}
     for c in item.choices:

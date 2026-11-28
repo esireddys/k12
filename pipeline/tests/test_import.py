@@ -61,7 +61,7 @@ def test_every_key_file_matches_the_curriculum():
 
 def test_algebra_keys_have_five_gridded_items_each_that_can_be_negative_or_decimal():
     algebra = [t for t in RELEASED_TESTS if t.level == "A1"]
-    assert sorted(t.year for t in algebra) == [2019, 2021, 2022]
+    assert sorted(t.year for t in algebra) == [2016, 2017, 2018, 2019, 2021, 2022]
     for test in algebra:
         gridded = [r for r in load_key(DATA / "keys" / f"{form_slug(test, test.subject)}.csv") if not r.is_choice]
         assert [r.item for r in gridded] == [14, 20, 27, 34, 42], test
@@ -359,3 +359,21 @@ def test_a_form_imported_before_is_refreshed():
     client = httpx.Client(base_url="http://api", transport=httpx.MockTransport(handler))
     assert import_form(client, {"items": []}) == "already imported; 30 refreshed, 2 kept as edited"
     assert calls == ["/api/admin/import/exam-form", "/api/admin/import/exam-form/refresh"]
+
+
+@pytest.mark.parametrize(
+    ("number", "found", "expected"),
+    [
+        (17, "BCD", ["A", "B", "C", "D"]),  # 2017 Algebra I: choice A has no text in the PDF
+        (18, "FGJ", ["F", "G", "H", "J"]),
+        (19, "ABCD", ["A", "B", "C", "D"]),
+        (21, "", []),  # griddable or no choices read: nothing to complete
+    ],
+)
+def test_a_choice_the_pdf_text_loses_is_still_offered(number, found, expected):
+    from k12_pipeline.extract import Choice, ExtractedItem, _complete_choices, expected_labels
+
+    item = ExtractedItem(number, 1, 0, 100, choices=[Choice(label, f"text {label}") for label in found])
+    _complete_choices(item, expected_labels(number))
+    assert [c.label for c in item.choices] == expected
+    assert all(c.text == ("" if c.label not in found else f"text {c.label}") for c in item.choices)
