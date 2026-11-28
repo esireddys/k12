@@ -14,9 +14,24 @@ public sealed class InMemoryQuestionRepository : IQuestionRepository
     public Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default) =>
         Task.FromResult(_store.GetValueOrDefault(id));
 
+    public Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Question>>(ids.Where(_store.ContainsKey).Select(id => _store[id]).ToList());
+
     public Task AddAsync(Question question, CancellationToken ct = default)
     {
         _store[question.Id] = question;
         return Task.CompletedTask;
     }
+
+    public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Question>>(_store.Values.Where(q => q.Status == status).Take(take).ToList());
+
+    public Task<IReadOnlyList<Question>> ListByOriginAsync(
+        QuestionOrigin origin, IReadOnlyCollection<QuestionStatus> statuses, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Question>>(
+            _store.Values.Where(q => q.Origin == origin && statuses.Contains(q.Status)).ToList());
+
+    public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(
+            _store.Values.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));
 }

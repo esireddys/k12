@@ -50,10 +50,13 @@ public static partial class AnswerChecker
     private static bool Same(string a, string b) =>
         string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Drops commas, currency signs and unit words: "$1,000 dollars" becomes "1000".</summary>
+    /// <summary>
+    /// Drops commas, currency signs and unit words: "$1,000 dollars" becomes "1000". A typographic minus sign
+    /// (as printed in test books) counts as a hyphen-minus.
+    /// </summary>
     private static string CleanNumber(string text)
     {
-        var s = text.ToLowerInvariant().Replace(",", "").Replace("$", "").Replace("¢", "");
+        var s = text.ToLowerInvariant().Replace(",", "").Replace("$", "").Replace("¢", "").Replace('\u2212', '-');
         s = Letters().Replace(s, " ");
         return Spaces().Replace(s, " ").Trim();
     }

@@ -1,16 +1,75 @@
+using System.Security.Claims;
+using K12.Api.Auth;
 using K12.Application.Abstractions;
+using K12.Application.ContentReview;
 using K12.Application.Practice.CheckAnswer;
+using K12.Application.Practice.Sets;
+using K12.Domain.Content.Reports;
 
 namespace K12.Api.Endpoints;
 
-/// <summary>HTTP for the Practice context. Endpoints only translate HTTP to use cases and back.</summary>
+/// <summary>
+/// HTTP for the Practice context: open to guests and signed-in families alike, and only ever Live questions.
+/// Endpoints only translate HTTP to use cases and back.
+/// </summary>
 public static class PracticeEndpoints
 {
     public sealed record CheckAnswerBody(string? Response);
 
+    public sealed record ScoreBody(IReadOnlyList<ResponseItem> Responses);
+
+    /// <param name="Reporter">Kid or Parent from a signed-in family; anyone signed out reports as a guest.</param>
+    public sealed record ReportBody(ReportReason Reason, Reporter? Reporter);
+
     public static IEndpointRouteBuilder MapPracticeEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/practice").WithTags("Practice");
+
+        group.MapGet("/catalog", async (IQueryHandler<GetPracticeCatalogQuery, PracticeCatalog> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new GetPracticeCatalogQuery(), ct)).ToHttp())
+            .WithName("GetPracticeCatalog")
+            .Produces<PracticeCatalog>();
+
+        group.MapGet("/set", async (
+                Guid courseId, SetSource source, Guid? formId, int? category, string? skill, int? count, int? seed,
+                IQueryHandler<GetPracticeSetQuery, PracticeSet> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new GetPracticeSetQuery(courseId, source, formId, category, skill, count, seed), ct)).ToHttp())
+            .WithName("GetPracticeSet")
+            .Produces<PracticeSet>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/score", async (
+                ScoreBody body, ICommandHandler<ScoreResponsesCommand, ScoreResult> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new ScoreResponsesCommand(body.Responses ?? []), ct)).ToHttp())
+            .WithName("ScoreResponses")
+            .Produces<ScoreResult>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/questions/{questionId:guid}/image", async (
+                Guid questionId, IQueryHandler<GetQuestionImageQuery, ItemImage> handler, HttpContext http, CancellationToken ct) =>
+            {
+                var result = await handler.HandleAsync(new GetQuestionImageQuery(questionId), ct);
+                if (!result.IsSuccess) return result.ToHttp();
+                http.Response.Headers.CacheControl = "public, max-age=86400";
+                return Results.Stream(result.Value!.Content, result.Value.ContentType);
+            })
+            .WithName("GetQuestionImage")
+            .Produces(StatusCodes.Status200OK, contentType: "image/png")
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/passages/{passageId:guid}/pages/{page:int}", async (
+                Guid passageId, int page, IQueryHandler<GetPassagePageQuery, ItemImage> handler, HttpContext http, CancellationToken ct) =>
+            {
+                var result = await handler.HandleAsync(new GetPassagePageQuery(passageId, page), ct);
+                if (!result.IsSuccess) return result.ToHttp();
+                http.Response.Headers.CacheControl = "public, max-age=86400";
+                return Results.Stream(result.Value!.Content, result.Value.ContentType);
+            })
+            .WithName("GetPassagePage")
+            .Produces(StatusCodes.Status200OK, contentType: "image/png")
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/questions/{questionId:guid}/check", async (
                 Guid questionId,
@@ -20,6 +79,21 @@ public static class PracticeEndpoints
             (await handler.HandleAsync(new CheckAnswerCommand(questionId, body.Response), ct)).ToHttp())
             .WithName("CheckAnswer")
             .Produces<CheckAnswerResponse>()
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/questions/{questionId:guid}/reports", async (
+                Guid questionId, ReportBody body, ClaimsPrincipal user,
+                ICommandHandler<ReportQuestionCommand, QuestionReportFiled> handler, CancellationToken ct) =>
+            {
+                // Only a signed-in family can say who in it reported; nothing about the person is kept either way.
+                var reporter = user.HasClaim(c => c.Type == Access.AccountIdClaim)
+                    ? body.Reporter is Reporter.Parent ? Reporter.Parent : Reporter.Kid
+                    : Reporter.Guest;
+                return (await handler.HandleAsync(new ReportQuestionCommand(questionId, body.Reason, reporter), ct)).ToHttp();
+            })
+            .WithName("ReportQuestion")
+            .Produces<QuestionReportFiled>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         return app;

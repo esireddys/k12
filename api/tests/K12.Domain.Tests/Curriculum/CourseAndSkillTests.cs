@@ -23,6 +23,34 @@ public class CourseAndSkillTests
         Assert.Throws<DomainException>(() => Course.Create("TX", "math", code, name, "FW", "Framework", []));
 
     [Fact]
+    public void A_course_is_a_grade_until_told_otherwise()
+    {
+        var course = Grade3();
+        Assert.Equal((CourseKind.Grade, (int?)null), (course.Kind, course.TypicalGrade));
+    }
+
+    [Theory]
+    [InlineData(CourseKind.Grade, 3)]
+    [InlineData(CourseKind.Grade, 0)]
+    [InlineData(CourseKind.Course, 9)]
+    [InlineData(CourseKind.Course, null)]
+    [InlineData(CourseKind.Course, 12)]
+    public void A_course_can_be_placed_in_school(CourseKind kind, int? grade)
+    {
+        var course = Grade3();
+        course.Place(kind, grade);
+        Assert.Equal((kind, grade), (course.Kind, course.TypicalGrade));
+    }
+
+    [Theory]
+    [InlineData(CourseKind.Grade, null)]
+    [InlineData(CourseKind.Course, -1)]
+    [InlineData(CourseKind.Course, 13)]
+    [InlineData((CourseKind)7, 9)]
+    public void A_course_cannot_be_placed_outside_school(CourseKind kind, int? grade) =>
+        Assert.Throws<DomainException>(() => Grade3().Place(kind, grade));
+
+    [Fact]
     public void Category_numbers_must_be_unique() =>
         Assert.Throws<DomainException>(() => Grade3().Describe("Grade 3", "FW", "Framework",
             [new ReportingCategory(1, "A"), new ReportingCategory(1, "B")]));
@@ -52,5 +80,23 @@ public class CourseAndSkillTests
     {
         var skill = Skill.Define(Grade3(), "3.4(K)", "Solve", 2, null, "{}");
         Assert.Throws<DomainException>(() => skill.Redefine(Grade3(), "Solve", 2, null, "{}"));
+    }
+
+    [Theory]
+    [InlineData(null, "Numerical Representations")]
+    [InlineData("  ", "Numerical Representations")]
+    [InlineData(" Numbers and place value ", "Numbers and place value")]
+    public void A_category_has_a_short_name_for_kids_or_falls_back_to_its_own(string? kidName, string expected)
+    {
+        var course = Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework",
+            [new ReportingCategory(1, "Numerical Representations", kidName)]);
+        Assert.Equal(expected, course.Categories[0].NameForKids);
+    }
+
+    [Fact]
+    public void A_kid_name_must_fit_on_a_progress_bar()
+    {
+        Assert.Throws<DomainException>(() => Course.Create("TX", "math", "G3", "Grade 3", "FW", "Framework",
+            [new ReportingCategory(1, "Numbers", new string('x', Course.MaxKidNameLength + 1))]));
     }
 }

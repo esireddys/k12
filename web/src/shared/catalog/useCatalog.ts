@@ -1,0 +1,85 @@
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../api/client'
+import type { components } from '../api/schema'
+
+export type CatalogCourse = components['schemas']['CatalogCourse']
+export type CatalogCategory = components['schemas']['CatalogCategory']
+export type CatalogForm = components['schemas']['CatalogForm']
+
+/** Every course students can pick, with question counts by topic and by released test. */
+export function useCatalog() {
+  return useQuery({
+    queryKey: ['practice', 'catalog'],
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/practice/catalog')
+      if (error || !data) throw new Error('Could not load the courses')
+      return data.courses
+    },
+    staleTime: 5 * 60_000,
+  })
+}
+
+/** The jurisdiction's name from curriculum data, or its code until an import names it. */
+export const jurisdictionLabel = (c: Pick<CatalogCourse, 'jurisdiction' | 'jurisdictionName'>) =>
+  c.jurisdictionName || c.jurisdiction
+
+export const subjectLabel = (subject: string) => subject.charAt(0).toUpperCase() + subject.slice(1)
+
+/**
+ * "Grade 3 Math" for a whole grade; just "Algebra I" for a course, whose name already says the subject.
+ * Both names come from curriculum data.
+ */
+export const courseLabel = (c: Pick<CatalogCourse, 'name' | 'subject' | 'kind'>) =>
+  c.kind === 'Course' ? c.name : `${c.name} ${subjectLabel(c.subject)}`
+
+const gradeName = (grade: number) => (grade === 0 ? 'kindergarten' : `grade ${grade}`)
+
+/** "Usually grade 9" for a course such as Algebra I, so parents know who it is for. Empty for a whole grade. */
+export function courseLevelHint(c: Pick<CatalogCourse, 'kind' | 'typicalGrade'>): string {
+  if (c.kind !== 'Course' || c.typicalGrade === null || c.typicalGrade === undefined) return ''
+  return `Usually ${gradeName(Number(c.typicalGrade))}`
+}
+
+/** The exam names this course's released tests come from, for example one name, or two joined with "and". From data. */
+export function examNames(c: CatalogCourse): string {
+  const names = [...new Set(c.forms.map((f) => f.exam))]
+  return names.length === 0 ? '' : names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+}
+
+export const hasQuestions = (c: CatalogCourse) => Number(c.questionCount) > 0
+
+/**
+ * The subjects of one grade: this course and the others with the same state, level and language, for example
+ * Grade 3 Math and Grade 3 Reading. Moving between them is not a change of grade. Subjects with no questions yet
+ * are left out.
+ */
+export function sameGradeSubjects(course: CatalogCourse, courses: CatalogCourse[]): CatalogCourse[] {
+  return courses
+    .filter((c) => c.jurisdiction === course.jurisdiction && c.code === course.code && (c.language ?? 'en') === (course.language ?? 'en'))
+    .filter((c) => c.id === course.id || hasQuestions(c))
+    .sort((a, b) => a.subject.localeCompare(b.subject))
+}
+
+/** "Grade 3" for a whole grade, whatever the subject; "Algebra I" for a course. A kid belongs to a grade, not a subject. */
+export const gradeLabel = (c: Pick<CatalogCourse, 'name' | 'subject' | 'kind'>) => c.name
+
+/**
+ * One choice per grade (and one per course such as Algebra I), for picking a kid's grade. A grade is offered as
+ * its first subject with questions, or as <paramref name="currentId"/> when that is one of its subjects, so the
+ * subject a kid has open is kept. Subjects are then tabs on the kid's home.
+ */
+export function gradeChoices(courses: CatalogCourse[], currentId?: string | null): CatalogCourse[] {
+  const levelKey = (c: CatalogCourse) =>
+    c.kind === 'Course' ? `course:${c.id}` : `${c.jurisdiction}|${c.code}|${c.language ?? 'en'}`
+  const groups = new Map<string, CatalogCourse[]>()
+  for (const c of courses) groups.set(levelKey(c), [...(groups.get(levelKey(c)) ?? []), c])
+  return [...groups.values()].map(
+    (group) =>
+      group.find((c) => c.id === currentId) ??
+      [...group].sort((a, b) => a.subject.localeCompare(b.subject)).find(hasQuestions) ??
+      group[0],
+  )
+}
+
+/** The name kids see for a reporting category: a short everyday one from curriculum data, else the framework's. */
+export const categoryKidName = (c: { name: string; kidName?: string | null }) => c.kidName || c.name

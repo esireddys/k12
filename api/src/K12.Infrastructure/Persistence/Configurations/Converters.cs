@@ -1,8 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using K12.Domain.Accounts;
 using K12.Domain.Content;
 using K12.Domain.Content.Answers;
+using K12.Domain.Content.Review;
 using K12.Domain.Curriculum;
+using K12.Domain.Progress;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -17,19 +20,53 @@ internal static class Converters
 
     public static readonly ValueConverter<QuestionId, Guid> QuestionId = new(id => id.Value, v => new QuestionId(v));
 
+    public static readonly ValueConverter<K12.Domain.Content.Reports.QuestionReportId, Guid> QuestionReportId =
+        new(id => id.Value, v => new K12.Domain.Content.Reports.QuestionReportId(v));
+
     public static readonly ValueConverter<CourseId, Guid> CourseId = new(id => id.Value, v => new CourseId(v));
+
+    public static readonly ValueConverter<PassageId, Guid> PassageId = new(id => id.Value, v => new PassageId(v));
+
+    public static readonly ValueConverter<PassageId?, Guid?> OptionalPassageId = new(
+        id => id.HasValue ? id.Value.Value : null, v => v.HasValue ? new PassageId(v.Value) : null);
+
+    /// <summary>Stores a course's practice test shape as JSON: it is read whole with the course.</summary>
+    public static readonly ValueConverter<PracticeTestBlueprint, string> PracticeTest = new(
+        test => JsonSerializer.Serialize(test, Json),
+        json => JsonSerializer.Deserialize<PracticeTestBlueprint>(json, Json)!);
+
+    public static readonly ValueComparer<PracticeTestBlueprint?> PracticeTestComparer = JsonComparer<PracticeTestBlueprint?>();
 
     public static readonly ValueConverter<ExamFormId, Guid> ExamFormId = new(id => id.Value, v => new ExamFormId(v));
 
+    public static readonly ValueConverter<ParentAccountId, Guid> ParentAccountId = new(id => id.Value, v => new ParentAccountId(v));
+
+    public static readonly ValueConverter<KidProfileId, Guid> KidProfileId = new(id => id.Value, v => new KidProfileId(v));
+
     public static readonly ValueConverter<SkillId, Guid> SkillId = new(id => id.Value, v => new SkillId(v));
+
+    public static readonly ValueConverter<SkillId?, Guid?> OptionalSkillId = new(
+        id => id.HasValue ? id.Value.Value : null, v => v.HasValue ? new SkillId(v.Value) : null);
+
+    public static readonly ValueConverter<PracticeSessionId, Guid> PracticeSessionId = new(id => id.Value, v => new PracticeSessionId(v));
 
     /// <summary>Stores the answer spec as JSON in an nvarchar(max) column.</summary>
     public static readonly ValueConverter<AnswerSpec, string> AnswerSpec = new(
         spec => JsonSerializer.Serialize(spec, Json),
         json => JsonSerializer.Deserialize<AnswerSpec>(json, Json)!);
 
-    public static readonly ValueComparer<AnswerSpec> AnswerSpecComparer = new(
+    public static readonly ValueComparer<AnswerSpec> AnswerSpecComparer = JsonComparer<AnswerSpec>();
+
+    /// <summary>Stores the AI reviewer's findings as JSON: they are read whole and never queried field by field.</summary>
+    public static readonly ValueConverter<AiReview, string> AiReview = new(
+        review => JsonSerializer.Serialize(review, Json),
+        json => JsonSerializer.Deserialize<AiReview>(json, Json)!);
+
+    public static readonly ValueComparer<AiReview?> AiReviewComparer = JsonComparer<AiReview?>();
+
+    /// <summary>Two values are the same when they serialize the same; snapshots are deep copies.</summary>
+    private static ValueComparer<T> JsonComparer<T>() => new(
         (a, b) => JsonSerializer.Serialize(a, Json) == JsonSerializer.Serialize(b, Json),
         a => JsonSerializer.Serialize(a, Json).GetHashCode(),
-        a => JsonSerializer.Deserialize<AnswerSpec>(JsonSerializer.Serialize(a, Json), Json)!);
+        a => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(a, Json), Json)!);
 }

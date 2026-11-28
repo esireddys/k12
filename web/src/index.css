@@ -1,21 +1,879 @@
+@import './shared/theme/tokens.css';
+
 :root {
-  --bg: #f5f7fb;
-  --surface: #ffffff;
-  --ink: #1b2333;
-  --ink-quiet: #4a5468;
-  --accent: #1f5bd6;
-  --border: #d5dcea;
-  font-family: Nunito, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);
 }
 
+/* Headings, buttons and badges use the rounded display face. */
+h1,
+h2,
+h3,
+h4,
+button,
+.brand,
+.chip,
+.eyebrow,
+.banner,
+.list-row,
+.field label {
+  font-family: var(--font-display);
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
 body {
   margin: 0;
+  background: var(--bg);
   min-height: 100vh;
 }
 
-button {
+button,
+input,
+select {
   font: inherit;
+}
+
+button {
   min-height: 44px;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* Page shell: tablet first, comfortable on a large phone. */
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 40px 48px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.topbar .spacer {
+  margin-left: auto;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.icon-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.card {
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+a.card,
+button.card {
+  text-decoration: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+a.card:hover,
+button.card:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.card h2,
+.card h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.card p {
+  margin: 0;
+  color: var(--ink-quiet);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.quiet {
+  color: var(--ink-quiet);
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--ink-quiet);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.chip.badge-reward,
+.chip.badge-streak {
+  font-size: 17px;
+  padding: 10px 16px;
+  gap: 6px;
+}
+
+/* Stars: the sun colour is for rewards only. */
+.chip.badge-reward {
+  background: var(--reward-soft);
+  color: var(--reward-ink);
+  box-shadow: inset 0 0 0 2px var(--reward);
+}
+
+.chip.badge-streak {
+  background: var(--reward-soft);
+  color: var(--reward-ink);
+}
+
+.chip.strong {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--warn-soft);
+  border: 2px solid var(--warn-border);
+  color: var(--warn-ink);
+}
+
+.banner.info {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-quiet);
+}
+
+.field input,
+.field select {
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.list-row {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.list-row:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.list-row:disabled {
+  cursor: default;
+  color: var(--ink-quiet);
+}
+
+.progress {
+  flex-grow: 1;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.progress > div {
+  height: 100%;
+  border-radius: 7px;
+  background: var(--accent);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* A question: its printed picture, then the answers. */
+.question-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.question-card {
+  gap: 16px;
+  padding: 16px;
+}
+
+/* A stem the importer read as plain text: real text, at the size kids read best. */
+.question-stem {
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.question-picture {
+  border-radius: 16px;
+  border: 2px solid var(--border);
+  background: var(--picture-bg);
+  padding: 6px;
+}
+
+/* Choice text on a button: the letter in a circle, then the value. */
+.choice-with-text {
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.choice-letter {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-weight: 800;
+}
+
+/* A fraction drawn stacked, as the test prints it. */
+.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.05;
+  font-size: 0.85em;
+  margin: 0 2px;
+}
+
+.fraction-top {
+  border-bottom: 2px solid currentColor;
+  padding: 0 3px;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(var(--choice-count, 4), minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Long choice text reads better one per row. */
+.choices.with-text {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A printed picture that fills its width and opens full screen when tapped. */
+.zoomable {
+  position: relative;
+  display: grid;
+  place-items: center start;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+/* Printed pictures are as wide as they can be up to their print size (set per picture), never squeezed by height:
+   squeezing is what made the print tiny. The page scrolls instead, and the answers stay in view beside them. */
+.zoomable img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.zoom-hint {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--scrim-light);
+  color: var(--on-accent);
+}
+
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--scrim);
+  overflow: auto;
+  padding: 56px 8px 24px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.zoom-overlay img {
+  max-width: none;
+  width: min(1200px, 200%);
+  background: var(--picture-bg);
+  border-radius: 8px;
+}
+
+.zoom-close {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: var(--picture-bg);
+}
+
+/* Reading: the selection and its question. */
+.page:has(.reading-layout) {
+  max-width: 1440px;
+}
+
+.reading-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reading-question {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.passage-pane {
+  gap: 14px;
+  padding: 8px;
+}
+
+.passage-pane .zoomable img {
+  max-height: none;
+}
+
+/* Landscape tablet and wider: picture beside the answers, or the selection beside the question. */
+@media (min-width: 900px) and (orientation: landscape) {
+  .page:has(.question-body) {
+    max-width: 1240px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  /* The printed item gets two thirds of the width, so 12-point print shows at about 16 px or more. */
+  .question-body {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+    align-items: start;
+  }
+
+  .question-body > .choices,
+  .question-body > .answer-area {
+    position: sticky;
+    top: 12px;
+  }
+
+  .question-body .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-body .choices.with-text {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reading-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .reading-passage {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+
+  .reading-tabs,
+  .reading-back {
+    display: none;
+  }
+
+  /* Beside a selection the question column is narrow: stack the picture over the answers again. */
+  .reading-question .question-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 20px 16px 40px;
+  }
+
+  /* Phones: give the printed picture every pixel of width. */
+  .question-card {
+    padding: 10px;
+  }
+
+  .question-picture {
+    padding: 4px;
+    border-width: 1px;
+  }
+
+  .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .passage-pane {
+    padding: 8px;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .topbar h1 {
+    font-size: 24px;
+  }
+}
+
+/* usability */
+
+/* Reading on a phone or portrait tablet: "Question" and the selection as two tabs, opening on the question. */
+.reading-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reading-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: var(--radius-md, 12px);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.reading-tab[aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.reading-passage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Only the picked tab shows, except side by side (landscape tablet and wider), where both always do. */
+@media not ((min-width: 900px) and (orientation: landscape)) {
+  .reading-layout[data-tab='question'] > .reading-passage,
+  .reading-layout[data-tab='passage'] > .reading-question {
+    display: none;
+  }
+}
+
+.reading-back,
+.link-button {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 10px 0;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Test navigator: one line that opens the grid. */
+.navigator {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.navigator-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: var(--radius-md, 12px);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.navigator-counts {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.navigator-chevron {
+  transition: transform 0.15s;
+}
+
+.navigator-chevron.open {
+  transform: rotate(180deg);
+}
+
+.navigator-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.navigator-item {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.navigator-item.done {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+/* The question you are on: a thick underline and ring, whatever else it is. */
+.navigator-item.current {
+  border: 3px solid var(--ink);
+  box-shadow: inset 0 -5px 0 var(--ink);
+}
+
+.navigator-legend {
+  margin: 0;
+  font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.flag-chip {
+  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--miss-soft);
+  color: var(--miss-ink);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* Typed answers: the unit beside the number. */
+.answer-unit {
+  margin-left: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-quiet);
+}
+
+/* A choice already tried after a first miss. */
+.choice-struck {
+  opacity: 0.55;
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+}
+
+/* Practice feedback. */
+.feedback {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.feedback-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.feedback-good {
+  background: var(--good-soft);
+  border-color: var(--good);
+}
+
+.feedback-good .feedback-title {
+  color: var(--good-ink);
+}
+
+.feedback-miss,
+.feedback-retry {
+  background: var(--miss-soft);
+  border-color: var(--miss);
+}
+
+.feedback-miss .feedback-title,
+.feedback-retry .feedback-title {
+  color: var(--miss-ink);
+}
+
+.feedback-retry {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 17px;
+}
+
+.report-problem {
+  font-size: 15px;
+}
+
+.report-reason {
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  padding: 8px 14px;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+/* A link that looks like a button. */
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md, 12px);
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.button-link.secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+/* Kid home: Today's practice is the big way in, Fix my mistakes right beside it. */
+.home-start {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.home-start > :only-child {
+  grid-column: 1 / -1;
+}
+
+.today-card {
+  border-color: var(--accent);
+  border-width: 3px;
+}
+
+.today-card h2 {
+  font-size: 28px;
+}
+
+.resume-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  border-color: var(--accent-line);
+}
+
+.pin-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Welcome: a shorter headline and two jump buttons on phones. */
+.welcome-title {
+  margin: 0;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.welcome-short,
+.welcome-jump {
+  display: none;
+}
+
+.welcome-lede {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .home-start {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .welcome-title {
+    font-size: 32px;
+  }
+
+  .welcome-long,
+  .welcome-lede {
+    display: none;
+  }
+
+  .welcome-short {
+    display: inline;
+  }
+
+  .welcome-jump {
+    display: flex;
+  }
+
+  .navigator-item {
+    width: 44px;
+    height: 44px;
+  }
 }

@@ -1,8 +1,35 @@
 {
   "jurisdiction": "TX",
+  "jurisdictionName": "Texas",
   "subject": "math",
   "level": "G3",
   "levelName": "Grade 3",
+  "kind": "grade",
+  "typicalGrade": 3,
+  "language": "en",
+  "practiceTest": {
+    "note": "Shape of the real STAAR test, from the released forms: items, time limit in minutes, items per reporting category.",
+    "items": 32,
+    "minutes": 240,
+    "mix": [
+      {
+        "category": 1,
+        "items": 8
+      },
+      {
+        "category": 2,
+        "items": 13
+      },
+      {
+        "category": 3,
+        "items": 7
+      },
+      {
+        "category": 4,
+        "items": 4
+      }
+    ]
+  },
   "framework": {
     "code": "TEKS",
     "name": "Texas Essential Knowledge and Skills"
@@ -11,19 +38,23 @@
   "categories": [
     {
       "number": 1,
-      "name": "Numerical Representations and Relationships"
+      "name": "Numerical Representations and Relationships",
+      "kidName": "Numbers and place value"
     },
     {
       "number": 2,
-      "name": "Computations and Algebraic Relationships"
+      "name": "Computations and Algebraic Relationships",
+      "kidName": "Computing and number patterns"
     },
     {
       "number": 3,
-      "name": "Geometry and Measurement"
+      "name": "Geometry and Measurement",
+      "kidName": "Shapes and measuring"
     },
     {
       "number": 4,
-      "name": "Data Analysis and Personal Financial Literacy"
+      "name": "Data Analysis and Personal Financial Literacy",
+      "kidName": "Graphs, data and money"
     }
   ],
   "skills": [
@@ -34,10 +65,41 @@
       "description": "Build and break apart whole numbers up to 100,000 by place value"
     },
     {
+      "code": "3.2(B)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Describe how each place value is 10 times the place to its right"
+    },
+    {
+      "code": "3.2(C)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Round whole numbers to the nearest 10 or 100 to estimate"
+    },
+    {
       "code": "3.2(D)",
       "category": 1,
       "designation": "readiness",
       "description": "Compare and order whole numbers up to 100,000 using >, < and ="
+    },
+    {
+      "code": "3.3(A)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Show fractions with objects, pictures, strip diagrams and number lines",
+      "limits": {
+        "fractions": {
+          "denominators": [
+            2,
+            3,
+            4,
+            6,
+            8
+          ],
+          "min": "0",
+          "max": "1"
+        }
+      }
     },
     {
       "code": "3.3(C)",
@@ -268,6 +330,12 @@
       "description": "Find the area of a rectangle with whole-number sides"
     },
     {
+      "code": "3.6(D)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Find the area of a shape made of rectangles by splitting it into rectangles"
+    },
+    {
       "code": "3.6(E)",
       "category": 3,
       "designation": "supporting",
@@ -344,6 +412,12 @@
       "category": 4,
       "designation": "supporting",
       "description": "Explain how scarce resources affect cost"
+    },
+    {
+      "code": "3.9(D)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Explain how insurance protects against unexpected costs"
     }
   ]
 }

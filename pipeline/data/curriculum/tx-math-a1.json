@@ -1,0 +1,353 @@
+{
+  "jurisdiction": "TX",
+  "jurisdictionName": "Texas",
+  "subject": "math",
+  "level": "A1",
+  "levelName": "Algebra I",
+  "kind": "course",
+  "typicalGrade": 9,
+  "language": "en",
+  "practiceTest": {
+    "note": "Shape of the real STAAR test, from the released forms: items, time limit in minutes, items per reporting category.",
+    "items": 54,
+    "minutes": 240,
+    "mix": [
+      {
+        "category": 1,
+        "items": 11
+      },
+      {
+        "category": 2,
+        "items": 12
+      },
+      {
+        "category": 3,
+        "items": 14
+      },
+      {
+        "category": 4,
+        "items": 11
+      },
+      {
+        "category": 5,
+        "items": 6
+      }
+    ]
+  },
+  "framework": {
+    "code": "TEKS",
+    "name": "Texas Essential Knowledge and Skills"
+  },
+  "note": "Descriptions are short paraphrases for students and parents, not the official text. Only the student expectations that released tests have assessed are listed.",
+  "categories": [
+    {
+      "number": 1,
+      "name": "Number and Algebraic Methods",
+      "kidName": "Numbers and algebra"
+    },
+    {
+      "number": 2,
+      "name": "Describing and Graphing Linear Functions, Equations, and Inequalities",
+      "kidName": "Graphing lines"
+    },
+    {
+      "number": 3,
+      "name": "Writing and Solving Linear Functions, Equations, and Inequalities",
+      "kidName": "Writing and solving equations"
+    },
+    {
+      "number": 4,
+      "name": "Quadratic Functions and Equations",
+      "kidName": "Quadratics"
+    },
+    {
+      "number": 5,
+      "name": "Exponential Functions and Equations",
+      "kidName": "Exponentials"
+    }
+  ],
+  "skills": [
+    {
+      "code": "A.2(A)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Find the domain and range of a linear function, including reasonable values in real situations, and write them as inequalities"
+    },
+    {
+      "code": "A.2(B)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Write a linear equation in different forms from a point and the slope, or from two points"
+    },
+    {
+      "code": "A.2(C)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Write a linear equation from a table, a graph or a description"
+    },
+    {
+      "code": "A.2(D)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Write and solve equations for direct variation"
+    },
+    {
+      "code": "A.2(E)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Write the equation of a line through a point and parallel to a given line"
+    },
+    {
+      "code": "A.2(F)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Write the equation of a line through a point and perpendicular to a given line"
+    },
+    {
+      "code": "A.2(G)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Write equations of lines parallel or perpendicular to an axis, and tell if the slope is zero or undefined"
+    },
+    {
+      "code": "A.2(H)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Write a linear inequality in two variables from a table, a graph or a description"
+    },
+    {
+      "code": "A.2(I)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Write a system of two linear equations from a table, a graph or a description"
+    },
+    {
+      "code": "A.3(A)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Find the slope of a line from a table, a graph, two points or an equation"
+    },
+    {
+      "code": "A.3(B)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Find the rate of change of a linear function from a table, a graph or an equation"
+    },
+    {
+      "code": "A.3(C)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Graph a linear function and find its intercepts, zeros and slope"
+    },
+    {
+      "code": "A.3(D)",
+      "category": 2,
+      "designation": "readiness",
+      "description": "Graph the solution set of a linear inequality in two variables"
+    },
+    {
+      "code": "A.3(E)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Describe how a, b, c and d change the graph of f(x) = x"
+    },
+    {
+      "code": "A.3(F)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Graph a system of two linear equations and find its solution, if there is one"
+    },
+    {
+      "code": "A.3(H)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Graph the solution set of a system of two linear inequalities"
+    },
+    {
+      "code": "A.4(A)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Find the correlation coefficient and say how strong a linear association is"
+    },
+    {
+      "code": "A.4(B)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Tell association apart from causation in real situations"
+    },
+    {
+      "code": "A.4(C)",
+      "category": 2,
+      "designation": "supporting",
+      "description": "Write a linear function that fits data and use it to estimate and predict"
+    },
+    {
+      "code": "A.5(A)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Solve linear equations in one variable, including the distributive property and variables on both sides"
+    },
+    {
+      "code": "A.5(B)",
+      "category": 3,
+      "designation": "supporting",
+      "description": "Solve one-variable linear inequalities, including variables on both sides"
+    },
+    {
+      "code": "A.5(C)",
+      "category": 3,
+      "designation": "readiness",
+      "description": "Solve a system of two linear equations in two variables"
+    },
+    {
+      "code": "A.6(A)",
+      "category": 4,
+      "designation": "readiness",
+      "description": "Find the domain and range of a quadratic function and write them as inequalities"
+    },
+    {
+      "code": "A.6(B)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Write a quadratic function in vertex form from its vertex and another point, and rewrite it in standard form"
+    },
+    {
+      "code": "A.6(C)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Write a quadratic function from its real solutions or the graph of its related equation"
+    },
+    {
+      "code": "A.7(A)",
+      "category": 4,
+      "designation": "readiness",
+      "description": "Graph a quadratic function and find its intercepts, zeros, vertex, maximum or minimum, and axis of symmetry"
+    },
+    {
+      "code": "A.7(B)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Relate the linear factors of a quadratic expression to the zeros of its function"
+    },
+    {
+      "code": "A.7(C)",
+      "category": 4,
+      "designation": "readiness",
+      "description": "Describe how a, b, c and d change the graph of f(x) = x²"
+    },
+    {
+      "code": "A.8(A)",
+      "category": 4,
+      "designation": "readiness",
+      "description": "Solve quadratic equations by factoring, square roots, completing the square or the quadratic formula"
+    },
+    {
+      "code": "A.8(B)",
+      "category": 4,
+      "designation": "supporting",
+      "description": "Write a quadratic function that fits data and use it to estimate and predict"
+    },
+    {
+      "code": "A.9(A)",
+      "category": 5,
+      "designation": "supporting",
+      "description": "Find the domain and range of an exponential function f(x) = abˣ and write them as inequalities"
+    },
+    {
+      "code": "A.9(B)",
+      "category": 5,
+      "designation": "supporting",
+      "description": "Explain what a and b mean in an exponential function in a real situation"
+    },
+    {
+      "code": "A.9(C)",
+      "category": 5,
+      "designation": "readiness",
+      "description": "Write an exponential function f(x) = abˣ for growth or decay"
+    },
+    {
+      "code": "A.9(D)",
+      "category": 5,
+      "designation": "readiness",
+      "description": "Graph exponential growth and decay and find the y-intercept and asymptote"
+    },
+    {
+      "code": "A.9(E)",
+      "category": 5,
+      "designation": "supporting",
+      "description": "Write an exponential function that fits data and use it to estimate and predict"
+    },
+    {
+      "code": "A.10(A)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Add and subtract polynomials of degree one and two"
+    },
+    {
+      "code": "A.10(B)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Multiply polynomials of degree one and two"
+    },
+    {
+      "code": "A.10(D)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Rewrite polynomials of degree one and two using the distributive property"
+    },
+    {
+      "code": "A.10(E)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Factor trinomials ax² + bx + c, including perfect square trinomials"
+    },
+    {
+      "code": "A.10(F)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Decide if a binomial is a difference of two squares and factor it if it is"
+    },
+    {
+      "code": "A.11(A)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Simplify numeric expressions with square roots"
+    },
+    {
+      "code": "A.11(B)",
+      "category": 1,
+      "designation": "readiness",
+      "description": "Simplify expressions with the laws of exponents, including integer and rational exponents"
+    },
+    {
+      "code": "A.12(A)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Decide whether a relation in words, a table, a graph or symbols is a function"
+    },
+    {
+      "code": "A.12(B)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Evaluate a function written in function notation"
+    },
+    {
+      "code": "A.12(C)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Find terms of arithmetic and geometric sequences from a formula or rule"
+    },
+    {
+      "code": "A.12(D)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Write a formula for the nth term of an arithmetic or geometric sequence"
+    },
+    {
+      "code": "A.12(E)",
+      "category": 1,
+      "designation": "supporting",
+      "description": "Solve a formula or literal equation for a given variable"
+    }
+  ]
+}

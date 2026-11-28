@@ -13,14 +13,23 @@ public class CheckAnswerHandlerTests
         private readonly Dictionary<QuestionId, Question> _items = [];
         public Task<Question?> GetAsync(QuestionId id, CancellationToken ct = default) => Task.FromResult(_items.GetValueOrDefault(id));
         public Task AddAsync(Question question, CancellationToken ct = default) { _items[question.Id] = question; return Task.CompletedTask; }
+        public Task<IReadOnlyList<Question>> ListByOriginAsync(
+            QuestionOrigin origin, IReadOnlyCollection<QuestionStatus> statuses, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(_items.Values.Where(q => q.Origin == origin && statuses.Contains(q.Status)).ToList());
+        public Task<IReadOnlyList<Question>> ListByStatusAsync(QuestionStatus status, int take, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(_items.Values.Where(q => q.Status == status).Take(take).ToList());
+        public Task<IReadOnlyDictionary<QuestionStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyDictionary<QuestionStatus, int>>(_items.Values.GroupBy(q => q.Status).ToDictionary(g => g.Key, g => g.Count()));
+        public Task<IReadOnlyList<Question>> ListByIdsAsync(IReadOnlyCollection<QuestionId> ids, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<Question>>(ids.Where(_items.ContainsKey).Select(id => _items[id]).ToList());
     }
 
     private static Question Live()
     {
         var q = Question.Draft([SkillId.New()], "numeric", "{}",
-            new AnswerSpec { Kind = AnswerKind.Fraction, Value = "3/4" }, Difficulty.OnLevel, QuestionOrigin.Official);
+            new AnswerSpec { Kind = AnswerKind.Fraction, Value = "3/4" }, Difficulty.OnLevel, QuestionOrigin.Generated);
         q.SubmitForAiReview();
-        q.PassAiReview();
+        q.RecordAiReview(TestReviews.LooksGood());
         q.Approve("owner", DateTimeOffset.UnixEpoch);
         return q;
     }
@@ -43,7 +52,7 @@ public class CheckAnswerHandlerTests
     {
         var repo = new FakeQuestions();
         var draft = Question.Draft([SkillId.New()], "numeric", "{}",
-            new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" }, Difficulty.OnLevel, QuestionOrigin.Official);
+            new AnswerSpec { Kind = AnswerKind.Integer, Value = "1" }, Difficulty.OnLevel, QuestionOrigin.Generated);
         await repo.AddAsync(draft);
 
         var result = await new CheckAnswerHandler(repo).HandleAsync(new CheckAnswerCommand(draft.Id.Value, "1"));

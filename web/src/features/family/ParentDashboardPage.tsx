@@ -1,0 +1,283 @@
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { Avatar } from '../../shared/ui/Avatar'
+import { Button } from '../../shared/ui/Button'
+import { CategoryBars } from '../../shared/ui/CategoryBars'
+import { TopBar } from '../../shared/ui/TopBar'
+import { sameGradeSubjects, subjectLabel, useCatalog } from '../../shared/catalog/useCatalog'
+import { useFamily, useSignOut } from './api/useFamily'
+import { useKidDashboard, useLock, useParentGate, type KidDashboard, type SkillStanding } from './api/useParentArea'
+import { ParentGate } from './components/ParentGate'
+import { PrivacyNote } from './components/PrivacyNote'
+import { SetPinCard } from './components/SetPinCard'
+import { SignedInOnly } from './components/SignedInOnly'
+
+const pct = (part: number | string, whole: number | string) => (Number(whole) ? Math.round((100 * Number(part)) / Number(whole)) : 0)
+const day = (iso: string) => new Date(iso).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+
+/** "12 min practiced", or "under 1 min" for a short set, which would otherwise round down to a confusing 0. */
+const practicedText = (week: KidDashboard['week']) => {
+  const minutes = Number(week.minutes)
+  const seconds = Number(week.seconds ?? 0)
+  if (minutes >= 1) return `${minutes} min practiced`
+  return seconds > 0 ? 'Under 1 min practiced' : 'No practice yet'
+}
+
+const levelText: Record<SkillStanding['level'], string> = {
+  NotStarted: 'Not started',
+  Learning: 'Learning',
+  Practicing: 'Practicing',
+  Mastered: 'Mastered',
+}
+
+function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <div className="card" style={{ gap: 2, padding: 18 }}>
+      <div className="quiet" style={{ fontSize: 14, fontWeight: 700 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 30, fontWeight: 800 }}>{value}</div>
+      {note && (
+        <div className="quiet" style={{ fontSize: 14 }}>
+          {note}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SkillRow({ skill }: { skill: SkillStanding }) {
+  const weak = Number(skill.openMistakes) > 0 || (skill.level !== 'Mastered' && skill.accuracy != null && Number(skill.accuracy) < 70)
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: 12,
+        padding: '12px 14px',
+        borderRadius: 12,
+        background: weak ? '#FFF7ED' : 'var(--bg)',
+        fontSize: 16,
+      }}
+    >
+      <span>
+        <b>{skill.code}</b> {skill.description}
+      </span>
+      <span style={{ fontWeight: 700, color: weak ? 'var(--miss-ink)' : 'var(--ink-quiet)', whiteSpace: 'nowrap' }}>
+        {Number(skill.openMistakes) > 0
+          ? `${skill.openMistakes} to fix · ${skill.accuracy}% of ${skill.answered}`
+          : Number(skill.answered) > 0
+            ? `${skill.accuracy}% · ${skill.answered} tries · ${levelText[skill.level]}`
+            : 'Not started'}
+      </span>
+    </div>
+  )
+}
+
+function Dashboard({ d }: { d: KidDashboard }) {
+  const [allSkills, setAllSkills] = useState(false)
+  const exam = d.lastExam
+  const change = exam?.previousPercent != null ? Number(exam.percent) - Number(exam.previousPercent) : null
+  const skills = d.skills
+  const fewQuestions = Number(d.skillsCountedInCategoriesOnly)
+
+  return (
+    <>
+      <div className="grid-4">
+        <Tile label="This week" value={`${d.week.daysPracticed} ${Number(d.week.daysPracticed) === 1 ? 'day' : 'days'}`} note={practicedText(d.week)} />
+        <Tile label="Questions answered" value={String(d.answered)} note={Number(d.answered) ? `${pct(d.correct, d.answered)}% correct` : 'None yet'} />
+        <Tile
+          label="Last practice test"
+          value={exam ? `${exam.percent}%` : '–'}
+          note={
+            exam
+              ? `${exam.title}${change == null ? '' : change === 0 ? ', same as before' : `, ${change > 0 ? 'up' : 'down'} from ${exam.previousPercent}%`}`
+              : 'No full test yet'
+          }
+        />
+        <Tile label="Areas mastered" value={`${d.categoriesMastered} / ${d.categories.length}`} note="Reporting categories of the test" />
+      </div>
+
+      <section className="card" aria-labelledby="by-category" style={{ gap: 14 }}>
+        <h2 id="by-category" style={{ fontSize: 18 }}>
+          Progress by reporting category
+        </h2>
+        <p className="quiet" style={{ margin: 0, fontSize: 15 }}>
+          How the state test reports results{d.courseName ? ` for ${d.courseName}` : ''}. Mastered means nearly all of the latest answers in that area were right.
+        </p>
+        <CategoryBars categories={d.categories} showCounts />
+      </section>
+
+      <div className="row" style={{ alignItems: 'stretch', gap: 16 }}>
+        <div className="card" style={{ flex: '2 1 380px', gap: 10 }}>
+          <h2 style={{ fontSize: 18 }}>Needs attention</h2>
+          {d.needsAttention.length === 0 && <p className="quiet">Nothing stands out yet. Missed questions and low scores show up here.</p>}
+          {d.needsAttention.map((s) => (
+            <SkillRow key={s.code} skill={s} />
+          ))}
+          {Number(d.mistakesToFix) > 0 && (
+            <p style={{ margin: 0 }}>
+              {d.name} has <b>{d.mistakesToFix}</b> missed {Number(d.mistakesToFix) === 1 ? 'question' : 'questions'} waiting in “Fix my mistakes”.
+            </p>
+          )}
+          {skills.length > 0 && (
+            <Button variant="ghost" style={{ alignSelf: 'flex-start' }} onClick={() => setAllSkills((v) => !v)} aria-expanded={allSkills}>
+              {allSkills ? 'Hide skills' : `See ${skills.length} skills with enough questions`}
+            </Button>
+          )}
+          {allSkills && skills.map((s) => <SkillRow key={s.code} skill={s} />)}
+          {allSkills && fewQuestions > 0 && (
+            <p className="quiet" style={{ margin: 0, fontSize: 14 }}>
+              {fewQuestions} more skills have only a few questions each, too few to judge on their own. They count in their reporting category above.
+            </p>
+          )}
+        </div>
+
+        <div className="card" style={{ flex: '1 1 280px', gap: 10 }}>
+          <h2 style={{ fontSize: 18 }}>Recent practice</h2>
+          <div className="row" style={{ gap: 8 }}>
+            <span className="chip">{d.streak}-day streak</span>
+            <span className="chip">Best {d.bestStreak}</span>
+          </div>
+          {d.recentSessions.length === 0 && <p className="quiet">No practice yet.</p>}
+          {d.recentSessions.map((s) => (
+            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 15 }}>
+              <span>
+                <b>{s.title}</b>
+                <span className="quiet">
+                  {' '}
+                  · {s.mode === 'Exam' ? 'Test' : 'Practice'} · {day(s.startedAt)}
+                </span>
+              </span>
+              <b style={{ whiteSpace: 'nowrap' }}>
+                {s.correct}/{s.total}
+              </b>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
+
+/** Math, Reading, ...: one tab per subject of the kid's grade, so a parent sees every subject, not only the open one. */
+function SubjectTabs({ courseId, value, onChange }: { courseId: string | null | undefined; value: string | null; onChange: (id: string) => void }) {
+  const catalog = useCatalog().data ?? []
+  const own = catalog.find((c) => c.id === courseId)
+  const subjects = own ? sameGradeSubjects(own, catalog) : []
+  if (subjects.length < 2) return null
+  const current = value ?? own?.id
+  return (
+    <div className="row" role="tablist" aria-label="Subject">
+      {subjects.map((s) => (
+        <Button key={s.id} role="tab" aria-selected={s.id === current} variant={s.id === current ? 'dark' : 'secondary'} onClick={() => onChange(s.id)}>
+          {subjectLabel(s.subject)}
+        </Button>
+      ))}
+    </div>
+  )
+}
+
+function Parent() {
+  const navigate = useNavigate()
+  const family = useFamily()
+  const gate = useParentGate()
+  const lock = useLock()
+  const signOut = useSignOut()
+  const kids = family.data?.kids ?? []
+  const [picked, setPicked] = useState<string | null>(null)
+  const [subject, setSubject] = useState<string | null>(null)
+  const kidId = picked ?? kids[0]?.id ?? null
+  const kid = kids.find((k) => k.id === kidId)
+  const dashboard = useKidDashboard(kidId, subject)
+  const [pinOpen, setPinOpen] = useState(false)
+
+  const done = () => lock.mutate(undefined, { onSuccess: () => navigate('/kids') })
+
+  return (
+    <main className="page" style={{ gap: 20 }}>
+      <TopBar back="/kids" title="Parent dashboard">
+        {gate.data?.hasPin && (
+          <Button variant="dark" onClick={done} disabled={lock.isPending}>
+            Lock and go back
+          </Button>
+        )}
+      </TopBar>
+
+      {kids.length === 0 ? (
+        <p>
+          No kids yet. <Link to="/family">Add your first kid</Link>.
+        </p>
+      ) : (
+        <div className="row" role="tablist" aria-label="Kids">
+          {kids.map((k) => (
+            <Button
+              key={k.id}
+              role="tab"
+              aria-selected={k.id === kidId}
+              variant={k.id === kidId ? 'primary' : 'secondary'}
+              onClick={() => {
+                setPicked(k.id)
+                setSubject(null)
+              }}
+            >
+              <span className="row" style={{ gap: 8 }}>
+                <Avatar name={k.name} color={k.avatar} size={28} /> {k.name}
+              </span>
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {gate.data && !gate.data.hasPin && (
+        <section className="banner pin-banner" aria-labelledby="pin-banner">
+          <div style={{ flex: '1 1 260px' }}>
+            <strong id="pin-banner">Set a parent PIN</strong>
+            <div>Until you do, anyone using this device can open this page and change your kids' settings.</div>
+          </div>
+          {!pinOpen && <Button onClick={() => setPinOpen(true)}>Set a PIN</Button>}
+          {pinOpen && <SetPinCard hasPin={false} />}
+        </section>
+      )}
+
+      <SubjectTabs courseId={kid?.courseId} value={subject} onChange={setSubject} />
+
+      {dashboard.isError && <p role="alert">{dashboard.error.message}</p>}
+      {dashboard.isPending && kidId && <p>Loading…</p>}
+      {dashboard.data && <Dashboard d={dashboard.data} />}
+
+      <div className="row" style={{ alignItems: 'stretch', gap: 16 }}>
+        <div className="card" style={{ flex: '1 1 320px', gap: 12 }}>
+          <h2 style={{ fontSize: 18 }}>Settings</h2>
+          <div className="row" style={{ justifyContent: 'space-between' }}>
+            <span>Kids, names and grades</span>
+            <Link to="/family" style={{ fontWeight: 800 }}>
+              Manage family
+            </Link>
+          </div>
+          {gate.data?.hasPin && <SetPinCard hasPin />}
+          <div className="row" style={{ justifyContent: 'space-between' }}>
+            <span>Done on this device?</span>
+            <Button variant="secondary" onClick={() => signOut.mutate(undefined, { onSuccess: () => navigate('/') })} disabled={signOut.isPending}>
+              Sign out
+            </Button>
+          </div>
+        </div>
+        <div style={{ flex: '1 1 320px' }}>
+          <PrivacyNote />
+        </div>
+      </div>
+    </main>
+  )
+}
+
+/** The parent dashboard: how each kid is doing, behind the parent PIN. */
+export function ParentDashboardPage() {
+  return (
+    <SignedInOnly>
+      <ParentGate>
+        <Parent />
+      </ParentGate>
+    </SignedInOnly>
+  )
+}

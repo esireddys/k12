@@ -23,10 +23,14 @@ cd web && npm install && cp .env.example .env.local && npm run dev
 cd pipeline && pip install -e ".[dev]" && k12-pipeline sources
 ```
 
+Parents sign in with Google once you set a Google client id (steps in [api/SIGN_IN.md](api/SIGN_IN.md)); until then,
+the welcome screen offers a developer sign-in locally. Guests can practice without signing in.
+
 ## Principles
 
 - Content is data. States, standards, exams, skills and questions are rows, not code.
-- Nothing reaches kids unreviewed. Every question passes the AI reviewer, then owner approval.
+- Questions from official released tests go Live on import; the publisher already reviewed them.
+  Generated (AI-written) questions reach kids only after the AI reviewer and then owner approval.
 - Answer checking is exact and lives in the domain (`api/src/K12.Domain/Content/Answers`). No AI runs while a kid answers.
 
 ## Code structure

@@ -12,12 +12,19 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
         b.HasKey(c => c.Id);
         b.Property(c => c.Id).HasConversion(Converters.CourseId).ValueGeneratedNever();
         b.Property(c => c.Jurisdiction).HasMaxLength(10).IsRequired();
+        b.Property(c => c.JurisdictionName).HasMaxLength(100).IsRequired();
         b.Property(c => c.Subject).HasMaxLength(40).IsRequired();
         b.Property(c => c.Code).HasMaxLength(20).IsRequired();
         b.Property(c => c.Name).HasMaxLength(200).IsRequired();
         b.Property(c => c.FrameworkCode).HasMaxLength(40).IsRequired();
         b.Property(c => c.FrameworkName).HasMaxLength(200).IsRequired();
-        b.HasIndex(c => new { c.Jurisdiction, c.Subject, c.Code }).IsUnique();
+        b.Property(c => c.Kind).HasConversion<string>().HasMaxLength(20);
+        b.Property(c => c.TypicalGrade);
+        b.Property(c => c.Language).HasMaxLength(12).IsRequired().HasDefaultValue(Course.DefaultLanguage);
+        b.Property(c => c.PracticeTest)
+            .HasConversion(Converters.PracticeTest!, Converters.PracticeTestComparer)
+            .HasColumnName("PracticeTestJson");
+        b.HasIndex(c => new { c.Jurisdiction, c.Subject, c.Code, c.Language }).IsUnique();
 
         b.OwnsMany(c => c.Categories, cat =>
         {
@@ -26,6 +33,8 @@ internal sealed class CourseConfiguration : IEntityTypeConfiguration<Course>
             cat.HasKey("CourseId", nameof(ReportingCategory.Number));
             cat.Property(x => x.Number).ValueGeneratedNever();
             cat.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            cat.Property(x => x.KidName).HasMaxLength(Course.MaxKidNameLength);
+            cat.Ignore(x => x.NameForKids);
         });
         b.Navigation(c => c.Categories).HasField("_categories").UsePropertyAccessMode(PropertyAccessMode.Field);
 

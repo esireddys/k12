@@ -37,6 +37,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetSignInOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SignInWithProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/developer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SignInAsDeveloper"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SignOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetFamily"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AddKid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateKid"];
+        post?: never;
+        delete: operations["RemoveKid"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/course": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ChooseKidCourse"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPracticeCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPracticeSet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ScoreResponses"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/questions/{questionId}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetQuestionImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/passages/{passageId}/pages/{page}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPassagePage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/practice/questions/{questionId}/check": {
         parameters: {
             query?: never;
@@ -47,6 +271,342 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["CheckAnswer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/practice/questions/{questionId}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReportQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RecordAnswers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/sessions/{sessionId}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FinishSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetKidSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/mistakes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMistakesSet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetTodaySet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/kids/{kidId}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetKidDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetParentGate"];
+        put: operations["SetParentPin"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/pin/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UnlockParentArea"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/family/pin/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LockParentArea"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/ai-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListAiReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/ai-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RecordAiReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetOwnerQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BrowseQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReviseLiveQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListQuestionReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/reports/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CloseQuestionReports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetQuestionForReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApproveQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/questions/{questionId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RejectQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/review/images/{path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetItemImage"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -85,10 +645,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/import/exam-form/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RefreshExamForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/import/publish-released": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PublishReleasedQuestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AccountView: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            email: string;
+            kids: components["schemas"]["KidView"][];
+        };
+        AiFinding: {
+            severity: components["schemas"]["FindingSeverity"];
+            area: string;
+            message: string;
+        };
+        AiReviewQueueResponse: {
+            items: components["schemas"]["QuestionForReview"][];
+        };
+        AiReviewView: {
+            reviewer: string;
+            /** Format: date-time */
+            reviewedAt: string;
+            verdict: components["schemas"]["AiVerdict"];
+            answerKeyAgrees: boolean;
+            solvedAnswer: string;
+            suggestedDifficulty: components["schemas"]["Difficulty"];
+            proposedContent: components["schemas"]["JsonElement"];
+            summary: string;
+            findings: components["schemas"]["AiFinding"][];
+        };
+        /** @enum {unknown} */
+        AiVerdict: "LooksGood" | "NeedsAttention";
         /** @enum {unknown} */
         AnswerKind: "Choice" | "Integer" | "Decimal" | "Fraction" | "Money" | "Time";
         AnswerSpec: {
@@ -98,6 +719,107 @@ export interface components {
             requireSimplest?: boolean;
             accept?: string[];
         };
+        ApproveBody: {
+            /** Format: int32 */
+            version: number | string;
+            content: null | components["schemas"]["JsonElement"];
+            answer: null | components["schemas"]["AnswerSpec"];
+            difficulty: null | components["schemas"]["Difficulty"];
+            note: null | string;
+        };
+        /** @enum {unknown} */
+        AvatarColor: "Orange" | "Blue" | "Green" | "Purple" | "Pink" | "Teal";
+        BrowsedQuestion: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number | string;
+            status: components["schemas"]["QuestionStatus"];
+            itemType: string;
+            skillCodes: string[];
+            source: null | components["schemas"]["ReviewSource"];
+            hasExplanation: boolean;
+            /** Format: int32 */
+            openReports: number | string;
+        };
+        BrowseQuestionsResponse: {
+            /** Format: int32 */
+            total: number | string;
+            items: components["schemas"]["BrowsedQuestion"][];
+        };
+        CatalogCategory: {
+            /** Format: int32 */
+            number: number | string;
+            name: string;
+            /** Format: int32 */
+            questionCount: number | string;
+            skills: components["schemas"]["CatalogSkill"][];
+            /** @default  */
+            kidName: string;
+        };
+        CatalogCourse: {
+            /** Format: uuid */
+            id: string;
+            jurisdiction: string;
+            jurisdictionName: string;
+            subject: string;
+            code: string;
+            name: string;
+            frameworkCode: string;
+            frameworkName: string;
+            /** Format: int32 */
+            questionCount: number | string;
+            categories: components["schemas"]["CatalogCategory"][];
+            forms: components["schemas"]["CatalogForm"][];
+            kind: string;
+            /** Format: int32 */
+            typicalGrade: null | number | string;
+            /** @default en */
+            language: string;
+            practiceTest?: null | components["schemas"]["CatalogPracticeTest"];
+            /** @default false */
+            hasPassages: boolean;
+        };
+        CatalogForm: {
+            /** Format: uuid */
+            id: string;
+            exam: string;
+            /** Format: int32 */
+            year: number | string;
+            season: string;
+            /** Format: int32 */
+            questionCount: number | string;
+        };
+        CatalogPracticeTest: {
+            /** Format: int32 */
+            itemCount: number | string;
+            /** Format: int32 */
+            minutes: null | number | string;
+            /** Format: int32 */
+            available: number | string;
+        };
+        CatalogSkill: {
+            code: string;
+            description: string;
+            /** Format: int32 */
+            questionCount: number | string;
+        };
+        CategoryView: {
+            /** Format: int32 */
+            number: number | string;
+            name: string;
+            level: components["schemas"]["MasteryLevel"];
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            accuracy: null | number | string;
+            /** Format: int32 */
+            questionCount: number | string;
+            /** @default  */
+            kidName: string;
+        };
         CheckAnswerBody: {
             response: null | string;
         };
@@ -105,10 +827,42 @@ export interface components {
             isCorrect: boolean;
             understood: boolean;
         };
+        ChoiceView: {
+            label: string;
+            text: string;
+        };
+        ChooseCourseBody: {
+            /** Format: uuid */
+            courseId: string;
+        };
+        DeveloperSignInBody: {
+            email: string;
+            name: null | string;
+        };
+        /** @enum {unknown} */
+        Difficulty: "Easier" | "OnLevel" | "Harder";
+        ExamResultView: {
+            title: string;
+            /** Format: int32 */
+            percent: number | string;
+            /** Format: int32 */
+            previousPercent: null | number | string;
+            /** Format: date-time */
+            finishedAt: string;
+        };
+        /** @enum {unknown} */
+        FindingSeverity: "Info" | "Warning" | "Problem";
         ImportCategory: {
             /** Format: int32 */
             number: number | string;
             name: string;
+            kidName?: null | string;
+        };
+        ImportCategoryShare: {
+            /** Format: int32 */
+            category: number | string;
+            /** Format: int32 */
+            items: number | string;
         };
         ImportCourseBody: {
             jurisdiction: string;
@@ -119,6 +873,12 @@ export interface components {
             frameworkName: string;
             categories: components["schemas"]["ImportCategory"][];
             skills: components["schemas"]["ImportSkillBody"][];
+            jurisdictionName?: null | string;
+            kind?: null | string;
+            /** Format: int32 */
+            typicalGrade?: null | number | string;
+            language?: null | string;
+            practiceTest?: null | components["schemas"]["ImportPracticeTest"];
         };
         ImportCourseResponse: {
             /** Format: uuid */
@@ -139,6 +899,8 @@ export interface components {
             season: string;
             sourceUrl: string;
             items: components["schemas"]["ImportItemBody"][];
+            passages?: null | components["schemas"]["ImportPassageBody"][];
+            language?: null | string;
         };
         ImportExamFormResponse: {
             /** Format: uuid */
@@ -153,6 +915,21 @@ export interface components {
             itemType: string;
             content: components["schemas"]["JsonElement"];
             answer: components["schemas"]["AnswerSpec"];
+            passage?: null | string;
+            /** Format: int32 */
+            category?: null | number | string;
+        };
+        ImportPassageBody: {
+            key: string;
+            title: string;
+            content: components["schemas"]["JsonElement"];
+        };
+        ImportPracticeTest: {
+            /** Format: int32 */
+            items: number | string;
+            /** Format: int32 */
+            minutes: null | number | string;
+            mix: null | components["schemas"]["ImportCategoryShare"][];
         };
         ImportSkillBody: {
             code: string;
@@ -163,6 +940,142 @@ export interface components {
             limits: null | components["schemas"]["JsonElement"];
         };
         JsonElement: unknown;
+        KidBody: {
+            name: string;
+            avatar: components["schemas"]["AvatarColor"];
+            /** Format: uuid */
+            courseId: null | string;
+        };
+        KidDashboard: {
+            /** Format: uuid */
+            kidId: string;
+            name: string;
+            avatar: components["schemas"]["AvatarColor"];
+            /** Format: uuid */
+            courseId: null | string;
+            courseName: null | string;
+            frameworkName: null | string;
+            /** Format: int32 */
+            streak: number | string;
+            /** Format: int32 */
+            bestStreak: number | string;
+            week: components["schemas"]["WeekView"];
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            mistakesToFix: number | string;
+            lastExam: null | components["schemas"]["ExamResultView"];
+            /** Format: int32 */
+            categoriesMastered: number | string;
+            categories: components["schemas"]["CategoryView"][];
+            needsAttention: components["schemas"]["SkillStanding"][];
+            skills: components["schemas"]["SkillStanding"][];
+            /** Format: int32 */
+            skillsCountedInCategoriesOnly: number | string;
+            recentSessions: components["schemas"]["SessionView"][];
+        };
+        KidSummary: {
+            /** Format: uuid */
+            kidId: string;
+            /** Format: int32 */
+            streak: number | string;
+            /** Format: int32 */
+            bestStreak: number | string;
+            /** Format: int32 */
+            stars: number | string;
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            mistakesToFix: number | string;
+            categories: components["schemas"]["CategoryView"][];
+        };
+        KidView: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            avatar: components["schemas"]["AvatarColor"];
+            /** Format: uuid */
+            courseId: null | string;
+        };
+        /** @enum {unknown} */
+        MasteryLevel: "NotStarted" | "Learning" | "Practicing" | "Mastered";
+        MeResponse: {
+            name: string;
+            email: string;
+            isSignedIn: boolean;
+            hasFamily: boolean;
+            isOwner: boolean;
+        };
+        OwnerDecisionView: {
+            outcome: components["schemas"]["OwnerOutcome"];
+            decidedBy: string;
+            /** Format: date-time */
+            decidedAt: string;
+            note: null | string;
+        };
+        /** @enum {unknown} */
+        OwnerOutcome: "Approved" | "ApprovedWithEdits" | "Rejected";
+        OwnerQueueItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number | string;
+            itemType: string;
+            skillCodes: string[];
+            source: null | components["schemas"]["ReviewSource"];
+            verdict: null | components["schemas"]["AiVerdict"];
+            answerKeyAgrees: null | boolean;
+            /** Format: int32 */
+            problemCount: number | string;
+            /** Format: int32 */
+            warningCount: number | string;
+            summary: null | string;
+            difficulty: components["schemas"]["Difficulty"];
+            suggestedDifficulty: null | components["schemas"]["Difficulty"];
+        };
+        OwnerQueueResponse: {
+            counts: {
+                [key: string]: number | string;
+            };
+            items: components["schemas"]["OwnerQueueItem"][];
+        };
+        ParentGateResponse: {
+            hasPin: boolean;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            /** Format: date-time */
+            parentAreaOpenUntil: null | string;
+        };
+        PassageView: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: int32 */
+            pageCount: number | string;
+            text: null | string;
+        };
+        PinBody: {
+            pin: string;
+        };
+        /** @enum {unknown} */
+        PinCheck: "Unlocked" | "Wrong" | "LockedOut" | "NoPin";
+        PracticeCatalog: {
+            courses: components["schemas"]["CatalogCourse"][];
+        };
+        /** @enum {unknown} */
+        PracticeMode: "Practice" | "Exam";
+        PracticeSet: {
+            /** Format: uuid */
+            courseId: string;
+            source: components["schemas"]["SetSource"];
+            title: string;
+            questions: components["schemas"]["StudentQuestion"][];
+            passages?: null | components["schemas"]["PassageView"][];
+            /** Format: int32 */
+            timeLimitMinutes?: null | number | string;
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -170,6 +1083,270 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        ProviderOption: {
+            provider: string;
+            clientId: string;
+        };
+        ProviderSignInBody: {
+            token: string;
+        };
+        PublishReleasedQuestionsResponse: {
+            /** Format: int32 */
+            questionsPublished: number | string;
+        };
+        QuestionForReview: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number | string;
+            status: components["schemas"]["QuestionStatus"];
+            origin: components["schemas"]["QuestionOrigin"];
+            itemType: string;
+            content: components["schemas"]["JsonElement"];
+            answer: components["schemas"]["AnswerSpec"];
+            difficulty: components["schemas"]["Difficulty"];
+            skills: components["schemas"]["ReviewSkill"][];
+            source: null | components["schemas"]["ReviewSource"];
+            aiReview: null | components["schemas"]["AiReviewView"];
+            ownerDecision: null | components["schemas"]["OwnerDecisionView"];
+        };
+        /** @enum {unknown} */
+        QuestionOrigin: "Official" | "Generated";
+        QuestionReportFiled: {
+            /** Format: uuid */
+            reportId: string;
+        };
+        QuestionReportsResponse: {
+            reports: components["schemas"]["QuestionReportView"][];
+        };
+        QuestionReportView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            questionId: string;
+            reason: components["schemas"]["ReportReason"];
+            reporter: components["schemas"]["Reporter"];
+            /** Format: date-time */
+            reportedAt: string;
+            source: null | components["schemas"]["ReviewSource"];
+            skillCodes: string[];
+            fixed: boolean;
+        };
+        QuestionSourceView: {
+            exam: string;
+            /** Format: int32 */
+            year: number | string;
+            season: string;
+            /** Format: int32 */
+            itemNumber: number | string;
+        };
+        /** @enum {unknown} */
+        QuestionStatus: "Draft" | "InAiReview" | "AwaitingOwner" | "Live" | "Rejected" | "Retired";
+        RecordAiReviewBody: {
+            /** Format: int32 */
+            version: number | string;
+            reviewer: string;
+            verdict: components["schemas"]["AiVerdict"];
+            answerKeyAgrees: boolean;
+            solvedAnswer: string;
+            suggestedDifficulty: components["schemas"]["Difficulty"];
+            proposedContent: components["schemas"]["JsonElement"];
+            summary: string;
+            findings: components["schemas"]["AiFinding"][];
+        };
+        RecordBody: {
+            /** Format: uuid */
+            sessionId: string;
+            mode: components["schemas"]["PracticeMode"];
+            source: null | string;
+            title: null | string;
+            /** Format: date */
+            localDate: null | string;
+            /** Format: int32 */
+            elapsedSeconds: number | string;
+            responses: components["schemas"]["ResponseItem"][];
+            finish: boolean;
+        };
+        RecordedScore: {
+            score: components["schemas"]["ScoreResult"];
+            session: components["schemas"]["SessionView"];
+        };
+        RefreshExamFormResponse: {
+            /** Format: uuid */
+            examFormId: string;
+            /** Format: int32 */
+            questionsRefreshed: number | string;
+            /** Format: int32 */
+            questionsKeptAsEdited: number | string;
+        };
+        RejectBody: {
+            /** Format: int32 */
+            version: number | string;
+            reason: string;
+        };
+        ReportBody: {
+            reason: components["schemas"]["ReportReason"];
+            reporter: null | components["schemas"]["Reporter"];
+        };
+        /** @enum {unknown} */
+        Reporter: "Guest" | "Kid" | "Parent" | null;
+        /** @enum {unknown} */
+        ReportReason: "WrongAnswer" | "HardToRead" | "Confusing" | "Typo" | "Other";
+        ReportsClosed: {
+            /** Format: int32 */
+            closed: number | string;
+        };
+        ResponseItem: {
+            /** Format: uuid */
+            questionId: string;
+            response: null | string;
+        };
+        ReviewSkill: {
+            code: string;
+            description: string;
+            limits: components["schemas"]["JsonElement"];
+        };
+        ReviewSource: {
+            jurisdiction: string;
+            subject: string;
+            courseCode: string;
+            courseName: string;
+            frameworkName: string;
+            exam: string;
+            /** Format: int32 */
+            year: number | string;
+            season: string;
+            /** Format: int32 */
+            itemNumber: number | string;
+            sourceUrl: string;
+        };
+        ReviewStepResponse: {
+            /** Format: uuid */
+            questionId: string;
+            /** Format: int32 */
+            version: number | string;
+            status: components["schemas"]["QuestionStatus"];
+        };
+        ReviseBody: {
+            /** Format: int32 */
+            version: number | string;
+            content: components["schemas"]["JsonElement"];
+            answer: null | components["schemas"]["AnswerSpec"];
+        };
+        ScoreBody: {
+            responses: components["schemas"]["ResponseItem"][];
+        };
+        ScoredResponse: {
+            /** Format: uuid */
+            questionId: string;
+            answered: boolean;
+            isCorrect: boolean;
+            understood: boolean;
+            correctAnswer: string;
+            correctChoiceText: null | string;
+            explanation: null | string;
+        };
+        ScoreResult: {
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            total: number | string;
+            items: components["schemas"]["ScoredResponse"][];
+        };
+        SessionView: {
+            /** Format: uuid */
+            id: string;
+            mode: components["schemas"]["PracticeMode"];
+            source: string;
+            title: string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            minutes: number | string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            finishedAt: null | string;
+        };
+        /** @enum {unknown} */
+        SetSource: "Shuffle" | "Year" | "Topic" | "Mistakes" | "PracticeTest" | "Today";
+        SignInOptions: {
+            providers: components["schemas"]["ProviderOption"][];
+            developerSignIn: boolean;
+        };
+        SkillStanding: {
+            code: string;
+            description: string;
+            /** Format: int32 */
+            category: null | number | string;
+            level: components["schemas"]["MasteryLevel"];
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /** Format: int32 */
+            accuracy: null | number | string;
+            hasQuestions: boolean;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            questionCount: number | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            openMistakes: number | string;
+        };
+        StudentQuestion: {
+            /** Format: uuid */
+            id: string;
+            itemType: string;
+            answerKind: components["schemas"]["AnswerKind"];
+            stem: string;
+            choices: components["schemas"]["ChoiceView"][];
+            hasImage: boolean;
+            showImage: boolean;
+            textNeedsReview: boolean;
+            figureDescription: null | string;
+            skillCode: null | string;
+            skillDescription: null | string;
+            /** Format: int32 */
+            category: null | number | string;
+            difficulty: components["schemas"]["Difficulty"];
+            source: null | components["schemas"]["QuestionSourceView"];
+            /** Format: uuid */
+            passageId?: null | string;
+            /** @default false */
+            choicesAreText: boolean;
+            unit?: null | string;
+        };
+        UnlockResponse: {
+            result: components["schemas"]["PinCheck"];
+            /** Format: int32 */
+            triesLeft: number | string;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            /** Format: date-time */
+            parentAreaOpenUntil: null | string;
+        };
+        WeekView: {
+            /** Format: int32 */
+            daysPracticed: number | string;
+            /** Format: int32 */
+            minutes: number | string;
+            /** Format: int32 */
+            answered: number | string;
+            /** Format: int32 */
+            correct: number | string;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            seconds: number | string;
         };
     };
     responses: never;
@@ -180,6 +1357,516 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    GetMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
+    GetSignInOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignInOptions"];
+                };
+            };
+        };
+    };
+    SignInWithProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderSignInBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountView"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SignInAsDeveloper: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeveloperSignInBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountView"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SignOut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetFamily: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    AddKid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KidBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidView"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateKid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KidBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidView"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveKid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ChooseKidCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChooseCourseBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidView"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetPracticeCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeCatalog"];
+                };
+            };
+        };
+    };
+    GetPracticeSet: {
+        parameters: {
+            query: {
+                courseId: string;
+                source: components["schemas"]["SetSource"];
+                formId?: string;
+                category?: number | string;
+                skill?: string;
+                count?: number | string;
+                seed?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeSet"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ScoreResponses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScoreBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetQuestionImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetPassagePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                passageId: string;
+                page: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     CheckAnswer: {
         parameters: {
             query?: never;
@@ -203,6 +1890,811 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CheckAnswerResponse"];
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ReportQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionReportFiled"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RecordAnswers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordedScore"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    FinishSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kidId: string;
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionView"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetKidSummary: {
+        parameters: {
+            query?: {
+                localDate?: string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidSummary"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMistakesSet: {
+        parameters: {
+            query?: {
+                count?: number | string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeSet"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetTodaySet: {
+        parameters: {
+            query?: {
+                count?: number | string;
+                seed?: number | string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeSet"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetKidDashboard: {
+        parameters: {
+            query?: {
+                courseId?: string;
+                localDate?: string;
+            };
+            header?: never;
+            path: {
+                kidId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KidDashboard"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetParentGate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParentGateResponse"];
+                };
+            };
+        };
+    };
+    SetParentPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParentGateResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UnlockParentArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnlockResponse"];
+                };
+            };
+        };
+    };
+    LockParentArea: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ListAiReviewQueue: {
+        parameters: {
+            query?: {
+                take?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiReviewQueueResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RecordAiReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordAiReviewBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetOwnerQueue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerQueueResponse"];
+                };
+            };
+        };
+    };
+    BrowseQuestions: {
+        parameters: {
+            query?: {
+                courseId?: string;
+                year?: number | string;
+                skill?: string;
+                hasExplanation?: boolean;
+                reported?: boolean;
+                status?: components["schemas"]["QuestionStatus"];
+                take?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrowseQuestionsResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ReviseLiveQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviseBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListQuestionReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionReportsResponse"];
+                };
+            };
+        };
+    };
+    CloseQuestionReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsClosed"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetQuestionForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionForReview"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ApproveQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RejectQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStepResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetItemImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {
@@ -286,6 +2778,86 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RefreshExamForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportExamFormBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefreshExamFormResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    PublishReleasedQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishReleasedQuestionsResponse"];
                 };
             };
             /** @description Conflict */
