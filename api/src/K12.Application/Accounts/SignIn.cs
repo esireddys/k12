@@ -15,7 +15,8 @@ public sealed record SignInAsDeveloperCommand(string Email, string? Name);
 /// creating it on the first sign-in. The API turns the result into its own session cookie.
 /// </summary>
 public sealed class SignInWithProviderHandler(
-    IEnumerable<IExternalLoginVerifier> verifiers, IParentAccountRepository accounts, IClock clock, IUnitOfWork unitOfWork)
+    IEnumerable<IExternalLoginVerifier> verifiers, IParentAccountRepository accounts, IClock clock, IUnitOfWork unitOfWork,
+    SignInAllowList allowList)
     : ICommandHandler<SignInWithProviderCommand, SignedIn>
 {
     /// <summary>ID tokens are a couple of kilobytes; anything far bigger is refused before it reaches the provider's checks.</summary>
@@ -34,6 +35,9 @@ public sealed class SignInWithProviderHandler(
         var login = await verifier.VerifyAsync(command.Token, ct);
         if (login is null)
             return Error.Validation("auth.invalid_token", "That sign-in could not be verified. Try again.");
+        if (!allowList.Admits(login))
+            return Error.Forbidden("auth.not_invited",
+                "This app is in private testing for now, so only invited families can sign in. You can still practice as a guest.");
 
         return await AccountSignIn.FindOrRegisterAsync(login, accounts, clock, unitOfWork, ct);
     }

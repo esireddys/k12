@@ -1,0 +1,67 @@
+name: Infrastructure
+
+# Creates or updates the platform (infra/main.bicep) in one environment. Run by hand; safe to repeat.
+# Settings live on the GitHub environment (dev or prod), so switching subscription is a settings change only.
+# See infra/README.md for the one-time setup.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment
+        type: choice
+        options: [dev, prod]
+        default: dev
+      what-if:
+        description: Only show what would change
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: infra-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  platform:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy infra/main.bicep
+        env:
+          RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+          ENV_NAME: ${{ inputs.environment }}
+          ADMIN_GROUP_NAME: ${{ vars.K12_ADMIN_GROUP_NAME }}
+          ADMIN_GROUP_ID: ${{ vars.K12_ADMIN_GROUP_ID }}
+          IMPORT_KEY: ${{ secrets.K12_IMPORT_KEY }}
+          SQL_FREE_OFFER: ${{ vars.K12_SQL_FREE_OFFER || 'true' }}
+          WHAT_IF: ${{ inputs.what-if }}
+        run: |
+          if [ ${#IMPORT_KEY} -lt 32 ]; then echo "::error::Set the K12_IMPORT_KEY secret (32+ characters) on the $ENV_NAME environment."; exit 1; fi
+          action=create; [ "$WHAT_IF" = "true" ] && action=what-if
+          az deployment group $action -g "$RG" -n k12-platform -f infra/main.bicep \
+            -p env="$ENV_NAME" sqlAdminGroupName="$ADMIN_GROUP_NAME" sqlAdminGroupObjectId="$ADMIN_GROUP_ID" \
+               importKey="$IMPORT_KEY" sqlUseFreeLimit="$SQL_FREE_OFFER"
+
+      - name: Summary
+        if: ${{ !inputs.what-if }}
+        env:
+          RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+        run: |
+          {
+            echo "### Platform ready in $RG"
+            echo '```'
+            az deployment group show -g "$RG" -n k12-platform --query properties.outputs -o json | jq -r 'to_entries[] | "\(.key): \(.value.value)"'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

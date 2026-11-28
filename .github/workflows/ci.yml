@@ -48,3 +48,12 @@ jobs:
       - run: pip install -e ".[dev,ai]"
       - run: ruff check .
       - run: pytest -q
+
+  infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and lint the Bicep
+        run: |
+          az bicep install
+          for f in infra/main.bicep infra/app.bicep; do az bicep build --file "$f" --stdout > /dev/null; az bicep lint --file "$f"; done

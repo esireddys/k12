@@ -1,0 +1,137 @@
+name: Deploy
+
+# Builds the container (API + web app), applies database migrations, then rolls out infra/app.bicep.
+# Runs by hand for any environment, and on pushes to main for dev once the repository variable
+# K12_DEPLOY_DEV_ON_PUSH is "true" (leave it unset until the one-time setup in infra/README.md is done).
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment
+        type: choice
+        options: [dev, prod]
+        default: dev
+  push:
+    branches: [main]
+    paths:
+      - api/**
+      - web/**
+      - Dockerfile
+      - infra/app.bicep
+      - infra/modules/naming.bicep
+      - .github/workflows/deploy.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.K12_DEPLOY_DEV_ON_PUSH == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    env:
+      ENV_NAME: ${{ inputs.environment || 'dev' }}
+      RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - id: platform
+        uses: ./.github/actions/platform-outputs
+        with:
+          resource-group: ${{ vars.AZURE_RESOURCE_GROUP }}
+
+      # 1. Image, tagged with the commit, so every revision can be traced back to its code.
+      - name: Build and push the image
+        id: image
+        env:
+          REGISTRY: ${{ steps.platform.outputs.registry }}
+        run: |
+          image="$REGISTRY/k12-api:${GITHUB_SHA}"
+          az acr login -n "${REGISTRY%%.*}"
+          docker build -t "$image" .
+          docker push "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      # 2. Migrations, before the new code starts. Runs as this workflow's identity (a database admin), through a
+      #    firewall opening for this runner only, closed again whatever happens.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build the migrations bundle
+        working-directory: api
+        run: |
+          dotnet tool restore
+          dotnet ef migrations bundle --project src/K12.Infrastructure --startup-project src/K12.Api \
+            --configuration Release --self-contained -r linux-x64 -o "$RUNNER_TEMP/efbundle" --force
+
+      - name: Open the SQL firewall for this runner
+        env:
+          SQL_SERVER: ${{ steps.platform.outputs.sql-server }}
+        run: |
+          ip=$(curl -fsS https://api.ipify.org)
+          az sql server firewall-rule create -g "$RG" -s "$SQL_SERVER" -n "github-run-${GITHUB_RUN_ID}" \
+            --start-ip-address "$ip" --end-ip-address "$ip" -o none
+
+      - name: Apply migrations
+        env:
+          SQL_FQDN: ${{ steps.platform.outputs.sql-fqdn }}
+          SQL_DB: ${{ steps.platform.outputs.sql-database }}
+        run: |
+          # A paused serverless database takes up to a minute to wake: the long timeout and a retry cover it.
+          conn="Server=tcp:${SQL_FQDN},1433;Database=${SQL_DB};Authentication=Active Directory Default;Encrypt=True;Connect Timeout=120"
+          "$RUNNER_TEMP/efbundle" --connection "$conn" || { sleep 30; "$RUNNER_TEMP/efbundle" --connection "$conn"; }
+
+      - name: Close the SQL firewall
+        if: always()
+        env:
+          SQL_SERVER: ${{ steps.platform.outputs.sql-server }}
+        run: |
+          [ -n "$SQL_SERVER" ] || exit 0
+          az sql server firewall-rule delete -g "$RG" -s "$SQL_SERVER" -n "github-run-${GITHUB_RUN_ID}" -o none || true
+
+      # 3. The app itself.
+      - name: Deploy infra/app.bicep
+        id: app
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+          GOOGLE_CLIENT_ID: ${{ vars.K12_GOOGLE_CLIENT_ID }}
+          OWNERS: ${{ vars.K12_OWNERS }}
+          INVITE_ONLY: ${{ vars.K12_INVITE_ONLY || 'true' }}
+          ALLOWED_EMAILS: ${{ vars.K12_ALLOWED_EMAILS }}
+          MIN_REPLICAS: ${{ vars.K12_MIN_REPLICAS || '0' }}
+        run: |
+          # Comma-separated lists in GitHub variables become JSON arrays for Bicep.
+          to_json() { jq -cn --arg s "$1" '$s | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))'; }
+          url=$(az deployment group create -g "$RG" -n k12-api -f infra/app.bicep \
+            -p env="$ENV_NAME" image="$IMAGE" googleClientId="$GOOGLE_CLIENT_ID" \
+               owners="$(to_json "$OWNERS")" allowedEmails="$(to_json "$ALLOWED_EMAILS")" \
+               inviteOnly="$INVITE_ONLY" minReplicas="$MIN_REPLICAS" \
+            --query properties.outputs.url.value -o tsv)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Check the app answers
+        env:
+          URL: ${{ steps.app.outputs.url }}
+        run: |
+          for i in $(seq 1 20); do
+            if curl -fsS "$URL/health" >/dev/null; then
+              echo "### Deployed ${GITHUB_SHA::7} to $ENV_NAME" >> "$GITHUB_STEP_SUMMARY"
+              echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::$URL/health did not answer"; exit 1

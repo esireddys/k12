@@ -1,0 +1,95 @@
+name: Import content
+
+# Loads curriculum and released tests into a deployed environment, the same way `k12-pipeline import` does locally:
+#   1. downloads the released-test PDFs from the private "raw" blob container (upload them once; see infra/README.md),
+#   2. renders the item pictures and uploads them to the "items" container, which the API serves,
+#   3. sends the curriculum and the forms to the API with the import key. Released questions go Live; forms imported
+#      before are refreshed, keeping question ids and kids' progress.
+# Safe to run again whenever new PDFs, keys or curriculum land.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment
+        type: choice
+        options: [dev, prod]
+        default: dev
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: import-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - id: platform
+        uses: ./.github/actions/platform-outputs
+        with:
+          resource-group: ${{ vars.AZURE_RESOURCE_GROUP }}
+
+      - name: Find the app
+        id: app
+        run: |
+          fqdn=$(az containerapp show -g "$RG" -n "k12${{ inputs.environment }}-api" --query properties.configuration.ingress.fqdn -o tsv)
+          [ -n "$fqdn" ] || { echo "::error::The app is not deployed yet. Run the Deploy workflow first."; exit 1; }
+          echo "url=https://$fqdn" >> "$GITHUB_OUTPUT"
+
+      - name: Download the released-test PDFs
+        env:
+          ACCOUNT: ${{ steps.platform.outputs.storage-account }}
+        run: |
+          mkdir -p pipeline/data/raw
+          az storage blob download-batch --auth-mode login --account-name "$ACCOUNT" -s raw -d pipeline/data/raw -o none
+          echo "PDFs: $(find pipeline/data/raw -name '*.pdf' | wc -l)"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install the pipeline
+        working-directory: pipeline
+        run: pip install -e .
+
+      # Pictures go up before the questions that show them, so no kid sees a question without its picture.
+      - name: Render the item pictures
+        working-directory: pipeline
+        run: k12-pipeline import --dry-run
+
+      - name: Upload the item pictures
+        env:
+          ACCOUNT: ${{ steps.platform.outputs.storage-account }}
+        run: |
+          az storage blob upload-batch --auth-mode login --account-name "$ACCOUNT" -d items -s pipeline/data/out \
+            --pattern "*.png" --overwrite -o none
+          echo "Pictures: $(find pipeline/data/out -name '*.png' | wc -l)"
+
+      - name: Wake the database
+        env:
+          URL: ${{ steps.app.outputs.url }}
+        run: |
+          for i in $(seq 1 12); do curl -fsS --max-time 60 "$URL/api/practice/catalog" >/dev/null && exit 0; sleep 10; done
+          echo "::error::$URL did not answer"; exit 1
+
+      - name: Import into the API
+        working-directory: pipeline
+        env:
+          K12_IMPORT_KEY: ${{ secrets.K12_IMPORT_KEY }}
+          URL: ${{ steps.app.outputs.url }}
+        run: k12-pipeline import --api "$URL" | tee -a "$GITHUB_STEP_SUMMARY"

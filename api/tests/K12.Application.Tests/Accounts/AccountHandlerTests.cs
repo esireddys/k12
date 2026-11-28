@@ -25,7 +25,24 @@ public class AccountHandlerTests
         }
     }
 
-    private static SignInWithProviderHandler SignIn(TestStore s, bool configured = true) => new([new FakeGoogle(configured)], s, s, s);
+    private static SignInWithProviderHandler SignIn(TestStore s, bool configured = true, SignInAllowList? allowList = null) =>
+        new([new FakeGoogle(configured)], s, s, s, allowList ?? SignInAllowList.Open);
+
+    [Theory]
+    [InlineData(false, "", "stranger@example.org", null)]
+    [InlineData(true, "pat@example.org", "pat@example.org", null)]
+    [InlineData(true, "pat@example.org", "PAT@Example.org", null)]
+    [InlineData(true, "pat@example.org,sam@gmail.com", "sam@gmail.com", null)]
+    [InlineData(true, "pat@example.org", "stranger@example.org", "auth.not_invited")]
+    [InlineData(true, "", "pat@example.org", "auth.not_invited")]
+    public async Task Invite_only_sign_in_admits_only_listed_emails(bool inviteOnly, string allowed, string email, string? error)
+    {
+        var s = new TestStore();
+        var allowList = new SignInAllowList(inviteOnly, allowed.Split(',', StringSplitOptions.RemoveEmptyEntries));
+        var result = await SignIn(s, allowList: allowList).HandleAsync(new SignInWithProviderCommand("google", $"good:1:{email}"));
+        Assert.Equal(error, result.Error?.Code);
+        Assert.Equal(error is null ? 1 : 0, s.Accounts.Count);
+    }
 
     [Theory]
     [InlineData("google", "good:1:pat@example.org", true, null)]

@@ -26,6 +26,12 @@ cd pipeline && pip install -e ".[dev]" && k12-pipeline sources
 Parents sign in with Google once you set a Google client id (steps in [api/SIGN_IN.md](api/SIGN_IN.md)); until then,
 the welcome screen offers a developer sign-in locally. Guests can practice without signing in.
 
+## Deploy
+
+Azure (Container Apps, Azure SQL serverless, Blob Storage, Key Vault), all Bicep in `infra/`, deployed by GitHub
+Actions: **Infrastructure**, **Deploy** (image, database migrations, app) and **Import content** (released tests into
+a deployed environment). One-time setup and costs: [infra/README.md](infra/README.md).
+
 ## Principles
 
 - Content is data. States, standards, exams, skills and questions are rows, not code.

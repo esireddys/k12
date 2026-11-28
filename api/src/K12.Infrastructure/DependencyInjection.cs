@@ -29,10 +29,22 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IPinHasher, Pbkdf2PinHasher>();
 
-        // Item pictures: a local folder for now (the pipeline's data/out); Blob Storage when the cloud store is added.
+        // Item pictures: a private Blob Storage container in the cloud (Content:ImageContainerUri, read with the app's
+        // managed identity), or a local folder (Content:ImageRoot, the pipeline's data/out).
+        var imageContainer = configuration["Content:ImageContainerUri"];
         var imageRoot = configuration["Content:ImageRoot"];
-        if (string.IsNullOrWhiteSpace(imageRoot)) services.AddSingleton<IItemImageStore, NoItemImageStore>();
-        else services.AddSingleton<IItemImageStore>(new FileSystemItemImageStore(imageRoot));
+        if (!string.IsNullOrWhiteSpace(imageContainer))
+            services.AddSingleton<IItemImageStore>(new BlobItemImageStore(new Uri(imageContainer), AzureCredentials.Create(configuration)));
+        else if (!string.IsNullOrWhiteSpace(imageRoot))
+            services.AddSingleton<IItemImageStore>(new FileSystemItemImageStore(imageRoot));
+        else
+            services.AddSingleton<IItemImageStore, NoItemImageStore>();
+
+        // Who may sign in: everyone, unless Access:SignIn:InviteOnly is set (private testing). Owners are always invited.
+        services.AddSingleton(new SignInAllowList(
+            configuration.GetValue<bool>("Access:SignIn:InviteOnly"),
+            [.. configuration.GetSection("Access:SignIn:AllowedEmails").Get<string[]>() ?? [],
+             .. configuration.GetSection("Access:Owners").Get<string[]>() ?? []]));
 
         // Sign-in providers. Google needs only its public client id (Auth:Google:ClientId, set with user-secrets locally).
         services.AddSingleton<IExternalLoginVerifier>(sp => new GoogleLoginVerifier(

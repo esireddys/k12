@@ -16,11 +16,16 @@ public static class Access
     public const string OwnerRole = "owner";
     public const string ReviewAgentRole = "review-agent";
 
+    /// <summary>The content pipeline importing released tests into a deployed API (see <see cref="ImportKeySignIn"/>).</summary>
+    public const string ImporterRole = "importer";
+
     public const string OwnerPolicy = "Owner";
     public const string ReviewAgentPolicy = "ReviewAgent";
+    public const string ImporterPolicy = "Importer";
 
     public const string SessionScheme = "K12Session";
     public const string DevelopmentScheme = "Development";
+    public const string ImportKeyScheme = "ImportKey";
     private const string SelectScheme = "K12";
 
     public const string ParentPolicy = "Parent";
@@ -41,8 +46,9 @@ public static class Access
     public static IServiceCollection AddK12Access(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
     {
         var auth = services.AddAuthentication(SelectScheme);
-        auth.AddPolicyScheme(SelectScheme, "Session or development user", o => o.ForwardDefaultSelector = http =>
+        auth.AddPolicyScheme(SelectScheme, "Session, import key or development user", o => o.ForwardDefaultSelector = http =>
         {
+            if (http.Request.Headers.ContainsKey(ImportKeySignIn.Header)) return ImportKeyScheme;
             if (!environment.IsDevelopment() || http.Request.Cookies.ContainsKey(SessionCookieName)) return SessionScheme;
             var devUser = http.Request.Headers.ContainsKey(DevelopmentUserHeader)
                 || !string.IsNullOrWhiteSpace(configuration["Access:DevelopmentUser"]);
@@ -61,6 +67,7 @@ public static class Access
             o.Events.OnRedirectToLogin = c => { c.Response.StatusCode = StatusCodes.Status401Unauthorized; return Task.CompletedTask; };
             o.Events.OnRedirectToAccessDenied = c => { c.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
         });
+        auth.AddScheme<AuthenticationSchemeOptions, ImportKeySignIn>(ImportKeyScheme, null);
         if (environment.IsDevelopment())
             auth.AddScheme<AuthenticationSchemeOptions, DevelopmentSignIn>(DevelopmentScheme, null);
 
@@ -68,6 +75,7 @@ public static class Access
         services.AddAuthorizationBuilder()
             .AddPolicy(OwnerPolicy, p => p.RequireAuthenticatedUser().RequireRole(OwnerRole))
             .AddPolicy(ReviewAgentPolicy, p => p.RequireAuthenticatedUser().RequireRole(OwnerRole, ReviewAgentRole))
+            .AddPolicy(ImporterPolicy, p => p.RequireAuthenticatedUser().RequireRole(OwnerRole, ImporterRole))
             .AddPolicy(ParentPolicy, p => p.RequireAuthenticatedUser().RequireClaim(AccountIdClaim));
         return services;
     }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using K12.Api.Auth;
 using K12.Application.Abstractions;
 using K12.Application.ContentImport.ImportCourse;
 using K12.Application.ContentImport.ImportExamForm;
@@ -10,7 +11,8 @@ namespace K12.Api.Endpoints;
 
 /// <summary>
 /// HTTP for loading curriculum and released tests from the content pipeline.
-/// Mapped in Development only until owner sign-in exists; then it moves behind the admin role.
+/// Open in Development, so a local <c>k12-pipeline import</c> needs no sign-in. Everywhere else it needs the importer
+/// policy: an owner's session, or the pipeline's import key (see <see cref="K12.Api.Auth.ImportKeySignIn"/>).
 /// </summary>
 public static class ContentImportEndpoints
 {
@@ -33,9 +35,10 @@ public static class ContentImportEndpoints
         string Exam, int Year, string Season, string SourceUrl,
         IReadOnlyList<ImportItemBody> Items, IReadOnlyList<ImportPassageBody>? Passages = null, string? Language = null);
 
-    public static IEndpointRouteBuilder MapContentImportEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder MapContentImportEndpoints(this IEndpointRouteBuilder app, IHostEnvironment environment)
     {
         var group = app.MapGroup("/api/admin/import").WithTags("Content import");
+        if (!environment.IsDevelopment()) group.RequireAuthorization(Access.ImporterPolicy);
 
         group.MapPost("/course", async (
                 ImportCourseBody body,
