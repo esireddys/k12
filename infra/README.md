@@ -78,7 +78,9 @@ az group create -n %RG% -l %LOC%
 
 ### 3. Make the admin group and join it
 
-Members of this group administer the database and can upload PDFs.
+Members of this group administer the database and can upload PDFs. If your directory does not let you make groups,
+skip this step and be the admin yourself: in step 6 set `K12_ADMIN_TYPE` to `User`, `K12_ADMIN_NAME` to the email you
+sign in to Azure with, and `K12_ADMIN_ID` to `%ME%` (from `az ad signed-in-user show --query id -o tsv`).
 
 ```bat
 for /f "delims=" %i in ('az ad group create --display-name k12-admins --mail-nickname k12-admins --query id -o tsv') do set ADMIN_GROUP=%i
@@ -89,19 +91,20 @@ echo %ADMIN_GROUP%
 
 ### 4. Let GitHub Actions sign in to Azure (OIDC, no stored password)
 
+GitHub signs in as a managed identity that trusts this repository's `dev` environment. Making one needs only rights on
+the subscription, not on the directory, so it works even where registering apps is not allowed.
+
 ```bat
-for /f "delims=" %i in ('az ad app create --display-name k12-github-dev --query appId -o tsv') do set APP_ID=%i
-for /f "delims=" %i in ('az ad sp create --id %APP_ID% --query id -o tsv') do set SP_ID=%i
-echo {"name":"github-env-dev","issuer":"https://token.actions.githubusercontent.com","subject":"repo:esireddys/k12:environment:dev","audiences":["api://AzureADTokenExchange"]} > fic-dev.json
-az ad app federated-credential create --id %APP_ID% --parameters fic-dev.json
-del fic-dev.json
-az role assignment create --assignee-object-id %SP_ID% --assignee-principal-type ServicePrincipal --role Owner --scope /subscriptions/%SUB%/resourceGroups/%RG%
-az ad group member add --group %ADMIN_GROUP% --member-id %SP_ID%
-echo %APP_ID%
+az identity create -g %RG% -n k12-github-dev -o none
+for /f "delims=" %i in ('az identity show -g %RG% -n k12-github-dev --query clientId -o tsv') do set CLIENT_ID=%i
+for /f "delims=" %i in ('az identity show -g %RG% -n k12-github-dev --query principalId -o tsv') do set DEPLOY_ID=%i
+az identity federated-credential create -g %RG% --identity-name k12-github-dev -n github-env-dev --issuer https://token.actions.githubusercontent.com --subject repo:esireddys/k12:environment:dev --audiences api://AzureADTokenExchange
+az role assignment create --assignee-object-id %DEPLOY_ID% --assignee-principal-type ServicePrincipal --role Owner --scope /subscriptions/%SUB%/resourceGroups/%RG%
+echo %CLIENT_ID%
 ```
 
 Owner is limited to this one resource group; it is needed because the Bicep grants the app's identity its access.
-Joining the admin group lets the Deploy workflow apply database migrations.
+The identity gets its database rights in step 8, so the Deploy workflow can apply migrations.
 
 ### 5. Make the import key
 
@@ -115,12 +118,13 @@ With the GitHub CLI, from `C:\code\k12`:
 
 ```bat
 gh api -X PUT repos/esireddys/k12/environments/dev
-gh variable set AZURE_CLIENT_ID --env dev --body %APP_ID%
+gh variable set AZURE_CLIENT_ID --env dev --body %CLIENT_ID%
 gh variable set AZURE_TENANT_ID --env dev --body %TENANT%
 gh variable set AZURE_SUBSCRIPTION_ID --env dev --body %SUB%
 gh variable set AZURE_RESOURCE_GROUP --env dev --body %RG%
-gh variable set K12_ADMIN_GROUP_NAME --env dev --body k12-admins
-gh variable set K12_ADMIN_GROUP_ID --env dev --body %ADMIN_GROUP%
+gh variable set K12_ADMIN_TYPE --env dev --body Group
+gh variable set K12_ADMIN_NAME --env dev --body k12-admins
+gh variable set K12_ADMIN_ID --env dev --body %ADMIN_GROUP%
 gh variable set K12_OWNERS --env dev --body "you@gmail.com"
 gh variable set K12_GOOGLE_CLIENT_ID --env dev --body "<your Google web client id>.apps.googleusercontent.com"
 gh secret set K12_IMPORT_KEY --env dev --body %IMPORT_KEY%
@@ -143,10 +147,11 @@ Optional variables on the environment:
 GitHub > **Actions > Infrastructure > Run workflow**, environment `dev`. It takes about 5 minutes. Its summary lists
 the storage account and SQL server names; you need them below.
 
-### 8. Let the app's identity use the database (once)
+### 8. Let the app and the deploy identity use the database (once)
 
-The app signs in to SQL as its managed identity, which has to be added as a database user once. Open the firewall for
-your PC, then use SSMS:
+The app and GitHub sign in to SQL as their managed identities, which have to be added as database users once: the app
+can read and write data, the deploy identity can also change tables (migrations). Open the firewall for your PC, then
+use SSMS:
 
 ```bat
 for /f "delims=" %i in ('curl -s https://api.ipify.org') do set MYIP=%i
@@ -156,7 +161,7 @@ az sql server firewall-rule create -g %RG% -s <sql server name> -n my-pc --start
 In SSMS, connect to `<sql server name>.database.windows.net`, Authentication **Microsoft Entra MFA**, your Azure sign-in
 as user name. Under **Options > Connection Properties**, set database to `k12`. If sign-in says your account is not in
 the tenant, put the tenant id (`echo %TENANT%`) in **Options > Advanced > AD domain name or tenant ID**. Then open
-`infra\sql\grant-api-identity.sql` and run it.
+`infra\sql\grant-access.sql` and run it.
 
 ### 9. Deploy the app
 
@@ -189,7 +194,7 @@ From then on, a merge to `main` that changes `api/`, `web/` or the app Bicep dep
 
 ## Moving to pay-as-you-go later
 
-Do steps 1 to 11 again with the pay-as-you-go subscription, `RG=k12-prod`, `k12-github-prod`, the subject
+Do steps 1 to 11 again with the pay-as-you-go subscription, `RG=k12-prod`, `k12-github-prod` (and `k12prod-api-id`, `k12-github-prod` in grant-access.sql), the subject
 `repo:esireddys/k12:environment:prod`, and a GitHub environment named `prod`. Add required reviewers to the `prod`
 environment so a production deploy waits for your click. Content comes over with Import content; family accounts made
 during testing stay in dev unless we plan a data move.
@@ -199,7 +204,7 @@ during testing stay in dev unless we plan a data move.
 The workflows only call the Azure CLI, so each step can run from cmd too, for example:
 
 ```bat
-az deployment group what-if -g %RG% -n k12-platform -f infra\main.bicep -p env=dev sqlAdminGroupName=k12-admins sqlAdminGroupObjectId=%ADMIN_GROUP% importKey=%IMPORT_KEY%
+az deployment group what-if -g %RG% -n k12-platform -f infra\main.bicep -p env=dev adminPrincipalType=Group adminName=k12-admins adminObjectId=%ADMIN_GROUP% importKey=%IMPORT_KEY%
 ```
 
 To run the pipeline from your PC against the deployed API instead of GitHub (the pictures still have to be uploaded to

@@ -1,13 +1,16 @@
 // Azure SQL Database, serverless: it pauses when idle and resumes on the next request (about a minute).
 // Uses the Azure SQL free offer when asked: 100,000 vCore-seconds and 32 GB a month at no charge, one per subscription.
 // Entra-only sign-in, no SQL passwords. The API connects with its managed identity (made a database user once, with
-// infra/sql/grant-api-identity.sql).
+// infra/sql/grant-access.sql), as is the GitHub deploy identity, which applies migrations.
 
 param serverName string
 param databaseName string
 param location string
-param adminGroupName string
-param adminGroupObjectId string
+param adminName string
+param adminObjectId string
+
+@allowed(['User', 'Group'])
+param adminPrincipalType string
 
 @description('Use the Azure SQL free offer for this database.')
 param useFreeLimit bool
@@ -25,10 +28,10 @@ resource server 'Microsoft.Sql/servers@2023-08-01-preview' = {
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: true
-      login: adminGroupName
-      sid: adminGroupObjectId
+      login: adminName
+      sid: adminObjectId
       tenantId: subscription().tenantId
-      principalType: 'Group'
+      principalType: adminPrincipalType
     }
   }
 }
