@@ -13,8 +13,11 @@ param apiPrincipalId string
 @description('GitHub Actions: uploads pictures and reads the PDFs during an import.')
 param deployerPrincipalId string
 
-@description('The admin group: uploads the PDFs and looks at the pictures.')
-param adminGroupObjectId string
+@description('The admin (a user or a group): uploads the PDFs and looks at the pictures.')
+param adminObjectId string
+
+@allowed(['User', 'Group'])
+param adminPrincipalType string
 
 import { roles } from 'naming.bicep'
 
@@ -83,15 +86,15 @@ resource deployerReadsRaw 'Microsoft.Authorization/roleAssignments@2022-04-01' =
 }
 
 resource adminsWriteRaw 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(raw.id, adminGroupObjectId, contributor)
+  name: guid(raw.id, adminObjectId, contributor)
   scope: raw
-  properties: { roleDefinitionId: contributor, principalId: adminGroupObjectId, principalType: 'Group' }
+  properties: { roleDefinitionId: contributor, principalId: adminObjectId, principalType: adminPrincipalType }
 }
 
 resource adminsWriteImages 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(images.id, adminGroupObjectId, contributor)
+  name: guid(images.id, adminObjectId, contributor)
   scope: images
-  properties: { roleDefinitionId: contributor, principalId: adminGroupObjectId, principalType: 'Group' }
+  properties: { roleDefinitionId: contributor, principalId: adminObjectId, principalType: adminPrincipalType }
 }
 
 output blobEndpoint string = storage.properties.primaryEndpoints.blob

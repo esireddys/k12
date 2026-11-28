@@ -64,7 +64,7 @@ jobs:
           docker push "$image"
           echo "image=$image" >> "$GITHUB_OUTPUT"
 
-      # 2. Migrations, before the new code starts. Runs as this workflow's identity (a database admin), through a
+      # 2. Migrations, before the new code starts. Runs as this workflow's identity (db_ddladmin, from grant-access.sql), through a
       #    firewall opening for this runner only, closed again whatever happens.
       - uses: actions/setup-dotnet@v4
         with:

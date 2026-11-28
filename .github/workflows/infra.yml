@@ -42,8 +42,9 @@ jobs:
         env:
           RG: ${{ vars.AZURE_RESOURCE_GROUP }}
           ENV_NAME: ${{ inputs.environment }}
-          ADMIN_GROUP_NAME: ${{ vars.K12_ADMIN_GROUP_NAME }}
-          ADMIN_GROUP_ID: ${{ vars.K12_ADMIN_GROUP_ID }}
+          ADMIN_TYPE: ${{ vars.K12_ADMIN_TYPE || 'Group' }}
+          ADMIN_NAME: ${{ vars.K12_ADMIN_NAME }}
+          ADMIN_ID: ${{ vars.K12_ADMIN_ID }}
           IMPORT_KEY: ${{ secrets.K12_IMPORT_KEY }}
           SQL_FREE_OFFER: ${{ vars.K12_SQL_FREE_OFFER || 'true' }}
           WHAT_IF: ${{ inputs.what-if }}
@@ -51,7 +52,7 @@ jobs:
           if [ ${#IMPORT_KEY} -lt 32 ]; then echo "::error::Set the K12_IMPORT_KEY secret (32+ characters) on the $ENV_NAME environment."; exit 1; fi
           action=create; [ "$WHAT_IF" = "true" ] && action=what-if
           az deployment group $action -g "$RG" -n k12-platform -f infra/main.bicep \
-            -p env="$ENV_NAME" sqlAdminGroupName="$ADMIN_GROUP_NAME" sqlAdminGroupObjectId="$ADMIN_GROUP_ID" \
+            -p env="$ENV_NAME" adminPrincipalType="$ADMIN_TYPE" adminName="$ADMIN_NAME" adminObjectId="$ADMIN_ID" \
                importKey="$IMPORT_KEY" sqlUseFreeLimit="$SQL_FREE_OFFER"
 
       - name: Summary

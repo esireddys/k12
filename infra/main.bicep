@@ -3,7 +3,7 @@
 //
 // Run by the "Infrastructure" GitHub workflow. By hand (Windows cmd, one line):
 //   az deployment group create -g <resource-group> -n k12-platform -f infra/main.bicep -p env=dev
-//     sqlAdminGroupName=k12-admins sqlAdminGroupObjectId=<group-object-id> importKey=<key>
+//     adminName=<you@example.com> adminObjectId=<your object id> importKey=<key>
 
 targetScope = 'resourceGroup'
 
@@ -15,13 +15,17 @@ param env string
 
 param location string = resourceGroup().location
 
-@description('Display name of the Entra group that administers the database and uploads content (for example k12-admins).')
-param sqlAdminGroupName string
+@description('Who administers the database and uploads content: your Entra sign-in (User), or a group of admins (Group).')
+@allowed(['User', 'Group'])
+param adminPrincipalType string = 'Group'
 
-@description('Object id of that Entra group.')
-param sqlAdminGroupObjectId string
+@description('The admin\'s sign-in name (for a user, the email you sign in to Azure with) or the group\'s display name.')
+param adminName string
 
-@description('Object id of the principal that deploys releases (the GitHub Actions service principal). Defaults to whoever runs this deployment.')
+@description('Object id of that user or group.')
+param adminObjectId string
+
+@description('Object id of the identity that deploys releases (the GitHub Actions managed identity). Defaults to whoever runs this deployment.')
 param deployerPrincipalId string = deployer().objectId
 
 @secure()
@@ -72,7 +76,8 @@ module storage 'modules/storage.bicep' = {
     dataProtectionContainer: names.dataProtectionContainer
     apiPrincipalId: apiIdentity.properties.principalId
     deployerPrincipalId: deployerPrincipalId
-    adminGroupObjectId: sqlAdminGroupObjectId
+    adminObjectId: adminObjectId
+    adminPrincipalType: adminPrincipalType
   }
 }
 
@@ -94,8 +99,9 @@ module sql 'modules/sql.bicep' = {
     serverName: names.sqlServer
     databaseName: names.sqlDatabase
     location: location
-    adminGroupName: sqlAdminGroupName
-    adminGroupObjectId: sqlAdminGroupObjectId
+    adminName: adminName
+    adminObjectId: adminObjectId
+    adminPrincipalType: adminPrincipalType
     useFreeLimit: sqlUseFreeLimit
     freeLimitExhaustionBehavior: env == 'prod' ? 'BillOverUsage' : 'AutoPause'
   }
