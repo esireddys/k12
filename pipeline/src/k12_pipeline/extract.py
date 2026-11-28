@@ -25,6 +25,10 @@ UNREADABLE = "�"
 FOOTER_TOP = 718  # page footers ("Mathematics / Page N") start below this on every form seen so far
 MARGIN_LEFT = 110  # item numbers sit in the left gutter
 GRIDDABLE_HINT = "Record your answer"
+PAGE_NUMBER = re.compile(r"(?i)(?:^|\s)page\s*\d+$")
+# Printed at the foot of a page but not part of an item: the arrow, the end-of-test notice, form-building ids.
+END_NOTICE = re.compile(r"(?i)be sure you have recorded")
+FOOTER_WORDS = re.compile(r"(?i)(?:go\s*on|stop|\d{5}(?:_\d)?)$|be sure you have recorded")
 FORM_ID = re.compile(r"\d{5}(_\d)?")  # form-building ids printed above some items
 # A stacked fraction reads from the text layer as numerator, the bar as "_", then the denominator.
 STACKED_FRACTION = re.compile(r"(\d+) ?_ ?(\d+)")
@@ -97,9 +101,26 @@ class _Line:
     spans: list[_Span] = field(default_factory=list)
 
 
+def footer_top(page: pymupdf.Page) -> float:
+    """Where the page footer ("Algebra I" over "Page 28") starts, from its page-number line. FOOTER_TOP when a page
+    has no page number near the bottom."""
+    lines = [
+        (line["bbox"][0], line["bbox"][1], "".join(s["text"] for s in line["spans"]).strip())
+        for block in page.get_text("dict")["blocks"] if block["type"] == 0
+        for line in block["lines"]
+    ]
+    numbers = [(x0, y0) for x0, y0, text in lines if y0 >= FOOTER_TOP and PAGE_NUMBER.search(text)]
+    if not numbers:
+        return FOOTER_TOP
+    _, y = min(numbers, key=lambda n: n[1])
+    # The footer is the page-number line and the label printed just above or beside it ("Mathematics").
+    return min(y0 for _, y0, text in lines if text and y - 20 <= y0 <= y + 2) - 1
+
+
 def _lines(doc: pymupdf.Document) -> list[_Line]:
     out: list[_Line] = []
     for page_index, page in enumerate(doc):
+        footer = footer_top(page)
         for block in page.get_text("dict")["blocks"]:
             if block["type"] != 0:
                 continue
@@ -108,9 +129,13 @@ def _lines(doc: pymupdf.Document) -> list[_Line]:
                 if not spans:
                     continue
                 x0, y0, x1, y1 = line["bbox"]
-                if y0 >= FOOTER_TOP:
-                    continue
+                # Below FOOTER_TOP is the page footer, except that some forms (Algebra I) print a low item's
+                # "Record your answer" line there too: keep that line, it is how a gridded item is recognised.
                 text = "".join(s["text"] for s in line["spans"])
+                # Below FOOTER_TOP is usually the page footer, but some forms (Algebra I) print the end of a low
+                # item there too (its "Record your answer" line, a last choice, an axis title). Keep those lines.
+                if y0 >= FOOTER_TOP and (y0 >= footer or FOOTER_WORDS.match(text.strip())):
+                    continue
                 out.append(_Line(
                     page_index + 1, x0, y0, x1, y1, text, "Bold" in spans[0]["font"],
                     [_Span(s["text"], s["font"], tuple(s["bbox"])) for s in spans],
@@ -183,9 +208,18 @@ def extract_items(pdf: Path, expected_count: int) -> list[ExtractedItem]:
     for k, (start, number) in enumerate(starts):
         end = starts[k + 1][0] if k + 1 < len(starts) else len(lines)
         own = [ln for ln in lines[start:end] if ln.page == lines[start].page]
+        # The end-of-test notice ("BE SURE YOU HAVE RECORDED...", in a box beside a stop sign) closes the last
+        # item; it is not part of it.
+        notice = [ln.y0 for ln in own if END_NOTICE.match(ln.text.strip())]
+        own = [ln for ln in own if ln.y0 < min(notice, default=float("inf"))]
         # A figure-only tail can run past the last text line; take the page down to the next item or the footer.
         next_on_same_page = k + 1 < len(starts) and lines[starts[k + 1][0]].page == lines[start].page
         bottom = lines[starts[k + 1][0]].y0 - 12 if next_on_same_page else FOOTER_TOP
+        low = [ln.y1 for ln in own if ln.y1 > FOOTER_TOP]  # the end of an item printed below FOOTER_TOP
+        if not next_on_same_page and low:
+            bottom = max(low) + 2
+        if notice:
+            bottom = min(bottom, min(notice) - 8)
         item = ExtractedItem(number, lines[start].page, max(lines[start].y0 - 14, 20), bottom)
         _read_text(item, own, doc[item.page - 1])
         items.append(item)
@@ -315,9 +349,13 @@ def _printed_area(page: pymupdf.Page, clip: pymupdf.Rect, skip: list[pymupdf.Rec
     boxes = [pymupdf.Rect(r) for r in _figure_marks(page, clip.y0, clip.y1)]
     for block in page.get_text("dict", clip=clip)["blocks"]:
         for line in block.get("lines", []):
+            # A line that is one glyph whose text reads as blank is still printed: some forms (Algebra I) map
+            # a graph's bold italic axis label to a space, and leaving it out would cut the label in half.
+            lone = len(line["spans"]) == 1
             for span in line["spans"]:
                 r = pymupdf.Rect(span["bbox"])
-                if span["text"].strip() and clip.y0 <= r.y0 < clip.y1 and not any(s.intersects(r) for s in skip):
+                printed = span["text"].strip() or (lone and span["text"] == " " and "BoldItalic" in span["font"])
+                if printed and clip.y0 <= r.y0 < clip.y1 and not any(s.intersects(r) for s in skip):
                     boxes.append(r)
     area: pymupdf.Rect | None = None
     for r in boxes:
