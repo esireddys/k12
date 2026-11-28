@@ -31,6 +31,12 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     /// <summary>More owner emails, after owner@localhost.</summary>
     public string[] MoreOwners { get; init; } = [];
 
+    /// <summary>Access:ImportKey, the content pipeline's key. Empty means no key is set.</summary>
+    public string ImportKey { get; init; } = "";
+
+    /// <summary>A folder to serve as the built web app (wwwroot), or null for none, as in a local run.</summary>
+    public string? WebRoot { get; init; }
+
     public string ImageRoot { get; } = Directory.CreateTempSubdirectory("k12-api-images-").FullName;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -41,6 +47,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Access:DevelopmentUser", DevelopmentUser);
         builder.UseSetting("Access:Owners:0", "owner@localhost");
         builder.UseSetting("Auth:Google:ClientId", GoogleClientId);
+        builder.UseSetting("Access:ImportKey", ImportKey);
+        if (WebRoot is not null) builder.UseWebRoot(WebRoot);
         for (var i = 0; i < MoreOwners.Length; i++) builder.UseSetting($"Access:Owners:{i + 1}", MoreOwners[i]);
         if (FakeGoogle)
             builder.ConfigureTestServices(services =>

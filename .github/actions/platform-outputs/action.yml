@@ -1,0 +1,42 @@
+name: Read platform outputs
+description: >
+  Reads the names infra/main.bicep produced (registry, storage, SQL server) from the k12-platform deployment, so the
+  workflows never hard-code a resource name. Needs a prior azure/login.
+inputs:
+  resource-group:
+    description: The environment's resource group
+    required: true
+outputs:
+  registry:
+    description: Container registry login server
+    value: ${{ steps.read.outputs.registry }}
+  storage-account:
+    description: Storage account name
+    value: ${{ steps.read.outputs.storage-account }}
+  sql-server:
+    description: SQL server name
+    value: ${{ steps.read.outputs.sql-server }}
+  sql-fqdn:
+    description: SQL server host name
+    value: ${{ steps.read.outputs.sql-fqdn }}
+  sql-database:
+    description: Database name
+    value: ${{ steps.read.outputs.sql-database }}
+runs:
+  using: composite
+  steps:
+    - id: read
+      shell: bash
+      env:
+        RG: ${{ inputs.resource-group }}
+      run: |
+        outputs=$(az deployment group show -g "$RG" -n k12-platform --query properties.outputs -o json) || {
+          echo "::error::No k12-platform deployment in $RG. Run the Infrastructure workflow first."; exit 1; }
+        get() { jq -r --arg k "$1" '.[$k].value' <<<"$outputs"; }
+        {
+          echo "registry=$(get registryLoginServer)"
+          echo "storage-account=$(get storageAccountName)"
+          echo "sql-server=$(get sqlServerName)"
+          echo "sql-fqdn=$(get sqlServerFqdn)"
+          echo "sql-database=$(get sqlDatabaseName)"
+        } >> "$GITHUB_OUTPUT"

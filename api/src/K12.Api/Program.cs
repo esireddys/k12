@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using K12.Api.Auth;
 using K12.Api.Endpoints;
+using K12.Api.Hosting;
 using K12.Application;
 using K12.Infrastructure;
 using K12.Infrastructure.Persistence;
@@ -20,6 +21,7 @@ if (builder.Configuration["Content:ImageRoot"] is { Length: > 0 } imageRoot)
     builder.Configuration["Content:ImageRoot"] = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, imageRoot));
 
 builder.Services
+    .AddK12DataProtection(builder.Configuration)
     .AddK12Access(builder.Environment, builder.Configuration)
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
@@ -39,6 +41,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseK12WebApp();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -48,7 +51,8 @@ app.MapAccountEndpoints(app.Environment);
 app.MapPracticeEndpoints();
 app.MapProgressEndpoints();
 app.MapContentReviewEndpoints();
-if (app.Environment.IsDevelopment()) app.MapContentImportEndpoints(); // admin role once sign-in exists
+app.MapContentImportEndpoints(app.Environment);
+app.MapK12WebAppFallback();
 
 app.Run();
 

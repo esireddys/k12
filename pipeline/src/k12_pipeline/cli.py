@@ -8,6 +8,7 @@ from pathlib import Path
 
 import httpx
 
+from .api_client import api_client
 from .curriculum import course_payload, load_curriculum
 from .downloads import check_downloads, format_report, open_missing
 from .extract import extract_items, render_item
@@ -60,7 +61,7 @@ def publish_released(client: httpx.Client | None) -> str:
 def run_import(api: str, data: Path, dry_run: bool) -> None:
     out = data / "out"
     out.mkdir(parents=True, exist_ok=True)
-    client = None if dry_run else httpx.Client(base_url=api, timeout=60, follow_redirects=True)
+    client = None if dry_run else api_client(api)
 
     for path in sorted((data / "curriculum").glob("*.json")):
         print(f"course {path.name}: {_post(client, '/api/admin/import/course', course_payload(load_curriculum(path)))}")
@@ -104,7 +105,8 @@ def main() -> None:
     dl.add_argument("--open", action="store_true",
                     help="Open each missing PDF's link in your browser and make its folder; you save it by hand")
     imp = sub.add_parser("import", help="Load curriculum and released tests into the API")
-    imp.add_argument("--api", default="http://localhost:5143", help="API base URL (Development only for now)")
+    imp.add_argument("--api", default="http://localhost:5143",
+                     help="API base URL. A deployed API also needs the K12_IMPORT_KEY environment variable")
     imp.add_argument("--data", type=Path, default=DATA, help="Folder with curriculum, keys and raw")
     imp.add_argument("--dry-run", action="store_true", help="Build the payloads in data/out without sending them")
     pub = sub.add_parser("publish-released",
@@ -132,7 +134,7 @@ def main() -> None:
     elif args.command == "import":
         run_import(args.api, args.data, args.dry_run)
     elif args.command == "publish-released":
-        print(publish_released(httpx.Client(base_url=args.api, timeout=60, follow_redirects=True)))
+        print(publish_released(api_client(args.api)))
     elif args.command == "review":
         from .review.reviewer import DEFAULT_MODEL
         from .review.runner import run_review

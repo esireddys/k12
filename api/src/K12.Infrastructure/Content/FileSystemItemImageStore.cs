@@ -8,14 +8,6 @@ namespace K12.Infrastructure.Content;
 /// </summary>
 public sealed class FileSystemItemImageStore(string root) : IItemImageStore
 {
-    private static readonly Dictionary<string, string> Types = new(StringComparer.OrdinalIgnoreCase)
-    {
-        [".png"] = "image/png",
-        [".jpg"] = "image/jpeg",
-        [".jpeg"] = "image/jpeg",
-        [".webp"] = "image/webp",
-    };
-
     private readonly string _root = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
         + Path.DirectorySeparatorChar;
 
@@ -24,7 +16,7 @@ public sealed class FileSystemItemImageStore(string root) : IItemImageStore
         var full = Path.GetFullPath(Path.Combine(_root, relativePath.Replace('\\', '/').TrimStart('/')));
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
         if (!full.StartsWith(_root, comparison)
-            || !Types.TryGetValue(Path.GetExtension(full), out var contentType)
+            || !ItemImageTypes.TryGet(full, out var contentType)
             || !File.Exists(full))
             return Task.FromResult<ItemImage?>(null);
 
