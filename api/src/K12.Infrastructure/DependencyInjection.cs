@@ -4,6 +4,7 @@ using K12.Application.ContentReview;
 using K12.Infrastructure.Content;
 using K12.Domain.Accounts;
 using K12.Domain.Content;
+using K12.Domain.Content.Reports;
 using K12.Domain.Curriculum;
 using K12.Domain.Progress;
 using K12.Infrastructure.Identity;
@@ -48,6 +49,7 @@ public static class DependencyInjection
             services.AddSingleton<IParentAccountRepository, InMemoryParentAccountRepository>();
             services.AddSingleton<IKidProgressRepository, InMemoryKidProgressRepository>();
             services.AddSingleton<IPracticeSessionRepository, InMemoryPracticeSessionRepository>();
+            services.AddSingleton<IQuestionReportRepository, InMemoryQuestionReportRepository>();
             services.AddSingleton<IUnitOfWork, InMemoryUnitOfWork>();
             return services;
         }
@@ -62,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<IParentAccountRepository, EfParentAccountRepository>();
         services.AddScoped<IKidProgressRepository, EfKidProgressRepository>();
         services.AddScoped<IPracticeSessionRepository, EfPracticeSessionRepository>();
+        services.AddScoped<IQuestionReportRepository, EfQuestionReportRepository>();
         return services;
     }
 }

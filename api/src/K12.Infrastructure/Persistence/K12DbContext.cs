@@ -1,6 +1,7 @@
 using K12.Application.Abstractions;
 using K12.Domain.Accounts;
 using K12.Domain.Content;
+using K12.Domain.Content.Reports;
 using K12.Domain.Curriculum;
 using K12.Domain.Progress;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ public sealed class K12DbContext(DbContextOptions<K12DbContext> options) : DbCon
     public DbSet<ParentAccount> ParentAccounts => Set<ParentAccount>();
     public DbSet<KidProgress> KidProgress => Set<KidProgress>();
     public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();
+    public DbSet<QuestionReport> QuestionReports => Set<QuestionReport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(K12DbContext).Assembly);

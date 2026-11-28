@@ -26,17 +26,27 @@ export function WelcomePage() {
       <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="brand">{brand.appName}</div>
-          <h1 style={{ margin: 0, fontSize: 46, fontWeight: 800, lineHeight: 1.15 }}>
-            Practice real released test questions, a little every day.
+          <h1 className="welcome-title">
+            <span className="welcome-long">Practice real released test questions, a little every day.</span>
+            <span className="welcome-short">Real test questions, a little every day.</span>
           </h1>
-          <p className="quiet" style={{ margin: 0, fontSize: 20, lineHeight: 1.5 }}>
+          {/* On a phone the sign-in and guest cards sit below the fold: two buttons jump straight to them. */}
+          <div className="welcome-jump row">
+            <a href="#parents" className="button-link">
+              I'm a parent
+            </a>
+            <a href="#guest" className="button-link secondary">
+              Just try it
+            </a>
+          </div>
+          <p className="quiet welcome-lede">
             Pick your state and grade, then practice by topic, take a mix, or try a full test from a past year.
           </p>
           {me.data?.isOwner && <Link to="/owner/review">Content review (owners)</Link>}
         </div>
 
         <div style={{ flex: '1 1 380px', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="card">
+          <div className="card" id="parents">
             <h2 style={{ fontSize: 20 }}>Parents</h2>
             {google ? (
               <GoogleButton clientId={google.clientId} onToken={(token) => googleSignIn.mutate(token, { onSuccess: toKids })} />

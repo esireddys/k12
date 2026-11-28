@@ -34,15 +34,18 @@
   "categories": [
     {
       "number": 1,
-      "name": "Understanding and Analysis Across Genres"
+      "name": "Understanding and Analysis Across Genres",
+      "kidName": "Reading skills for every text"
     },
     {
       "number": 2,
-      "name": "Understanding and Analysis of Literary Texts"
+      "name": "Understanding and Analysis of Literary Texts",
+      "kidName": "Stories and poems"
     },
     {
       "number": 3,
-      "name": "Understanding and Analysis of Informational Texts"
+      "name": "Understanding and Analysis of Informational Texts",
+      "kidName": "Facts and information"
     }
   ],
   "skills": [

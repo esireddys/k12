@@ -59,3 +59,27 @@ export function sameGradeSubjects(course: CatalogCourse, courses: CatalogCourse[
     .filter((c) => c.id === course.id || hasQuestions(c))
     .sort((a, b) => a.subject.localeCompare(b.subject))
 }
+
+/** "Grade 3" for a whole grade, whatever the subject; "Algebra I" for a course. A kid belongs to a grade, not a subject. */
+export const gradeLabel = (c: Pick<CatalogCourse, 'name' | 'subject' | 'kind'>) => c.name
+
+/**
+ * One choice per grade (and one per course such as Algebra I), for picking a kid's grade. A grade is offered as
+ * its first subject with questions, or as <paramref name="currentId"/> when that is one of its subjects, so the
+ * subject a kid has open is kept. Subjects are then tabs on the kid's home.
+ */
+export function gradeChoices(courses: CatalogCourse[], currentId?: string | null): CatalogCourse[] {
+  const levelKey = (c: CatalogCourse) =>
+    c.kind === 'Course' ? `course:${c.id}` : `${c.jurisdiction}|${c.code}|${c.language ?? 'en'}`
+  const groups = new Map<string, CatalogCourse[]>()
+  for (const c of courses) groups.set(levelKey(c), [...(groups.get(levelKey(c)) ?? []), c])
+  return [...groups.values()].map(
+    (group) =>
+      group.find((c) => c.id === currentId) ??
+      [...group].sort((a, b) => a.subject.localeCompare(b.subject)).find(hasQuestions) ??
+      group[0],
+  )
+}
+
+/** The name kids see for a reporting category: a short everyday one from curriculum data, else the framework's. */
+export const categoryKidName = (c: { name: string; kidName?: string | null }) => c.kidName || c.name

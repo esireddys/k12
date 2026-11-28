@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { useOwnerQueue } from './api/useOwnerQueue'
+import { OwnerNav } from './components/OwnerNav'
 import { OwnerOnly } from './components/OwnerOnly'
 import { StatusCounts } from './components/StatusCounts'
 import { difficultyLabel, sourceLine, type OwnerQueueItem } from './model/content'
@@ -72,7 +73,10 @@ function Queue() {
         ))}
       </div>
       {items.length === 0 ? (
-        <p>Nothing here. Run the AI reviewer to fill the queue.</p>
+        <p>
+          Nothing is waiting for an owner. Questions written by the generator land here after the AI reviewer checks them. To fix a
+          question kids already see, open <Link to="/owner/questions">All questions</Link>.
+        </p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 10 }}>
           {items.map((item) => (
@@ -89,6 +93,7 @@ export function ReviewQueuePage() {
   return (
     <OwnerOnly>
       <main style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px', display: 'grid', gap: 20 }}>
+        <OwnerNav />
         <h1 style={{ margin: 0 }}>Content review</h1>
         <Queue />
       </main>

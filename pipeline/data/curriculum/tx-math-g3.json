@@ -38,19 +38,23 @@
   "categories": [
     {
       "number": 1,
-      "name": "Numerical Representations and Relationships"
+      "name": "Numerical Representations and Relationships",
+      "kidName": "Numbers and place value"
     },
     {
       "number": 2,
-      "name": "Computations and Algebraic Relationships"
+      "name": "Computations and Algebraic Relationships",
+      "kidName": "Computing and number patterns"
     },
     {
       "number": 3,
-      "name": "Geometry and Measurement"
+      "name": "Geometry and Measurement",
+      "kidName": "Shapes and measuring"
     },
     {
       "number": 4,
-      "name": "Data Analysis and Personal Financial Literacy"
+      "name": "Data Analysis and Personal Financial Literacy",
+      "kidName": "Graphs, data and money"
     }
   ],
   "skills": [

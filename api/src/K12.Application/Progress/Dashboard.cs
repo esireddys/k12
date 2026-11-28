@@ -7,7 +7,11 @@ using K12.Domain.Progress;
 namespace K12.Application.Progress;
 
 /// <summary>The parent dashboard for one kid. Parents only, behind the parent PIN.</summary>
-public sealed record GetKidDashboardQuery(Guid AccountId, Guid KidId, DateOnly? LocalDate);
+/// <param name="CourseId">
+/// Another subject of the kid's grade to show (Reading next to Math). Empty, or a course that is not a subject of
+/// the kid's grade, shows the subject the kid has open.
+/// </param>
+public sealed record GetKidDashboardQuery(Guid AccountId, Guid KidId, DateOnly? LocalDate, Guid? CourseId = null);
 
 /// <param name="Accuracy">Share of all answers on the skill that were right, 0 to 100; empty before any answer.</param>
 /// <param name="QuestionCount">Live questions on the skill.</param>
@@ -16,7 +20,8 @@ public sealed record SkillStanding(
     string Code, string Description, int? Category, MasteryLevel Level, int Answered, int Correct, int? Accuracy, bool HasQuestions,
     int QuestionCount = 0, int OpenMistakes = 0);
 
-public sealed record WeekView(int DaysPracticed, int Minutes, int Answered, int Correct);
+/// <param name="Minutes">Whole minutes, rounded. <paramref name="Seconds"/> says how much when it is under one.</param>
+public sealed record WeekView(int DaysPracticed, int Minutes, int Answered, int Correct, int Seconds = 0);
 
 /// <summary>The latest full released test or practice test, with the one before it to compare.</summary>
 public sealed record ExamResultView(string Title, int Percent, int? PreviousPercent, DateTimeOffset FinishedAt);
@@ -62,12 +67,12 @@ public sealed class GetKidDashboardHandler(
         var today = KidAccess.Today(query.LocalDate, clock);
         var kidProgress = await progress.GetAsync(kid.Id, ct) ?? KidProgress.Start(kid.Id);
 
-        var course = kid.CourseId is { } cid ? (await courses.ListByIdsAsync([cid], ct)).FirstOrDefault() : null;
+        var course = await ShownCourseAsync(kid.CourseId, query.CourseId, ct);
         var courseSkills = course is null ? [] : await skills.ListByCourseAsync(course.Id, ct);
         var live = course is null ? [] : CategoryViews.LiveIn(await questions.ListByStatusAsync(QuestionStatus.Live, int.MaxValue, ct), courseSkills);
         var questionsPerSkill = live.SelectMany(q => q.SkillIds).GroupBy(id => id).ToDictionary(g => g.Key, g => g.Count());
 
-        var toFix = await Mistakes.OpenInCourseAsync(kidProgress, kid.CourseId, questions, skills, ct);
+        var toFix = await Mistakes.OpenInCourseAsync(kidProgress, course?.Id, questions, skills, ct);
         var lastMiss = kidProgress.OpenMistakes.ToDictionary(m => m.QuestionId, m => m.LastMissedAt);
         var courseSkillIds = courseSkills.Select(s => s.Id).ToHashSet();
         var misses = toFix
@@ -102,8 +107,17 @@ public sealed class GetKidDashboardHandler(
         var practicable = standings.Count(s => s.View.HasQuestions);
         var categories = course is null ? [] : await CategoryViews.ForAsync(kid.Id, course, courseSkills, live, sessions, questions, ct);
 
+        // Answer totals follow the subject on show; the week and the streak are about the kid, whatever the subject.
+        var (answered, correct) = (kidProgress.TotalAnswered, kidProgress.TotalCorrect);
+        if (course is not null)
+        {
+            var courseAnswers = (await sessions.ListByCourseAsync(kid.Id, course.Id, ct)).SelectMany(s => s.Answers).Where(a => a.Answered).ToList();
+            (answered, correct) = (courseAnswers.Count, courseAnswers.Count(a => a.IsCorrect));
+        }
+
         var week = kidProgress.DaysBetween(today.AddDays(-6), today);
-        var recent = await sessions.ListRecentAsync(kid.Id, RecentCount, ct);
+        var recent = (await sessions.ListRecentAsync(kid.Id, RecentCount * 3, ct))
+            .Where(s => course is null || s.CourseId == course.Id).Take(RecentCount).ToList();
         var exams = recent.Where(s => s.Mode == PracticeMode.Exam && s.IsFinished && s.Total > 0).ToList();
         var lastExam = exams.Count == 0 ? null : new ExamResultView(
             exams[0].Title, Percent(exams[0].Correct, exams[0].Total),
@@ -113,10 +127,21 @@ public sealed class GetKidDashboardHandler(
             kid.Id.Value, kid.Name, kid.Avatar, course?.Id.Value, course?.Name, course?.FrameworkName,
             kidProgress.CurrentStreak(today), kidProgress.BestStreak(),
             new WeekView(week.Count(d => d.Answered > 0), (int)Math.Round(week.Sum(d => d.Seconds) / 60.0),
-                week.Sum(d => d.Answered), week.Sum(d => d.Correct)),
-            kidProgress.TotalAnswered, kidProgress.TotalCorrect, toFix.Count,
+                week.Sum(d => d.Answered), week.Sum(d => d.Correct), week.Sum(d => d.Seconds)),
+            answered, correct, toFix.Count,
             lastExam, categories.Count(c => c.Level == MasteryLevel.Mastered), categories,
             attention, listed, practicable - listed.Count, recent.Select(Sessions.View).ToList());
+    }
+
+    /// <summary>The subject asked for when it is another subject of the kid's grade, else the kid's own.</summary>
+    private async Task<Course?> ShownCourseAsync(CourseId? kidCourse, Guid? asked, CancellationToken ct)
+    {
+        var ids = new[] { kidCourse, asked is { } a ? new CourseId(a) : null }.OfType<CourseId>().Distinct().ToList();
+        if (ids.Count == 0) return null;
+        var found = (await courses.ListByIdsAsync(ids, ct)).ToDictionary(c => c.Id);
+        var own = kidCourse is { } k ? found.GetValueOrDefault(k) : null;
+        var other = asked is { } x ? found.GetValueOrDefault(new CourseId(x)) : null;
+        return other is not null && (own is null || other.IsSameLevelAs(own)) ? other : own;
     }
 
     private static int Percent(int part, int whole) => whole == 0 ? 0 : (int)Math.Round(100.0 * part / whole);

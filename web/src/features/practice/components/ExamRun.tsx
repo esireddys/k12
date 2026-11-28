@@ -8,7 +8,10 @@ import { WithPassage } from './PassagePane'
 import { useSessionScoring } from '../api/useProgress'
 import { useStoredState } from '../model/storedState'
 import { timeLeftText } from '../model/timeLimit'
+import { clearResume, learnerKey, saveResume } from '../model/resume'
+import { QuestionNavigator } from './QuestionNavigator'
 import { QuestionView } from './QuestionView'
+import { ReportProblem } from './ReportProblem'
 import { Results } from './Results'
 
 type ExamState = { index: number; responses: Record<string, string>; flagged: string[]; startedAt: number }
@@ -66,6 +69,14 @@ export function ExamRun({
     return () => window.clearInterval(timer)
   }, [scored, timeLimitMinutes])
 
+  // "Pick up where you left off" on the home screen, while the test is open in this tab.
+  const resumeUrl = `${window.location.pathname}${window.location.search}`
+  const answeredCount = questions.filter((x) => responses[x.id]).length
+  useEffect(() => {
+    if (scored) return
+    saveResume(learnerKey(learner), { url: resumeUrl, title, mode: 'exam', done: answeredCount, total: questions.length })
+  }, [scored, learner, resumeUrl, title, answeredCount, questions.length])
+
   // When the time is up the test hands itself in, like the real one. Also after a refresh past the limit.
   const finishRef = useRef<() => void>(() => {})
   useEffect(() => {
@@ -74,21 +85,30 @@ export function ExamRun({
 
   if (scored)
     return (
-      <Results title={title} course={course} questions={questions} scored={scored} responses={responses} minutes={finishedMinutes ?? minutes} onAgain={onAgain} />
+      <Results
+        title={title}
+        course={course}
+        questions={questions}
+        scored={scored}
+        responses={responses}
+        minutes={finishedMinutes ?? minutes}
+        learner={learner}
+        onAgain={onAgain}
+      />
     )
 
   const q = questions[Math.min(index, questions.length - 1)]
-  const answered = questions.filter((x) => responses[x.id]).length
-  const unanswered = questions.length - answered
+  const unanswered = questions.length - answeredCount
 
   const finish = () =>
     score.mutate(
       { responses: questions.map((x) => ({ questionId: x.id, response: responses[x.id] ?? '' })), finish: true, startedAt },
       {
         onSuccess: (data) => {
-          setFinishedMinutes(Math.max(1, Math.min(Math.round((Date.now() - startedAt) / 60_000), timeLimitMinutes ?? Infinity)))
+          setFinishedMinutes(Math.min(Math.floor((Date.now() - startedAt) / 60_000), timeLimitMinutes ?? Infinity))
           setScored(Object.fromEntries(data.items.map((i) => [i.questionId, i])))
           forget()
+          clearResume(learnerKey(learner), resumeUrl)
         },
       },
     )
@@ -114,46 +134,29 @@ export function ExamRun({
         </div>
       </div>
 
-      <nav aria-label="Questions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {questions.map((x, i) => {
-          const done = !!responses[x.id]
-          const flag = flagged.has(x.id)
-          return (
-            <button
-              key={x.id}
-              type="button"
-              onClick={() => setIndex(i)}
-              aria-current={i === index ? 'step' : undefined}
-              aria-label={`Question ${i + 1}${done ? ', answered' : ''}${flag ? ', flagged' : ''}`}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                border: `${i === index ? 3 : 2}px solid ${flag ? 'var(--miss)' : i === index ? 'var(--ink)' : done ? 'var(--accent)' : 'var(--border)'}`,
-                background: done ? 'var(--accent)' : 'var(--surface)',
-                color: done ? '#fff' : 'var(--ink)',
-                fontWeight: 800,
-                cursor: 'pointer',
-              }}
-            >
-              {i + 1}
-            </button>
-          )
-        })}
-      </nav>
-      <div className="quiet" style={{ fontSize: 14 }}>
-        Blue = answered · orange outline = flagged · white = not answered yet
-      </div>
+      <QuestionNavigator
+        questions={questions}
+        index={index}
+        answered={(id) => !!responses[id]}
+        flagged={(id) => flagged.has(id)}
+        onPick={setIndex}
+      />
 
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <strong style={{ fontSize: 18 }}>
-          Question {index + 1} · {q.answerKind === 'Choice' ? 'Pick one' : 'Type your answer'}
+          {q.answerKind === 'Choice' ? 'Pick one' : 'Type your answer'}
+          {flagged.has(q.id) && (
+            <span className="chip flag-chip">
+              <Icon name="flag-filled" size={16} /> Flagged
+            </span>
+          )}
         </strong>
         <span className="quiet">No right or wrong shown until you finish the test.</span>
       </div>
 
       <WithPassage key={q.passageId ?? 'none'} passage={passages.find((p) => p.id === q.passageId)}>
         <QuestionView key={q.id} question={q} response={responses[q.id] ?? ''} onResponse={(v) => update((s) => ({ ...s, responses: { ...s.responses, [q.id]: v } }))} />
+        <ReportProblem key={`report-${q.id}`} questionId={q.id} learner={learner} />
       </WithPassage>
 
       <div className="row" style={{ justifyContent: 'space-between' }}>

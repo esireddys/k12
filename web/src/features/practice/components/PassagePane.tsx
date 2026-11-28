@@ -24,21 +24,44 @@ export function PassagePane({ passage }: { passage: PassageView }) {
 }
 
 /**
- * The question with its selection: side by side when there is room (a tablet in landscape, a laptop), otherwise
- * the selection first with a button to hide it, then the question.
+ * The question with its selection. Side by side when there is room (a tablet in landscape, a laptop). On a phone
+ * or a portrait tablet there are two tabs, "Question" and the selection, opening on the question so a kid never
+ * scrolls through pages of print to find it. Keyed by passage, so each new selection opens on the question again.
  */
 export function WithPassage({ passage, children }: { passage?: PassageView; children: React.ReactNode }) {
-  const [hidden, setHidden] = useState(false)
+  const [tab, setTab] = useState<'question' | 'passage'>('question')
   if (!passage) return <>{children}</>
+  const tabs = [
+    { id: 'question' as const, label: 'Question' },
+    { id: 'passage' as const, label: `Read “${passage.title}”` },
+  ]
   return (
-    <div className="reading-layout">
-      <div className="reading-passage">
-        <button type="button" className="passage-toggle" onClick={() => setHidden((h) => !h)} aria-expanded={!hidden}>
-          <Icon name="book" size={18} /> {hidden ? `Show “${passage.title}”` : 'Hide the selection'}
-        </button>
-        {!hidden && <PassagePane passage={passage} />}
+    <div className="reading-layout" data-tab={tab}>
+      <div className="reading-tabs" role="tablist" aria-label="Question or reading selection">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            id={`reading-tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`reading-${t.id}`}
+            className="reading-tab"
+            onClick={() => setTab(t.id)}
+          >
+            {t.id === 'passage' && <Icon name="book" size={18} />} {t.label}
+          </button>
+        ))}
       </div>
-      <div className="reading-question">{children}</div>
+      <div className="reading-passage" id="reading-passage" role="tabpanel" aria-labelledby="reading-tab-passage">
+        <PassagePane passage={passage} />
+        <button type="button" className="reading-back" onClick={() => setTab('question')}>
+          Back to the question
+        </button>
+      </div>
+      <div className="reading-question" id="reading-question" role="tabpanel" aria-labelledby="reading-tab-question">
+        {children}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { courseLabel, hasQuestions, jurisdictionLabel, useCatalog } from '../../../shared/catalog/useCatalog'
+import { gradeChoices, gradeLabel, hasQuestions, jurisdictionLabel, useCatalog } from '../../../shared/catalog/useCatalog'
 import { Avatar } from '../../../shared/ui/Avatar'
 import { avatarColors, type AvatarColor } from '../../../shared/ui/avatarColors'
 import { Button } from '../../../shared/ui/Button'
@@ -13,8 +13,11 @@ export function KidForm({
   error,
   onSubmit,
   onCancel,
+  takenColors = [],
 }: {
   initial?: KidBody
+  /** Colours the family's other kids already have, so a new kid starts with a different one. */
+  takenColors?: AvatarColor[]
   submitLabel: string
   busy: boolean
   error?: string
@@ -23,7 +26,9 @@ export function KidForm({
 }) {
   const catalog = useCatalog()
   const [name, setName] = useState(initial?.name ?? '')
-  const [avatar, setAvatar] = useState<AvatarColor>(initial?.avatar ?? 'Orange')
+  const [avatar, setAvatar] = useState<AvatarColor>(
+    () => initial?.avatar ?? avatarColors.find((c) => !takenColors.includes(c)) ?? avatarColors[takenColors.length % avatarColors.length],
+  )
   const [courseId, setCourseId] = useState(initial?.courseId ?? '')
 
   return (
@@ -42,11 +47,12 @@ export function KidForm({
         </div>
         <div className="field" style={{ minWidth: 220 }}>
           <label htmlFor="kid-course">Grade or course</label>
+          {/* One choice per grade: the kid moves between its subjects (Math, Reading) on their own home screen. */}
           <select id="kid-course" value={courseId} onChange={(e) => setCourseId(e.target.value)}>
             <option value="">Choose later</option>
-            {(catalog.data ?? []).map((c) => (
+            {gradeChoices(catalog.data ?? [], courseId || initial?.courseId).map((c) => (
               <option key={c.id} value={c.id} disabled={!hasQuestions(c) && c.id !== initial?.courseId}>
-                {courseLabel(c)} · {jurisdictionLabel(c)}
+                {gradeLabel(c)} · {jurisdictionLabel(c)}
                 {hasQuestions(c) ? '' : ' (soon)'}
               </option>
             ))}

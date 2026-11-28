@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Button } from '../../shared/ui/Button'
 import { useOwnerQueue } from './api/useOwnerQueue'
+import { useCloseReports, useQuestionReports, useReviseQuestion } from './api/useQuestionBrowser'
 import { useReviewDecision } from './api/useReviewDecision'
 import { useReviewQuestion } from './api/useReviewQuestion'
 import { ContentEditor } from './components/ContentEditor'
 import { Findings } from './components/Findings'
 import { ItemPicture } from './components/ItemPicture'
+import { OwnerNav } from './components/OwnerNav'
 import { OwnerOnly } from './components/OwnerOnly'
 import {
   difficulties,
@@ -17,6 +19,14 @@ import {
   type Difficulty,
   type QuestionForReview,
 } from './model/content'
+
+const reportReasonText: Record<string, string> = {
+  WrongAnswer: 'The answer looks wrong',
+  HardToRead: 'Hard to read',
+  Confusing: "Doesn't make sense",
+  Typo: 'A typo',
+  Other: 'Something else',
+}
 
 const input = {
   font: 'inherit',
@@ -39,6 +49,10 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
   const [reason, setReason] = useState('')
 
   const waiting = question.status === 'AwaitingOwner'
+  const live = question.status === 'Live'
+  const revise = useReviseQuestion(question.id)
+  const closeReports = useCloseReports(question.id)
+  const reports = (useQuestionReports().data ?? []).filter((r) => r.questionId === question.id)
   const version = Number(question.version)
   const goNext = () => navigate(nextId ? `/owner/review/${nextId}` : '/owner/review')
 
@@ -71,7 +85,24 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
       <section style={{ display: 'grid', gap: 18 }}>
         <Findings review={question.aiReview} answer={question.answer.value} />
 
-        {!waiting && (
+        {reports.length > 0 && (
+          <div style={{ padding: 12, borderRadius: 12, border: '2px solid var(--danger-line)', background: 'var(--danger-soft)', display: 'grid', gap: 6 }}>
+            <strong style={{ color: 'var(--danger-ink)' }}>
+              {reports.length} {reports.length === 1 ? 'report' : 'reports'} from families
+            </strong>
+            {reports.map((r) => (
+              <span key={r.id}>
+                {reportReasonText[r.reason]} · from a {(r.reporter ?? 'Guest').toLowerCase()} · {new Date(r.reportedAt).toLocaleDateString()}
+                {r.fixed ? ' · changed since' : ''}
+              </span>
+            ))}
+            <Button variant="secondary" style={{ justifySelf: 'start' }} onClick={() => closeReports.mutate()} disabled={closeReports.isPending}>
+              It's fine as it is: close the reports
+            </Button>
+          </div>
+        )}
+
+        {!waiting && !live && (
           <p style={{ padding: 12, borderRadius: 12, background: 'var(--surface-muted)' }}>
             This question is {question.status}
             {question.ownerDecision &&
@@ -91,7 +122,7 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
           </label>
           <label style={{ display: 'grid', gap: 4 }}>
             <strong>Difficulty</strong>
-            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value as Difficulty)} style={input}>
+            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value as Difficulty)} style={input} disabled={live}>
               {difficulties.map((d) => (
                 <option key={d} value={d}>
                   {difficultyLabel[d]}
@@ -114,6 +145,26 @@ function ReviewForm({ question, nextId }: { question: QuestionForReview; nextId?
         </label>
 
         {decision.isError && <p style={{ color: 'var(--danger-ink)' }}>{decision.error.message}</p>}
+        {revise.isError && <p style={{ color: 'var(--danger-ink)' }}>{revise.error.message}</p>}
+        {revise.isSuccess && <p role="status" style={{ color: 'var(--good-ink)', fontWeight: 700 }}>Saved. Kids see the new version now.</p>}
+
+        {live && (
+          <div style={{ display: 'grid', gap: 8 }}>
+            <p className="quiet" style={{ margin: 0 }}>
+              This question is Live. {question.origin === 'Official' ? 'Saving keeps it Live as a new version.' : 'Saving sends it back through review.'}{' '}
+              Difficulty changes go through the review queue.
+            </p>
+            <Button
+              style={{ justifySelf: 'start' }}
+              onClick={() =>
+                revise.mutate({ version, content: writeContent(content), answer: { ...question.answer, value: answerValue.trim() } })
+              }
+              disabled={revise.isPending || !content.stem.trim() || !answerValue.trim()}
+            >
+              Save changes
+            </Button>
+          </div>
+        )}
 
         {waiting && !rejecting && (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -165,7 +216,9 @@ function Review({ questionId }: { questionId: string }) {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
         <h1 style={{ margin: 0, fontSize: 24 }}>{sourceLine(q.source, q.skills.map((s) => s.code))}</h1>
         <span>
-          <Link to="/owner/review">Back to the queue</Link>
+          <Link to={q.status === 'AwaitingOwner' ? '/owner/review' : '/owner/questions'}>
+            {q.status === 'AwaitingOwner' ? 'Back to the queue' : 'Back to all questions'}
+          </Link>
           {index >= 0 && ` · ${index + 1} of ${items.length}`}
         </span>
       </header>
@@ -185,6 +238,7 @@ export function ReviewQuestionPage() {
   return (
     <OwnerOnly>
       <main style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 16px', display: 'grid', gap: 16 }}>
+        <OwnerNav />
         <Review questionId={questionId} />
       </main>
     </OwnerOnly>

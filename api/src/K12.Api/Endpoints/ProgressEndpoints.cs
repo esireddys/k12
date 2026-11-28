@@ -71,10 +71,19 @@ public static class ProgressEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        kids.MapGet("/today", async (
+                Guid kidId, int? count, int? seed, ClaimsPrincipal user,
+                IQueryHandler<GetTodaySetQuery, PracticeSet> handler, CancellationToken ct) =>
+            (await handler.HandleAsync(new GetTodaySetQuery(user.AccountId(), kidId, count, seed), ct)).ToHttp())
+            .WithName("GetTodaySet")
+            .Produces<PracticeSet>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         kids.MapGet("/dashboard", async (
-                Guid kidId, DateOnly? localDate, ClaimsPrincipal user,
+                Guid kidId, Guid? courseId, DateOnly? localDate, ClaimsPrincipal user,
                 IQueryHandler<GetKidDashboardQuery, KidDashboard> handler, CancellationToken ct) =>
-            (await handler.HandleAsync(new GetKidDashboardQuery(user.AccountId(), kidId, localDate), ct)).ToHttp())
+            (await handler.HandleAsync(new GetKidDashboardQuery(user.AccountId(), kidId, localDate, courseId), ct)).ToHttp())
             .WithName("GetKidDashboard")
             .RequireParentArea()
             .Produces<KidDashboard>()

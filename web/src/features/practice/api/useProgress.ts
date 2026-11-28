@@ -41,18 +41,39 @@ export function useMistakesSet(kidId: string | null, key: string) {
   })
 }
 
+/** A kid's "Today's practice": a few of their mistakes, then their weakest area, then a little of everything. */
+export function useTodaySet(kidId: string | null, request: { count?: number; seed?: number } | null) {
+  return useQuery({
+    queryKey: ['practice', 'today', kidId, request],
+    enabled: !!kidId && !!request,
+    staleTime: Infinity,
+    gcTime: 30 * 60_000,
+    retry: 1,
+    queryFn: async () => {
+      const { data, error } = await api.GET('/api/family/kids/{kidId}/today', {
+        params: { path: { kidId: kidId! }, query: { count: request!.count, seed: request!.seed } },
+      })
+      if (error || !data) throw new Error(error?.detail ?? "Could not load today's practice")
+      return data
+    },
+  })
+}
+
 /**
  * Scores answers for whoever is practicing. A kid's answers go to their history and progress; a guest's are only
  * scored, and nothing is saved. Both get the same result back, so the screens do not care which.
  */
-export function useSessionScoring({ learner, mode, source, title }: {
+export function useSessionScoring({ learner, mode, source, title, sessionId: keptId }: {
   learner: Learner
   mode: 'practice' | 'exam'
   source: string
   title: string
+  /** The set's id when it was started earlier (a practice set picked up after a refresh). */
+  sessionId?: string
 }) {
   const queryClient = useQueryClient()
-  const [sessionId] = useState(() => crypto.randomUUID())
+  const [newId] = useState(() => crypto.randomUUID())
+  const sessionId = keptId ?? newId
   // Time since the last batch, so each answer's time is counted once.
   const since = useRef<number | null>(null)
   if (since.current === null) since.current = Date.now()

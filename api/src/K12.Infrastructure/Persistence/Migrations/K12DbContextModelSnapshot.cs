@@ -176,6 +176,46 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.ToTable("Questions", "content");
                 });
 
+            modelBuilder.Entity("K12.Domain.Content.Reports.QuestionReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ClosedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("QuestionVersion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset>("ReportedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Reporter")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("ClosedAt", "ReportedAt");
+
+                    b.ToTable("QuestionReports", "content");
+                });
+
             modelBuilder.Entity("K12.Domain.Curriculum.Course", b =>
                 {
                     b.Property<Guid>("Id")
@@ -536,6 +576,15 @@ namespace K12.Infrastructure.Persistence.Migrations
                     b.Navigation("OwnerDecision");
                 });
 
+            modelBuilder.Entity("K12.Domain.Content.Reports.QuestionReport", b =>
+                {
+                    b.HasOne("K12.Domain.Content.Question", null)
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("K12.Domain.Curriculum.Course", b =>
                 {
                     b.OwnsMany("K12.Domain.Curriculum.ReportingCategory", "Categories", b1 =>
@@ -545,6 +594,10 @@ namespace K12.Infrastructure.Persistence.Migrations
 
                             b1.Property<int>("Number")
                                 .HasColumnType("int");
+
+                            b1.Property<string>("KidName")
+                                .HasMaxLength(60)
+                                .HasColumnType("nvarchar(60)");
 
                             b1.Property<string>("Name")
                                 .IsRequired()

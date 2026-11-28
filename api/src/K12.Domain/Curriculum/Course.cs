@@ -14,7 +14,13 @@ public readonly record struct CourseId(Guid Value)
 public enum CourseKind { Grade, Course }
 
 /// <summary>A group of skills that a test reports on, numbered within its course (for example 1 to 4).</summary>
-public sealed record ReportingCategory(int Number, string Name);
+/// <param name="Name">The framework's own name, for parents and owners.</param>
+/// <param name="KidName">A short everyday name for kids ("Shapes and measuring"), from curriculum data. Empty means use <paramref name="Name"/>.</param>
+public sealed record ReportingCategory(int Number, string Name, string? KidName = null)
+{
+    /// <summary>The name kids see: the short one when curriculum data gives it.</summary>
+    public string NameForKids => string.IsNullOrWhiteSpace(KidName) ? Name : KidName;
+}
 
 /// <summary>
 /// One subject at one level in one jurisdiction, for example Texas Grade 3 math or Texas Algebra I.
@@ -76,6 +82,9 @@ public sealed class Course : AggregateRoot<CourseId>
 
     public const int Kindergarten = 0, LastGrade = 12;
 
+    /// <summary>Short enough to fit on a kid's progress bar.</summary>
+    public const int MaxKidNameLength = 60;
+
     public static Course Create(
         string jurisdiction, string subject, string code, string name,
         string frameworkCode, string frameworkName, IEnumerable<ReportingCategory> categories, string language = DefaultLanguage)
@@ -93,12 +102,16 @@ public sealed class Course : AggregateRoot<CourseId>
             throw new DomainException("Reporting category numbers must be unique within a course.");
         if (list.Any(c => string.IsNullOrWhiteSpace(c.Name)))
             throw new DomainException("Every reporting category needs a name.");
+        if (list.Any(c => c.KidName is { Length: > MaxKidNameLength }))
+            throw new DomainException($"A category's name for kids is at most {MaxKidNameLength} characters.");
 
         Name = Required(name, "name");
         FrameworkCode = Required(frameworkCode, "framework code");
         FrameworkName = Required(frameworkName, "framework name");
         _categories.Clear();
-        _categories.AddRange(list.OrderBy(c => c.Number));
+        _categories.AddRange(list
+            .Select(c => c with { KidName = string.IsNullOrWhiteSpace(c.KidName) ? null : c.KidName.Trim() })
+            .OrderBy(c => c.Number));
     }
 
     /// <summary>Sets the name students see for the jurisdiction. Comes from curriculum data, never from code.</summary>

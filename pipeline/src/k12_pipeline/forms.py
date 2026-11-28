@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from .extract import ExtractedItem
@@ -15,6 +16,19 @@ def form_slug(test: ReleasedTest, subject: str) -> str:
 
 
 GRIDDED_KINDS = {"Integer", "Decimal"}
+
+_UNIT = (
+    r"(?:square |cubic )?(?:feet|foot|inch(?:es)?|yards?|miles?|(?:centi|milli|kilo)?meters?|units?"
+    r"|(?:kilo)?grams?|pounds?|ounces?|(?:milli)?liters?|cups?|pints?|quarts?|gallons?"
+    r"|seconds?|minutes?|hours?|days?|weeks?|months?|years?|dollars?|cents?|degrees(?: Fahrenheit| Celsius)?)"
+)
+_UNIT_PHRASE = re.compile(rf"\bin ({_UNIT})(?=[\s,?.]|$)", re.IGNORECASE)
+
+
+def answer_unit(stem: str) -> str | None:
+    """The unit a typed answer is asked in ("What is the area in square feet?"), the last one the stem names."""
+    found = _UNIT_PHRASE.findall(stem or "")
+    return found[-1].lower() if found else None
 
 
 def _answer(row: KeyRow, gridded_kind: str | None) -> dict[str, Any]:
@@ -65,6 +79,9 @@ def form_payload(
             content["choices"] = [{"label": c.label, "text": c.text} for c in item.choices]
             # The answer buttons show the choice text, and the picture stops above the choices.
             content["choicesAreText"] = item.choices_are_text
+        elif unit := answer_unit(item.stem):
+            # Shown beside the answer box, so a kid knows "64" means 64 square feet.
+            content["unit"] = unit
         entry: dict[str, Any] = {
             "number": row.item,
             "skillCodes": [row.skill],

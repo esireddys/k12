@@ -9,8 +9,9 @@ namespace K12.Application.Progress;
 /// <summary>How a kid is doing in one reporting category. Names come from curriculum data.</summary>
 /// <param name="Accuracy">Share of all answers in the category that were right, 0 to 100; empty before any answer.</param>
 /// <param name="QuestionCount">Live questions in the category, so a parent sees how much there is to practice.</param>
+/// <param name="KidName">The short everyday name kids see; <paramref name="Name"/> is the framework's, for parents.</param>
 public sealed record CategoryView(
-    int Number, string Name, MasteryLevel Level, int Answered, int Correct, int? Accuracy, int QuestionCount);
+    int Number, string Name, MasteryLevel Level, int Answered, int Correct, int? Accuracy, int QuestionCount, string KidName = "");
 
 internal static class CategoryViews
 {
@@ -30,10 +31,11 @@ internal static class CategoryViews
         var standings = CategoryProgress.From(course.Categories.Select(c => c.Number), placed);
         var counts = liveInCourse.Select(q => StudentQuestions.CategoryOf(q, skills)).Where(n => n is not null)
             .GroupBy(n => n!.Value).ToDictionary(g => g.Key, g => g.Count());
-        var names = course.Categories.ToDictionary(c => c.Number, c => c.Name);
+        var byNumber = course.Categories.ToDictionary(c => c.Number);
 
         return standings.Select(s => new CategoryView(
-            s.Category, names[s.Category], s.Level, s.Answered, s.Correct, s.Accuracy, counts.GetValueOrDefault(s.Category))).ToList();
+            s.Category, byNumber[s.Category].Name, s.Level, s.Answered, s.Correct, s.Accuracy, counts.GetValueOrDefault(s.Category),
+            byNumber[s.Category].NameForKids)).ToList();
     }
 
     /// <summary>Live questions tagged to the course's skills.</summary>

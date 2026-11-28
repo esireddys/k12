@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import type { CatalogCourse } from '../../../shared/catalog/useCatalog'
+import { categoryKidName, type CatalogCourse } from '../../../shared/catalog/useCatalog'
+import type { Learner } from '../../../shared/learner/learner'
 import { Button } from '../../../shared/ui/Button'
 import type { ScoredResponse, StudentQuestion } from '../api/usePractice'
 import { QuestionPicture } from './QuestionView'
+import { resultMessage, timeText } from '../model/results'
+import { sessionUrl } from '../model/session'
 import { sourceText } from '../model/source'
 
 /** The kid's pick with its value ("B · 16") when the choices are plain text. */
@@ -19,29 +22,38 @@ export function Results({
   course,
   questions,
   scored,
+  retried = {},
   responses,
   minutes,
+  learner,
   onAgain,
 }: {
   title: string
   course: CatalogCourse
   questions: StudentQuestion[]
+  /** The first try at each question: what the score counts. */
   scored: Record<string, ScoredResponse>
+  /** Practice only: the second try after a first miss. */
+  retried?: Record<string, ScoredResponse>
   responses: Record<string, string>
   minutes?: number
+  learner: Learner
   onAgain: () => void
 }) {
   const [filter, setFilter] = useState<'missed' | 'all'>('missed')
   const total = questions.length
   const correct = questions.filter((q) => scored[q.id]?.isCorrect).length
-  const percent = total ? Math.round((correct / total) * 100) : 0
+  // Answered means checked in practice (a miss clears the box for the second try) or filled in on a test.
+  const answered = questions.filter((q) => scored[q.id]?.answered).length
+  const missedAnswered = answered - correct
   const missed = questions.filter((q) => !scored[q.id]?.isCorrect)
   const shown = filter === 'missed' ? missed : questions
+  const canFix = learner.kind === 'kid' && missedAnswered > 0
 
   const byCategory = course.categories
     .map((cat) => {
       const inCat = questions.filter((q) => Number(q.category) === cat.number)
-      return { name: cat.name, total: inCat.length, correct: inCat.filter((q) => scored[q.id]?.isCorrect).length }
+      return { name: categoryKidName(cat), total: inCat.length, correct: inCat.filter((q) => scored[q.id]?.isCorrect).length }
     })
     .filter((c) => c.total > 0)
 
@@ -50,15 +62,21 @@ export function Results({
       <div className="row" style={{ alignItems: 'stretch', gap: 18 }}>
         <div className="card" style={{ flex: '1 1 280px', alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
           <div className="eyebrow">{title} · Finished</div>
-          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1 }}>
+          <div style={{ fontSize: 64, fontWeight: 800, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {correct} / {total}
           </div>
-          <p style={{ fontSize: 20 }}>
-            {percent >= 80 ? 'Great work!' : percent >= 60 ? 'Nice effort!' : 'Keep practicing!'} {percent}%.
-          </p>
-          {minutes != null && <p>Time {minutes} min</p>}
+          <div className="quiet">right</div>
+          <p style={{ fontSize: 20 }}>{resultMessage({ total, answered, correct })}</p>
+          {minutes != null && <p>Time: {timeText(minutes)}</p>}
           <div className="row" style={{ justifyContent: 'center' }}>
-            <Button onClick={onAgain}>Try another set</Button>
+            {canFix ? (
+              <Link to={sessionUrl('practice', { source: 'Mistakes' })} className="button-link">
+                Fix these {missedAnswered} now
+              </Link>
+            ) : null}
+            <Button variant={canFix ? 'secondary' : 'primary'} onClick={onAgain}>
+              Try another set
+            </Button>
             <Link to="/home" style={{ fontWeight: 800, padding: '12px 8px' }}>
               Back home
             </Link>
@@ -93,6 +111,7 @@ export function Results({
       {shown.length === 0 && <p className="quiet">Nothing missed. Every answer was right!</p>}
       {shown.map((q) => {
         const r = scored[q.id]
+        const second = retried[q.id]
         const n = questions.indexOf(q) + 1
         const said = responses[q.id]
         return (
@@ -103,14 +122,16 @@ export function Results({
                 {q.skillDescription ? ` · ${q.skillDescription}` : ''}
               </strong>
               <span className="chip" style={r?.isCorrect ? { background: 'var(--good-soft)', color: 'var(--good-ink)' } : { background: 'var(--miss-soft)', color: 'var(--miss-ink)' }}>
-                {r?.isCorrect ? 'Correct' : said ? 'Missed' : 'Not answered'}
+                {r?.isCorrect ? 'Correct' : second?.isCorrect ? 'Right on the second try' : r?.answered ? 'Missed' : 'Not answered'}
               </span>
             </div>
             {r && (
               <div className="row" style={{ fontSize: 17 }}>
-                <span>
-                  You said: <strong>{said ? pickedText(q, said) : '(blank)'}</strong>
-                </span>
+                {said && (
+                  <span>
+                    You said: <strong>{pickedText(q, said)}</strong>
+                  </span>
+                )}
                 <span>
                   Correct: <strong style={{ color: 'var(--good-ink)' }}>{answerText(r)}</strong>
                 </span>
