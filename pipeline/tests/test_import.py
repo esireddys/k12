@@ -5,7 +5,7 @@ import pymupdf
 import pytest
 
 from k12_pipeline.curriculum import course_payload, load_curriculum
-from k12_pipeline.extract import extract_items, render_item
+from k12_pipeline.extract import FOOTER_TOP, extract_items, render_item
 from k12_pipeline.forms import answer_unit, form_payload, form_slug
 from k12_pipeline.keys import KeyRow, load_key
 from k12_pipeline.sources import RELEASED_TESTS, ReleasedTest
@@ -165,6 +165,45 @@ def test_a_whole_number_grid_refuses_a_decimal_key(tmp_path):
     key = [KeyRow(1, 1, "r", "s", "B"), KeyRow(2, 2, "r", "s", "4.5")]
     with pytest.raises(ValueError, match="not a whole number"):
         form_payload(whole, "math", key, extract_items(_pdf(tmp_path), 2), {1: "a", 2: "b"})
+
+
+def _low_items_pdf(tmp_path: Path) -> Path:
+    """Laid out like the Algebra I forms: the last item on a page runs into the footer band, with its
+    "Record your answer" line below FOOTER_TOP, next to the GO ON arrow; the last page ends with the notice."""
+    doc = pymupdf.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((60, 100), "1 Which value is greatest?", fontname="hebo", fontsize=11)
+    for i, label in enumerate("ABCD"):
+        page.insert_text((75, 130 + 20 * i), f"{label} {i + 1}", fontname="hebo", fontsize=11)
+    page.insert_text((60, 712), "2 What is the value of p?", fontname="hebo", fontsize=11)
+    page.insert_text((75, 738), "Record your answer and fill in the bubbles on your answer document.",
+                     fontname="helv", fontsize=11)
+    page.insert_text((470, 740), "GO ON", fontname="hebo", fontsize=11)
+    page.insert_text((36, 756), "Algebra I", fontname="helv", fontsize=10)
+    page.insert_text((36, 768), "Page 7", fontname="helv", fontsize=12)
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((60, 100), "3 Which choice is last?", fontname="hebo", fontsize=11)
+    for i, label in enumerate("ABCD"):
+        page.insert_text((75, 130 + 20 * i), f"{label} {i + 1}", fontname="hebo", fontsize=11)
+    page.insert_text((150, 700), "BE SURE YOU HAVE RECORDED ALL OF YOUR ANSWERS", fontname="helv", fontsize=11)
+    page.insert_text((36, 768), "Page 8", fontname="helv", fontsize=12)
+    path = tmp_path / "low.pdf"
+    doc.save(path)
+    return path
+
+
+def test_a_gridded_item_whose_record_line_sits_in_the_footer_band_is_still_gridded(tmp_path):
+    items = extract_items(_low_items_pdf(tmp_path), 3)
+    low = items[1]
+    assert low.griddable and low.stem == "What is the value of p?" and low.choices == []
+    assert low.bottom > FOOTER_TOP  # the picture may reach down to the record line
+    assert "GO ON" not in low.stem and "Page" not in low.stem
+
+
+def test_the_end_of_test_notice_is_not_part_of_the_last_item(tmp_path):
+    last = extract_items(_low_items_pdf(tmp_path), 3)[2]
+    assert [c.text for c in last.choices] == ["1", "2", "3", "4"]
+    assert last.bottom < 700
 
 
 def test_missing_items_are_an_error(tmp_path):
