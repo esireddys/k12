@@ -9,6 +9,7 @@ from pathlib import Path
 import httpx
 
 from .curriculum import course_payload, load_curriculum
+from .downloads import check_downloads, format_report, open_missing
 from .extract import extract_items, render_item
 from .forms import form_payload, form_slug
 from .keys import load_key
@@ -97,6 +98,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="k12-pipeline")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("sources", help="List the released tests the importer knows about")
+    dl = sub.add_parser("downloads", help="List the test PDFs still to download by hand, with links and folders")
+    dl.add_argument("--data", type=Path, default=DATA, help="Folder with raw (the downloaded PDFs)")
+    dl.add_argument("--all", action="store_true", help="Also list the PDFs that are already downloaded")
+    dl.add_argument("--open", action="store_true",
+                    help="Open each missing PDF's link in your browser and make its folder; you save it by hand")
     imp = sub.add_parser("import", help="Load curriculum and released tests into the API")
     imp.add_argument("--api", default="http://localhost:5143", help="API base URL (Development only for now)")
     imp.add_argument("--data", type=Path, default=DATA, help="Folder with curriculum, keys and raw")
@@ -116,6 +122,13 @@ def main() -> None:
         for t in RELEASED_TESTS:
             print(f"{t.jurisdiction} {t.exam} {t.level} {t.subject} {t.year} {t.season} tagged={t.tagged} {t.url}"
                   f"\n    save as {t.expected_path(Path('data') / 'raw')}")
+    elif args.command == "downloads":
+        statuses = check_downloads(RELEASED_TESTS, args.data / "raw")
+        print(format_report(statuses, show_all=args.all))
+        if args.open:
+            import webbrowser
+
+            print(f"Opened {open_missing(statuses, webbrowser.open)} links in your browser.")
     elif args.command == "import":
         run_import(args.api, args.data, args.dry_run)
     elif args.command == "publish-released":

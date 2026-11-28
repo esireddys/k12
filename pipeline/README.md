@@ -17,6 +17,20 @@ pytest
 macOS or Linux: `source .venv/bin/activate` instead of the second line. A plain `pip install -e .` installs
 everything the importer and the AI reviewer need; `[dev]` adds pytest and ruff.
 
+## Downloading the test PDFs
+
+TEA does not allow automated downloads, so the PDFs are saved by hand. The helper says which ones are still missing,
+gives each official link and the folder to save it in, and never downloads anything itself:
+
+```bat
+k12-pipeline downloads          :: what is still missing, with link and folder
+k12-pipeline downloads --all    :: also lists the PDFs already in data\raw
+k12-pipeline downloads --open   :: opens each missing link in your browser and makes its folder
+```
+
+Keep the file name the browser gives (the helper also knows the renamed copies TEA sometimes serves), then run
+`k12-pipeline import`. The list comes from `sources.py`; add a row there for each new released test.
+
 ## Importing released tests
 
 What lives where:
